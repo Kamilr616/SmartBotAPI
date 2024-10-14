@@ -1,0 +1,2 @@
+# SmartBotAPI
+SmartBotAPI is a project that integrates an Arduino-based robot with a powerful API server and a user-friendly interface. The system allows real-time control and monitoring of the robot's actions, providing seamless communication between the hardware and software components.
