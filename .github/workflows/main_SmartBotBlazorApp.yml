@@ -31,7 +31,7 @@ jobs:
       with:
         push: true
         tags: smartbotacr.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_eec142dabbe449a1b1473259f71674a9 }}/smartbotblazorapp:${{ github.sha }}
-        file: ./Dockerfile
+        file: ./src/ui/SmartBotBlazorApp/SmartBotBlazorApp/Dockerfile
 
   deploy:
     runs-on: ubuntu-latest
