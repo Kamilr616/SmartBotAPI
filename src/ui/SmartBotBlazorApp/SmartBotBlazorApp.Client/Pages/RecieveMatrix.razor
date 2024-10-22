@@ -53,8 +53,8 @@
 @code {
     private HubConnection? hubConnection;
     private ushort[]? dataFrame;
-    private double avgDistance;
-    private string hubUser;
+    private double avgDistance = 0.0;
+    private string hubUser = "";
 
     protected override async Task OnInitializedAsync()
     {
