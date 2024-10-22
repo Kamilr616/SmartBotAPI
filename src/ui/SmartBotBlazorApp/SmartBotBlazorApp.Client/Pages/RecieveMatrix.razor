@@ -1,0 +1,135 @@
+﻿@page "/matrix-receiver"
+@inject NavigationManager Navigation
+@rendermode InteractiveWebAssembly
+@using System.Text.Json
+@using Microsoft.AspNetCore.SignalR.Client
+@implements IAsyncDisposable
+
+
+<PageTitle>Received Matrix</PageTitle>
+
+
+<div style="display: flex; justify-content: space-between;">
+    <h5>Hub Connection Status</h5>
+    @if (IsConnected)
+    {
+        <p style="color: green;">Connected</p>
+    }
+    else
+    {
+        <p style="color: red;">Disconnected</p>
+    }
+
+    <h5>Average Distance</h5>
+    <p>@avgDistance</p>
+    <h5>User</h5>
+    <p>@hubUser</p>
+</div>
+
+<div style="flex: 1;">
+    <h4>Robot View</h4>
+    <div class="depth-image" style="width: 400px; height: 400px; display: grid; grid-template-columns: repeat(16, 1fr); gap: 0;">
+        @if (dataFrame != null)
+        {
+            for (int i = 0; i < 16; i++)
+            {
+                for (int j = 0; j < 16; j++)
+                {
+                    // Obliczenie indeksu w oryginalnej tablicy
+                    int index = i * 16 + j;
+                    var value = dataFrame[index];
+                    var color = GetColorFromValue(value);
+                    <div class="pixel" style="background-color: @color; width: 25px; height: 25px; margin 0; padding: 0;"></div>
+                }
+            }
+        }
+        else
+        {
+            <p>No data received yet.</p>
+        }
+    </div>
+</div>
+
+@code {
+    private HubConnection? hubConnection;
+    private ushort[]? dataFrame;
+    private double avgDistance;
+    private string hubUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        string apiUrl = "https://smartbotapi.azurewebsites.net";
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl($"{apiUrl}/signalhub") // URL serwera ASP.NET Core SignalR
+            .Build();
+
+        // Nasłuchiwanie na metodę ReceiveMatrix
+        hubConnection.On<string, string, double>("ReceiveMatrix", (user, jsonMatrix, avgDistanceValue) =>
+        {
+            // Deserializacja JSON do tablicy ushort[]
+            dataFrame = JsonSerializer.Deserialize<ushort[]>(jsonMatrix);
+            avgDistance = avgDistanceValue;
+            hubUser = user;
+
+            // Odświeżenie UI po otrzymaniu danych
+            InvokeAsync(StateHasChanged);
+        });
+
+        // Rozpocznij połączenie z SignalR
+        await hubConnection.StartAsync();
+    }
+
+    public bool IsConnected =>
+        hubConnection?.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+    private string GetColorFromValue(ushort value)
+    {
+        // Załóżmy, że maksymalna wartość to 4000
+        double ratio = Math.Clamp(value / (double)4000, 0, 1);
+        int scaledRatio = (int)(ratio * 255);
+
+        int r, g, b;
+
+        if (ratio <= 0.25)
+        {
+            // Pierwsza ćwiartka: od czerwonego do żółtego
+            r = 255;
+            g = scaledRatio * 4; // Zwiększanie zielonego
+            b = 0;
+        }
+        else if (ratio <= 0.5)
+        {
+            // Druga ćwiartka: od żółtego do zielonego
+            r = 255 - ((scaledRatio - 64) * 4); // Redukcja czerwonego
+            g = 255; // Zielony jest maksymalny
+            b = 0;
+        }
+        else if (ratio <= 0.75)
+        {
+            // Trzecia ćwiartka: od zielonego do niebieskiego
+            r = 0; // Czerwony jest minimalny
+            g = 255 - ((scaledRatio - 128) * 4); // Redukcja zielonego
+            b = (scaledRatio - 128) * 4; // Zwiększanie niebieskiego
+        }
+        else
+        {
+            // Czwarta ćwiartka: od niebieskiego do fioletowego
+            r = (scaledRatio - 192) * 4; // Zwiększanie czerwonego
+            g = 0; // Zielony jest minimalny
+            b = 255; // Niebieski jest maksymalny
+        }
+
+        return $"rgb({Math.Clamp(r, 0, 255)}, {Math.Clamp(g, 0, 255)}, {Math.Clamp(b, 0, 255)})";
+    }
+
+
+
+}
