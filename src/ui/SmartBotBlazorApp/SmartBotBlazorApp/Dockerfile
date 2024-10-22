@@ -12,11 +12,11 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["SmartBotBlazorApp/SmartBotBlazorApp.csproj", "SmartBotBlazorApp/"]
-COPY ["SmartBotBlazorApp.Client/SmartBotBlazorApp.Client.csproj", "SmartBotBlazorApp.Client/"]
-RUN dotnet restore "./SmartBotBlazorApp/SmartBotBlazorApp.csproj"
+COPY ["src/ui/SmartBotBlazorApp/SmartBotBlazorApp/SmartBotBlazorApp.csproj", "src/ui/SmartBotBlazorApp/SmartBotBlazorApp/"]
+COPY ["src/ui/SmartBotBlazorApp/SmartBotBlazorApp.Client/SmartBotBlazorApp.Client.csproj", "src/ui/SmartBotBlazorApp/SmartBotBlazorApp.Client/"]
+RUN dotnet restore "./src/ui/SmartBotBlazorApp/SmartBotBlazorApp/SmartBotBlazorApp.csproj"
 COPY . .
-WORKDIR "/src/SmartBotBlazorApp"
+WORKDIR "/src/src/ui/SmartBotBlazorApp/SmartBotBlazorApp"
 RUN dotnet build "./SmartBotBlazorApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
