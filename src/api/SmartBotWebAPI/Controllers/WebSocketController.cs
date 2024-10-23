@@ -99,11 +99,8 @@ namespace SmartBotWebApi.Controllers
                     interpolated[i * targetSize + j] = (ushort)Math.Round(value);
                 }
             }
-
             return interpolated;
         }
-
-
 
         private async Task HandleWebSocketCommunication(WebSocket webSocket)
         {
@@ -119,8 +116,7 @@ namespace SmartBotWebApi.Controllers
                     if (result.MessageType == WebSocketMessageType.Close)
                     {
                         // Close the WebSocket connection gracefully
-                        await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription,
-                            CancellationToken.None);
+                        await webSocket.CloseAsync(result.CloseStatus.Value, result.CloseStatusDescription, CancellationToken.None);
                         _logger.LogInformation("WebSocket connection closed gracefully.");
                         break;
                     }
@@ -134,12 +130,17 @@ namespace SmartBotWebApi.Controllers
 
                             //var interpolatedFrame = InterpolateData(dataFrame);
                             //var avgDistance = dataFrame.Select(x => (double)x).Average();
-                            // _logger.LogInformation($"Average distance: {avgDistance} mm");
                             
                             var interpolationTask = Task.Run(() => InterpolateData(dataFrame));
-                            var averageTask = Task.Run(() => dataFrame.Select(x => (double)x).Average());
+                            //var averageTask = Task.Run(() => dataFrame.Select(x => (double)x).Average());
+                            var averageTask = Task.Run(() =>
+                            {
+                                return (ushort)dataFrame.Select(x => (int)x).Average(x => x);
+                            });
 
                             var jsonMatrix = JsonSerializer.Serialize(interpolationTask.Result);
+                             
+                            //_logger.LogInformation($"Average distance: {averageTask.Result} mm");
 
                             await _hubContext.Clients.All.SendAsync("ReceiveMatrix", "API WS", jsonMatrix, averageTask.Result);
                         }

@@ -24,5 +24,11 @@ namespace SmartBotWebAPI
             // Optionally send a response or acknowledgment back to the client
             await Clients.Caller.SendAsync("ReceiveMessage", "API", "Message received!");
         }
+
+        public async Task ReceiveRawMatrix(string user, string message)
+        {
+            ushort avgDistance = 2000;   
+            await Clients.All.SendAsync("ReceiveMatrix", "API SignalHub", message, avgDistance);
+        }
     }
 }

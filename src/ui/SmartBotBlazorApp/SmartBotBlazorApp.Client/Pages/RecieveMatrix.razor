@@ -1,12 +1,11 @@
 ﻿@page "/matrix-receiver"
-@inject NavigationManager Navigation
 @rendermode InteractiveWebAssembly
 @using System.Text.Json
 @using Microsoft.AspNetCore.SignalR.Client
 @implements IAsyncDisposable
 
 
-<PageTitle>Received Matrix</PageTitle>
+<PageTitle>Live view</PageTitle>
 
 
 <div style="display: flex; justify-content: space-between;">
@@ -27,7 +26,6 @@
 </div>
 
 <div style="flex: 1;">
-    <h4>Robot View</h4>
     <div class="depth-image" style="width: 400px; height: 400px; display: grid; grid-template-columns: repeat(16, 1fr); gap: 0;">
         @if (dataFrame != null)
         {
@@ -35,7 +33,6 @@
             {
                 for (int j = 0; j < 16; j++)
                 {
-                    // Obliczenie indeksu w oryginalnej tablicy
                     int index = i * 16 + j;
                     var value = dataFrame[index];
                     var color = GetColorFromValue(value);
@@ -64,7 +61,7 @@
             .Build();
 
         // Nasłuchiwanie na metodę ReceiveMatrix
-        hubConnection.On<string, string, double>("ReceiveMatrix", (user, jsonMatrix, avgDistanceValue) =>
+        hubConnection.On<string, string, ushort>("ReceiveMatrix", (user, jsonMatrix, avgDistanceValue) =>
         {
             // Deserializacja JSON do tablicy ushort[]
             dataFrame = JsonSerializer.Deserialize<ushort[]>(jsonMatrix);
