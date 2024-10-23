@@ -31,7 +31,7 @@ unsigned long currentMillis;
 
 
 void setLEDColor(uint8_t r = 0, uint8_t g = 0, uint8_t b = 0) {
-  rgbLedWrite(PIN_NEOPIXEL,g,r,b); 
+  rgbLedWrite(PIN_NEOPIXEL, g, r, b);
 }
 
 void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
@@ -44,7 +44,7 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
     case WStype_CONNECTED:
       USE_SERIAL.printf("[WS] Connected to url: %s\n", payload);
       webSocket.sendTXT("Hello from SmartBotDevice");  // Send a greeting message after connection
-      setLEDColor(0, 255, 0);                 // Green
+      setLEDColor(0, 255, 0);                          // Green
       break;
     case WStype_TEXT:
       USE_SERIAL.printf("[WS] Message from server: %s\n", payload);
@@ -123,7 +123,7 @@ void waitForWiFiConnectOrReboot(bool printOnSerial = true, int numOfAttempts = 5
 
 
 void setup() {
-  setLEDColor(0, 0, 0);
+  setLEDColor(255, 0, 128);
   USE_SERIAL.begin(SERIAL_BAUDRATE);
   USE_SERIAL.println();
 
@@ -133,8 +133,8 @@ void setup() {
     delay(500);
   }
 
-  Wire.begin(8, 7);       // Use pins 8 (SDA), 7 (SCL) for I2C
-  Wire.setClock(400000);  // Set I2C frequency to 400kHz
+  Wire.begin(8, 7);         // Use pins 8 (SDA), 7 (SCL) for I2C
+  Wire.setClock(I2C_FREQ);  // Set I2C frequency
 
   pinMode(9, OUTPUT);
   pinMode(0, OUTPUT);
@@ -149,8 +149,10 @@ void setup() {
   //while (!USE_SERIAL);  // Wait for the USE_SERIAL port to connect (only needed for native USB)
   USE_SERIAL.println("USE_SERIAL communication initialized!");
 
-  WiFi.begin(ssid, password);   // Connect to WiFi
+  WiFi.begin(ssid, password);  // Connect to WiFi
   waitForWiFiConnectOrReboot(USE_SERIAL, 50);
+
+  //myImager.setWireMaxPacketSize(128); // Increase default from 32 bytes to 128 - not supported on all platforms
 
   if (myImager.begin() == false) {
     USE_SERIAL.println("Failed to initialize VL53L5CX sensor. Restarting ...");
@@ -159,20 +161,28 @@ void setup() {
     setLEDColor(0, 255, 255);  // Cyan
   }
 
-  myImager.setResolution(imageResolution);  // Set 8x8 resolution (64)
-  myImager.setRangingFrequency(15);         // Set ranging frequency to 15Hz
-  myImager.startRanging();                  // Start ranging
+  myImager.setResolution(imageResolution);
+  myImager.setRangingFrequency(TOF_RANGING_FREQ);
+  myImager.setRangingMode(TOF_RANGING_MODE);
+  myImager.setSharpenerPercent(TOF_SHARPENER_PERCENT);
+  myImager.setTargetOrder(TOF_TARGET_ORDER);
+  myImager.setIntegrationTime(TOF_INTEGRATION_TIME);
+
+  myImager.startRanging();  // Start ranging
 
   webSocket.beginSSL(websocketServer, websocketPort, "/api/WebSocket/ws");  // Initialize WebSocket client
-  webSocket.onEvent(webSocketEvent);                                        // Set event handler
+  webSocket.setReconnectInterval(WS_RECONNECT_INTERVAL);
+  //webSocket.enableHeartbeat(pingInterval,pongTimeout,disconnectTimeoutCount);
+
+  webSocket.onEvent(webSocketEvent);  // Set event handler
   delay(100);
 }
 
 void loop() {
-  webSocket.loop();                                                                             // Handle WebSocket events and communication
-  currentMillis = millis();                                                                     // Get the current time
-  if (myImager.isDataReady() && webSocket.isConnected() && (currentMillis - lastTime >= 100)) {  // Poll the VL53L5CX sensor for new data
-    setLEDColor(64, 64, 64);  // White
+  webSocket.loop();                                                                              // Handle WebSocket events and communication
+  currentMillis = millis();                                                                      // Ge t the current time
+  if (myImager.isDataReady() && webSocket.isConnected() && (currentMillis - lastTime >= 100)) {  // Poll the VL53L5CX sensor for new data  TODO: Attach the interrupt
+    setLEDColor(64, 64, 64);                                                                     // White
     lastTime = currentMillis;
     if (myImager.getRangingData(&measurementData))  // Read distance data into array
     {
