@@ -1,11 +1,12 @@
-﻿@page "/matrix-receiver"
-@rendermode InteractiveWebAssembly
+﻿@page "/matrix-receiver-server"
+@attribute [StreamRendering]
+@rendermode InteractiveServer
 @using System.Text.Json
 @using Microsoft.AspNetCore.SignalR.Client
 @implements IAsyncDisposable
 
 
-<PageTitle>Live view</PageTitle>
+<PageTitle>Live view Server</PageTitle>
 
 
 <div style="display: flex; justify-content: space-between;">
@@ -18,72 +19,82 @@
     {
         <p style="color: red;">Disconnected</p>
     }
-
-    <h5>Average Distance</h5>
-    <p>@avgDistance</p>
-    <h5>User</h5>
-    <p>@hubUser</p>
 </div>
 
-<div style="flex: 1;">
-    <div class="depth-image" style="width: 400px; height: 400px; display: grid; grid-template-columns: repeat(16, 1fr); gap: 0;">
-        @if (dataFrame != null)
-        {
-            for (int i = 0; i < 16; i++)
+@if (_avgDistance == null)
+{
+    <p><em>Waiting for data ...</em></p>
+}
+else
+{
+    <div style="display: flex; justify-content: space-between;">
+        <h5>Average Distance</h5>
+        <p>@_avgDistance mm</p>
+        <h5>User</h5>
+        <p>@_hubUser</p>
+    </div>
+
+    <div style="flex: 1;">
+        <div class="depth-image" style="width: 400px; height: 400px; display: grid; grid-template-columns: repeat(16, 1fr); gap: 0;">
+            @if (_dataFrame != null)
             {
-                for (int j = 0; j < 16; j++)
+                for (int i = 0; i < 16; i++)
                 {
-                    int index = i * 16 + j;
-                    var value = dataFrame[index];
-                    var color = GetColorFromValue(value);
-                    <div class="pixel" style="background-color: @color; width: 25px; height: 25px; margin 0; padding: 0;"></div>
+                    for (int j = 0; j < 16; j++)
+                    {
+                        int index = i * 16 + j;
+                        var value = _dataFrame[index];
+                        var color = GetColorFromValue(value);
+                        <div class="pixel" style="background-color: @color; width: 25px; height: 25px; margin 0; padding: 0;"></div>
+                    }
                 }
             }
-        }
-        else
-        {
-            <p>No data received yet.</p>
-        }
+            else
+            {
+                <p>No data received yet.</p>
+            }
+        </div>
     </div>
-</div>
+}
+
 
 @code {
-    private HubConnection? hubConnection;
-    private ushort[]? dataFrame;
-    private double avgDistance = 0.0;
-    private string hubUser = "";
+    private HubConnection? _hubConnection;
+    private ushort[]? _dataFrame;
+    private ushort? _avgDistance;
+    private string? _hubUser;
 
     protected override async Task OnInitializedAsync()
     {
         string apiUrl = "https://smartbotapi.azurewebsites.net";
-        hubConnection = new HubConnectionBuilder()
+        _hubConnection = new HubConnectionBuilder()
             .WithUrl($"{apiUrl}/signalhub") // URL serwera ASP.NET Core SignalR
             .Build();
 
         // Nasłuchiwanie na metodę ReceiveMatrix
-        hubConnection.On<string, string, ushort>("ReceiveMatrix", (user, jsonMatrix, avgDistanceValue) =>
+        _hubConnection.On<string, string, ushort>("ReceiveMatrix", (user, jsonMatrix, avgDistanceValue) =>
         {
             // Deserializacja JSON do tablicy ushort[]
-            dataFrame = JsonSerializer.Deserialize<ushort[]>(jsonMatrix);
-            avgDistance = avgDistanceValue;
-            hubUser = user;
+            _dataFrame = JsonSerializer.Deserialize<ushort[]>(jsonMatrix);
+            _avgDistance = avgDistanceValue;
+            _hubUser = user;
 
             // Odświeżenie UI po otrzymaniu danych
             InvokeAsync(StateHasChanged);
         });
 
         // Rozpocznij połączenie z SignalR
-        await hubConnection.StartAsync();
+        await _hubConnection.StartAsync();
     }
 
     public bool IsConnected =>
-        hubConnection?.State == HubConnectionState.Connected;
+        _hubConnection?.State == HubConnectionState.Connected;
 
     public async ValueTask DisposeAsync()
     {
-        if (hubConnection is not null)
+        if (_hubConnection is not null)
         {
-            await hubConnection.DisposeAsync();
+            await _hubConnection.DisposeAsync();
         }
     }
 

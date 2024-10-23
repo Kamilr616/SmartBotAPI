@@ -132,7 +132,6 @@ namespace SmartBotWebApi.Controllers
                             //var avgDistance = dataFrame.Select(x => (double)x).Average();
                             
                             var interpolationTask = Task.Run(() => InterpolateData(dataFrame));
-                            //var averageTask = Task.Run(() => dataFrame.Select(x => (double)x).Average());
                             var averageTask = Task.Run(() =>
                             {
                                 return (ushort)dataFrame.Select(x => (int)x).Average(x => x);
