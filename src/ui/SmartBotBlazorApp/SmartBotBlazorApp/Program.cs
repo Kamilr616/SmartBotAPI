@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using SmartBotBlazorApp.Components;
 using SmartBotBlazorApp.Components.Account;
 using SmartBotBlazorApp.Data;
 using Microsoft.AspNetCore.ResponseCompression;
+using SmartBotBlazorApp.Components;
 using SmartBotBlazorApp.Hubs;
 
 
@@ -40,6 +40,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 builder.Services.AddSignalR();
+
+builder.Services.AddScoped<HttpClient>();
 
 
 builder.Services.AddResponseCompression(opts =>
