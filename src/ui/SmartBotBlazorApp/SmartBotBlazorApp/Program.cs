@@ -39,7 +39,9 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
-builder.Services.AddSignalR();
+//builder.Services.AddSignalR();
+
+builder.Services.AddScoped<HttpClient>();
 
 builder.Services.AddScoped<HttpClient>();
 
@@ -81,6 +83,6 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
-app.MapHub<SignalHub>("/signalhub");
+//app.MapHub<SignalHub>("/signalhub");
 
 app.Run();
