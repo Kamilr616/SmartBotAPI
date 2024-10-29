@@ -26,8 +26,8 @@ const int imageWidth = 8;
 const int imageResolution = 64;
 const size_t dataSize = 128;
 
-static unsigned long lastTime = 0;
-unsigned long currentMillis;
+//static unsigned long lastTime = 0;
+//unsigned long currentMillis;
 
 
 void setLEDColor(uint8_t r = 0, uint8_t g = 0, uint8_t b = 0) {
@@ -44,7 +44,7 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
     case WStype_CONNECTED:
       USE_SERIAL.printf("[WS] Connected to url: %s\n", payload);
       webSocket.sendTXT("Hello from SmartBotDevice");  // Send a greeting message after connection
-      setLEDColor(0, 255, 0);                          // Green
+      setLEDColor(0, 255, 0);                                          // Green
       break;
     case WStype_TEXT:
       USE_SERIAL.printf("[WS] Message from server: %s\n", payload);
@@ -91,6 +91,7 @@ void packRangingData(uint8_t *data, const VL53L5CX_ResultsData &measurementData,
     for (int x = 0; x < width; x++) {
       index = x + y;
       distance = measurementData.distance_mm[index];
+      
       data[z++] = distance & 0xFF;         // Low byte
       data[z++] = (distance >> 8) & 0xFF;  // High byte
     }
@@ -152,8 +153,6 @@ void setup() {
   WiFi.begin(ssid, password);  // Connect to WiFi
   waitForWiFiConnectOrReboot(USE_SERIAL, 50);
 
-  //myImager.setWireMaxPacketSize(128); // Increase default from 32 bytes to 128 - not supported on all platforms
-
   if (myImager.begin() == false) {
     USE_SERIAL.println("Failed to initialize VL53L5CX sensor. Restarting ...");
     ESP.restart();
@@ -168,28 +167,27 @@ void setup() {
   myImager.setTargetOrder(TOF_TARGET_ORDER);
   myImager.setIntegrationTime(TOF_INTEGRATION_TIME);
 
-  myImager.startRanging();  // Start ranging
 
   webSocket.beginSSL(websocketServer, websocketPort, "/api/WebSocket/ws");  // Initialize WebSocket client
   webSocket.setReconnectInterval(WS_RECONNECT_INTERVAL);
-  //webSocket.enableHeartbeat(pingInterval,pongTimeout,disconnectTimeoutCount);
-
+  //webSocket.enableHeartbeat(pingInterval,pongTimeout,disconnectTimeoutCount); // TODO
   webSocket.onEvent(webSocketEvent);  // Set event handler
+
+  myImager.startRanging();  // Start ranging
   delay(100);
 }
 
 void loop() {
-  webSocket.loop();                                                                              // Handle WebSocket events and communication
-  currentMillis = millis();                                                                      // Ge t the current time
-  if (myImager.isDataReady() && webSocket.isConnected() && (currentMillis - lastTime >= 100)) {  // Poll the VL53L5CX sensor for new data  TODO: Attach the interrupt
-    setLEDColor(64, 64, 64);                                                                     // White
-    lastTime = currentMillis;
-    if (myImager.getRangingData(&measurementData))  // Read distance data into array
+  webSocket.loop();  // Handle WebSocket events and communication
+  //currentMillis = millis();                                                                      // Get the current time
+  if (myImager.isDataReady() && webSocket.isConnected()) {  // Poll the VL53L5CX sensor for new data  TODO: Attach the interrupt
+    setLEDColor(64, 0, 64);                                 // White
+    if (myImager.getRangingData(&measurementData))          // Read distance data into array
     {
       uint8_t data[dataSize];
       packRangingData(data, measurementData, imageWidth);
       webSocket.sendBIN(data, dataSize);
     }
-    setLEDColor(0, 255, 0);  // Green
+    setLEDColor(0, 128, 0);  // Green
   }
 }
