@@ -15,7 +15,6 @@ namespace SmartBotWebApi.Controllers
         private readonly ILogger<WebSocketController> _logger;
         private readonly IHubContext<SignalHub> _hubContext;
 
-        // Injecting into the controller
         public WebSocketController(ILogger<WebSocketController> logger, IHubContext<SignalHub> hubContext)
         {
             _logger = logger;
