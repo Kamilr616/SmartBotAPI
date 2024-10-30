@@ -9,6 +9,8 @@
 #include <WebSocketsClient.h>           //"WebSockets" by Markus Sattler  TODO: check deprecated func
 #include <Wire.h>                       // I2C
 #include <SparkFun_VL53L5CX_Library.h>  // "SparkFun VL53L5CX Arduino Library" by SparkFun
+#include <ArduinoJson.h>
+
 #include "arduino_secrets.h"
 #include "config.h"
 
@@ -80,26 +82,36 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
       break;
   }
 }
-String createRangingDataString(const VL53L5CX_ResultsData &measurementData, const int width = 8, const int resolution = 64) {
-  String jsonString = "{\"type\":1,\"target\":\"ReceiveRawMatrix\",\"arguments\":[\"Robot\",\"[";
-  uint16_t avgDistance = 0;
-  uint16_t distance;
 
+String createRangingDataString(const VL53L5CX_ResultsData &measurementData, const int width = 8, const int resolution = 64) {
+  // Zdefiniuj obiekt JSON
+  StaticJsonDocument<512> doc;
+
+  // Ustawienie podstawowych danych JSON
+  doc["type"] = 1;
+  doc["target"] = "ReceiveRawMatrix";
+  doc["arguments"][0] = "Robot";
+
+  // Serializacja danych odległości do tablicy JSON
+  JsonArray distances = doc["arguments"][1].to<JsonArray>();
+  uint16_t avgDistance = 0;
+
+  // Iteruj przez dane i dodaj je do tablicy JSON
   for (int y = (width * (width - 1)), z = 0; y >= 0; y -= width) {
     for (int x = 0; x < width; x++) {
-      distance = measurementData.distance_mm[x + y];
-      jsonString += String(distance);
+      uint16_t distance = measurementData.distance_mm[x + y];
+      distances.add(distance);
       avgDistance += distance;
-
-      if (z < (resolution - 1)) {
-        jsonString += ",";
-      }
-      z++;
     }
   }
-  jsonString += "]\",";
-  jsonString += String(avgDistance / resolution);
-  jsonString += "]}";
+
+  // Dodaj średnią odległość do JSON
+  doc["arguments"][2] = avgDistance / resolution;
+
+  // Serializuj JSON do stringu
+  String jsonString;
+  serializeJson(doc, jsonString);
+  jsonString += ""; // Dodanie znacznika zakończenia, jeśli jest wymagany
 
   return jsonString;
 }
