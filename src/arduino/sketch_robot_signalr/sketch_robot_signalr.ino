@@ -80,18 +80,17 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
       break;
   }
 }
-String createRangingDataString(const VL53L5CX_ResultsData &measurementData, const int width = 8) {
+String createRangingDataString(const VL53L5CX_ResultsData &measurementData, const int width = 8, const int resolution = 64) {
   String jsonString = "{\"type\":1,\"target\":\"ReceiveRawMatrix\",\"arguments\":[\"Robot\",\"[";
-  const int resolution = (width * width);
   uint16_t avgDistance = 0;
   uint16_t distance;
-  // Przekształcenie danych i jednoczesne tworzenie stringu JSON
+
   for (int y = (width * (width - 1)), z = 0; y >= 0; y -= width) {
     for (int x = 0; x < width; x++) {
       distance = measurementData.distance_mm[x + y];
       jsonString += String(distance);
       avgDistance += distance;
-      // Dodanie przecinka między wartościami, jeśli to nie jest ostatni element
+
       if (z < (resolution - 1)) {
         jsonString += ",";
       }
@@ -190,7 +189,7 @@ void loop() {
     setLEDColor(64, 0, 64);                                 // White
     if (myImager.getRangingData(&measurementData))          // Read distance data into array
     {
-      String data = createRangingDataString(measurementData, imageWidth);
+      String data = createRangingDataString(measurementData, imageWidth, imageResolution);
       webSocket.sendTXT(data);
     }
     setLEDColor(0, 128, 0);  // Green

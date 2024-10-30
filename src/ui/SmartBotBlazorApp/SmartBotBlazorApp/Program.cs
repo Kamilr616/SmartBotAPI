@@ -40,8 +40,8 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 
 //builder.Services.AddSignalR();
 
-builder.Services.AddScoped<HttpClient>();
-
+var baseUrl = builder.Configuration["Api:BaseUrl"];
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseUrl) });
 
 builder.Services.AddResponseCompression(opts =>
 {
