@@ -24,7 +24,7 @@ VL53L5CX_ResultsData measurementData;  // Result data class structure, 1356 byte
 
 const int imageWidth = 8;
 const int imageResolution = 64;
-const size_t dataSize = 128;
+//const size_t dataSize = 128;
 
 //static unsigned long lastTime = 0;
 //unsigned long currentMillis;
@@ -43,7 +43,7 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
       break;
     case WStype_CONNECTED:
       USE_SERIAL.printf("[WS] Connected to url: %s\n", payload);
-      webSocket.sendTXT("Hello from SmartBotDevice");  // Send a greeting message after connection
+      webSocket.sendTXT("{\"protocol\": \"json\", \"version\": 1}");  // Signalr protocol
       setLEDColor(0, 255, 0);                                          // Green
       break;
     case WStype_TEXT:
@@ -80,22 +80,28 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
       break;
   }
 }
-
-//TODO : replace int with uint8_t
-void packRangingData(uint8_t *data, const VL53L5CX_ResultsData &measurementData, const int width = 8) {
-  int index;
+String createRangingDataString(const VL53L5CX_ResultsData &measurementData, const int width = 8, const int resolution = 64) {
+  String jsonString = "{\"type\":1,\"target\":\"ReceiveRawMatrix\",\"arguments\":[\"Robot\",\"[";
+  uint16_t avgDistance = 0;
   uint16_t distance;
-  int z = 0;
 
-  for (int y = (width * (width - 1)); y >= 0; y -= width) {
+  for (int y = (width * (width - 1)), z = 0; y >= 0; y -= width) {
     for (int x = 0; x < width; x++) {
-      index = x + y;
-      distance = measurementData.distance_mm[index];
-      
-      data[z++] = distance & 0xFF;         // Low byte
-      data[z++] = (distance >> 8) & 0xFF;  // High byte
+      distance = measurementData.distance_mm[x + y];
+      jsonString += String(distance);
+      avgDistance += distance;
+
+      if (z < (resolution - 1)) {
+        jsonString += ",";
+      }
+      z++;
     }
   }
+  jsonString += "]\",";
+  jsonString += String(avgDistance / resolution);
+  jsonString += "]}";
+
+  return jsonString;
 }
 
 void waitForWiFiConnectOrReboot(bool printOnSerial = true, int numOfAttempts = 50) {
@@ -153,8 +159,6 @@ void setup() {
   WiFi.begin(ssid, password);  // Connect to WiFi
   waitForWiFiConnectOrReboot(USE_SERIAL, 50);
 
-  //myImager.setWireMaxPacketSize(128); // Increase default from 32 bytes to 128 - not supported on all platforms
-
   if (myImager.begin() == false) {
     USE_SERIAL.println("Failed to initialize VL53L5CX sensor. Restarting ...");
     ESP.restart();
@@ -169,8 +173,7 @@ void setup() {
   myImager.setTargetOrder(TOF_TARGET_ORDER);
   myImager.setIntegrationTime(TOF_INTEGRATION_TIME);
 
-
-  webSocket.beginSSL(websocketServer, websocketPort, "/api/WebSocket/ws");  // Initialize WebSocket client
+  webSocket.beginSSL(websocketServer, websocketPort, "/signalhub");  // Initialize WebSocket client
   webSocket.setReconnectInterval(WS_RECONNECT_INTERVAL);
   //webSocket.enableHeartbeat(pingInterval,pongTimeout,disconnectTimeoutCount); // TODO
   webSocket.onEvent(webSocketEvent);  // Set event handler
@@ -186,9 +189,8 @@ void loop() {
     setLEDColor(64, 0, 64);                                 // White
     if (myImager.getRangingData(&measurementData))          // Read distance data into array
     {
-      uint8_t data[dataSize];
-      packRangingData(data, measurementData, imageWidth);
-      webSocket.sendBIN(data, dataSize);
+      String data = createRangingDataString(measurementData, imageWidth, imageResolution);
+      webSocket.sendTXT(data);
     }
     setLEDColor(0, 128, 0);  // Green
   }

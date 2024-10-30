@@ -2,6 +2,7 @@
 @rendermode InteractiveWebAssembly
 @using Microsoft.AspNetCore.SignalR.Client
 @implements IAsyncDisposable
+@inject IConfiguration Configuration
 
 
 <PageTitle>Chat</PageTitle>
@@ -45,10 +46,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        string apiUrl = "https://smartbotapi.azurewebsites.net";
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl($"{apiUrl}/signalhub")
-            .Build();
+        var hubUrl = @Configuration["Api:HubURL"];
+
+            hubConnection = new HubConnectionBuilder()
+                .WithUrl(hubUrl)
+                .Build();
+
+
 
         hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
         {
@@ -56,7 +60,7 @@ else
             messages.Add(encodedMsg);
             InvokeAsync(StateHasChanged);
         });
-
+        
         await hubConnection.StartAsync();
     }
 

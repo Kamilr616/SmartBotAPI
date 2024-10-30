@@ -44,8 +44,15 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        string apiUrl = "https://smartbotapi.azurewebsites.net";
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>($"{apiUrl}/api/weatherforecast");
+        try
+        {
+            forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>(Http.BaseAddress + "/WeatherForecast");
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
     }
 
     private class WeatherForecast
