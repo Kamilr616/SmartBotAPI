@@ -71,9 +71,9 @@ else
             .WithUrl(@Configuration["Api:HubURL"]) 
             .Build();
 
-        _hubConnection.On<string, string, ushort>("ReceiveMatrix", (user, jsonMatrix, avgDistanceValue) =>
+        _hubConnection.On<string, ushort[], ushort>("ReceiveMatrix", (user, jsonMatrix, avgDistanceValue) =>
         {
-            _dataFrame = JsonSerializer.Deserialize<ushort[]>(jsonMatrix);
+            _dataFrame = jsonMatrix;
             _avgDistance = avgDistanceValue;
             _hubUser = user;
 
