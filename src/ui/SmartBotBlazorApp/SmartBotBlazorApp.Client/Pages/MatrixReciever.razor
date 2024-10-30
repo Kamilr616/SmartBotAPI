@@ -1,8 +1,9 @@
 ﻿@page "/matrix-receiver"
-@rendermode InteractiveAuto
+@rendermode InteractiveWebAssembly
 @using System.Text.Json
 @using Microsoft.AspNetCore.SignalR.Client
 @implements IAsyncDisposable
+@inject IConfiguration Configuration
 
 
 <PageTitle>Live view WebAssembly</PageTitle>
@@ -65,24 +66,20 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        string apiUrl = "https://smartbotapi.azurewebsites.net";
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl($"{apiUrl}/signalhub") // URL serwera ASP.NET Core SignalR
-            .Build();
+                .WithUrl(@Configuration["Api:HubURL"])
+                .Build();
+        
 
-        // Nasłuchiwanie na metodę ReceiveMatrix
         _hubConnection.On<string, string, ushort>("ReceiveMatrix", (user, jsonMatrix, avgDistanceValue) =>
         {
-            // Deserializacja JSON do tablicy ushort[]
             _dataFrame = JsonSerializer.Deserialize<ushort[]>(jsonMatrix);
             _avgDistance = avgDistanceValue;
             _hubUser = user;
 
-            // Odświeżenie UI po otrzymaniu danych
             InvokeAsync(StateHasChanged);
         });
 
-        // Rozpocznij połączenie z SignalR
         await _hubConnection.StartAsync();
     }
 
@@ -99,7 +96,6 @@ else
 
     private string GetColorFromValue(ushort value)
     {
-        // Załóżmy, że maksymalna wartość to 4000
         double ratio = Math.Clamp(value / (double)4000, 0, 1);
         int scaledRatio = (int)(ratio * 255);
 
