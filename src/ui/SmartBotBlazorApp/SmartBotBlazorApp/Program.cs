@@ -5,7 +5,6 @@ using SmartBotBlazorApp.Components.Account;
 using SmartBotBlazorApp.Data;
 using Microsoft.AspNetCore.ResponseCompression;
 using SmartBotBlazorApp.Components;
-using SmartBotBlazorApp.Hubs;
 
 
 var builder = WebApplication.CreateBuilder(args);
