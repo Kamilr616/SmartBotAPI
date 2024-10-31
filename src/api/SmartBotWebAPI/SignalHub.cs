@@ -18,22 +18,21 @@ namespace SmartBotWebAPI
             await Clients.Caller.SendAsync("ReceiveMessage", "API", "Message received!");
         }
 
-        public async Task ReceiveRawMatrix(string user, ushort[] message, ushort _avgDistance)
+        public async Task ReceiveRawMatrix(string user, ushort[] message)
         {
-            var (interpolatedData, avgDistance) = InterpolateDataAvgTuple(message);
+            var (interpolatedData, avgDistance) = InterpolateDataAvgTuple(message, 32);
 
             await Clients.Others.SendAsync("ReceiveMatrix", $"API SignalHub -> {user}", interpolatedData, avgDistance);
         }
 
 
-        private static ushort[] InterpolateData(ushort[] data)
+        private static ushort[] InterpolateData(ushort[] data, int targetSize = 16)
         {
             if (data.Length != 64)
             {
                 throw new ArgumentException("Data length must be 64 for an 8x8 image.");
             }
 
-            int targetSize = 16;
             ushort[] interpolated = new ushort[targetSize * targetSize];
 
             // Rozmiar wejściowej tablicy
@@ -72,20 +71,18 @@ namespace SmartBotWebAPI
             return interpolated;
         }
 
-        private static (ushort[] interpolated, ushort avgValue) InterpolateDataAvgTuple(ushort[] data)
+        private static (ushort[] interpolated, ushort avgValue) InterpolateDataAvgTuple(ushort[] data, int targetSize = 32)
         {
             if (data.Length != 64)
             {
                 throw new ArgumentException("Data length must be 64 for an 8x8 image.");
             }
 
-            int targetSize = 32;
             ushort[] interpolated = new ushort[targetSize * targetSize];
             int inputSize = 8;
             double scale = (double)(inputSize - 1) / targetSize;
             uint totalValue = 0; 
 
-            // Iteracja po każdym pikselu w tablicy
             for (int i = 0; i < targetSize; i++)
             {
                 double x = i * scale;
@@ -100,28 +97,23 @@ namespace SmartBotWebAPI
                     int y1 = Math.Min(y0 + 1, inputSize - 1);
                     double yDiff = y - y0;
 
-                    // Wyznaczanie wartości pikseli do interpolacji
-                    double q00 = data[y0 * inputSize + x0]; // lewy górny
-                    double q01 = data[y0 * inputSize + x1]; // prawy górny
-                    double q10 = data[y1 * inputSize + x0]; // lewy dolny
-                    double q11 = data[y1 * inputSize + x1]; // prawy dolny
+                    double q00 = data[y0 * inputSize + x0]; 
+                    double q01 = data[y0 * inputSize + x1]; 
+                    double q10 = data[y1 * inputSize + x0]; 
+                    double q11 = data[y1 * inputSize + x1]; 
 
-                    // Interpolacja dwuliniowa
                     double interpolatedValue = (q00 * (1 - xDiff) * (1 - yDiff) +
                                                 q01 * xDiff * (1 - yDiff) +
                                                 q10 * (1 - xDiff) * yDiff +
                                                 q11 * xDiff * yDiff);
 
-                    // Zaokrąglenie i zapis wyniku do tablicy
                     ushort interpolatedUShort = (ushort)Math.Clamp(Math.Round(interpolatedValue), 0, ushort.MaxValue);
                     interpolated[i * targetSize + j] = interpolatedUShort;
 
-                    // Dodanie wartości do sumy
                     totalValue += interpolatedUShort;
                 }
             }
 
-            // Obliczenie średniej wartości
             ushort avgValue = (ushort)(totalValue / (targetSize * targetSize));
             return (interpolated, avgValue);
         }
