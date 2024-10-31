@@ -84,8 +84,7 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
 }
 
 String createRangingDataString(const VL53L5CX_ResultsData &measurementData, const int width = 8, const int resolution = 64) {
-  // Zdefiniuj obiekt JSON
-  StaticJsonDocument<512> doc;
+  JsonDocument doc;
 
   // Ustawienie podstawowych danych JSON
   doc["type"] = 1;
@@ -94,19 +93,14 @@ String createRangingDataString(const VL53L5CX_ResultsData &measurementData, cons
 
   // Serializacja danych odległości do tablicy JSON
   JsonArray distances = doc["arguments"][1].to<JsonArray>();
-  uint16_t avgDistance = 0;
 
   // Iteruj przez dane i dodaj je do tablicy JSON
-  for (int y = (width * (width - 1)), z = 0; y >= 0; y -= width) {
+  for (int y = (width * (width - 1)); y >= 0; y -= width) {
     for (int x = 0; x < width; x++) {
       uint16_t distance = measurementData.distance_mm[x + y];
       distances.add(distance);
-      avgDistance += distance;
     }
   }
-
-  // Dodaj średnią odległość do JSON
-  doc["arguments"][2] = avgDistance / resolution;
 
   // Serializuj JSON do stringu
   String jsonString;
