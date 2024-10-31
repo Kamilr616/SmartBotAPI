@@ -1,6 +1,5 @@
 ﻿@page "/matrix-receiver"
 @rendermode InteractiveWebAssembly
-@using System.Text.Json
 @using Microsoft.AspNetCore.SignalR.Client
 @implements IAsyncDisposable
 @inject IConfiguration Configuration
@@ -35,17 +34,18 @@ else
     </div>
 
     <div style="flex: 1;">
-        <div class="depth-image" style="width: 400px; height: 400px; display: grid; grid-template-columns: repeat(16, 1fr); gap: 0;">
+        <div class="depth-image" style="width: 640px; height: 640px; display: grid; grid-template-columns: repeat(32, 1fr); gap: 0;">
             @if (_dataFrame != null)
             {
-                for (int i = 0; i < 16; i++)
+                int res = 32;
+                for (int i = 0; i < res; i++)
                 {
-                    for (int j = 0; j < 16; j++)
+                    for (int j = 0; j < res; j++)
                     {
-                        int index = i * 16 + j;
+                        int index = i * res + j;
                         var value = _dataFrame[index];
                         var color = GetColorFromValue(value);
-                        <div class="pixel" style="background-color: @color; width: 25px; height: 25px; margin 0; padding: 0;"></div>
+                        <div class="pixel" style="background-color: @color; width: 20px; height: 20px; margin 0; padding: 0;"></div>
                     }
                 }
             }
