@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using SmartBotWebAPI;
+using System.Diagnostics.Metrics;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -55,50 +56,51 @@ namespace SmartBotWebApi.Controllers
             return result;
         }
 
-        private ushort[] InterpolateData(ushort[] data)
+        private static (ushort[] interpolated, ushort avgValue) InterpolateDataAvgTuple(ushort[] data, int targetSize = 32)
         {
             if (data.Length != 64)
             {
                 throw new ArgumentException("Data length must be 64 for an 8x8 image.");
             }
 
-            int targetSize = 16;
-            ushort[] interpolated = new ushort[targetSize * targetSize]; // 1D array
-
-            // Rozmiar wejściowej tablicy
+            ushort[] interpolated = new ushort[targetSize * targetSize];
             int inputSize = 8;
+            double scale = (double)(inputSize - 1) / targetSize;
+            uint totalValue = 0;
 
-            // Iteracja po każdym pikselu w tablicy
             for (int i = 0; i < targetSize; i++)
             {
+                double x = i * scale;
+                int x0 = (int)x;
+                int x1 = Math.Min(x0 + 1, inputSize - 1);
+                double xDiff = x - x0;
+
                 for (int j = 0; j < targetSize; j++)
                 {
-                    // Obliczanie skali wejściowej do wyjściowej
-                    double x = (double)i / targetSize * (inputSize - 1);
-                    double y = (double)j / targetSize * (inputSize - 1);
-
-                    int x0 = (int)x;
+                    double y = j * scale;
                     int y0 = (int)y;
-                    int x1 = Math.Min(x0 + 1, inputSize - 1);
                     int y1 = Math.Min(y0 + 1, inputSize - 1);
+                    double yDiff = y - y0;
 
-                    // Wyznaczanie wartości pikseli do interpolacji
-                    double q00 = data[y0 * inputSize + x0]; // lewy górny
-                    double q01 = data[y0 * inputSize + x1]; // prawy górny
-                    double q10 = data[y1 * inputSize + x0]; // lewy dolny
-                    double q11 = data[y1 * inputSize + x1]; // prawy dolny
+                    double q00 = data[y0 * inputSize + x0];
+                    double q01 = data[y0 * inputSize + x1];
+                    double q10 = data[y1 * inputSize + x0];
+                    double q11 = data[y1 * inputSize + x1];
 
-                    // Interpolacja
-                    double value = (q00 * (x1 - x) * (y1 - y) +
-                                    q01 * (x - x0) * (y1 - y) +
-                                    q10 * (x1 - x) * (y - y0) +
-                                    q11 * (x - x0) * (y - y0));
+                    double interpolatedValue = (q00 * (1 - xDiff) * (1 - yDiff) +
+                                                q01 * xDiff * (1 - yDiff) +
+                                                q10 * (1 - xDiff) * yDiff +
+                                                q11 * xDiff * yDiff);
 
-                    // Ensure value is clamped to valid range (0 to max depth value, e.g., 65535 for ushort)
-                    interpolated[i * targetSize + j] = (ushort)Math.Round(value);
+                    ushort interpolatedUShort = (ushort)Math.Clamp(Math.Round(interpolatedValue), 0, ushort.MaxValue);
+                    interpolated[i * targetSize + j] = interpolatedUShort;
+
+                    totalValue += interpolatedUShort;
                 }
             }
-            return interpolated;
+
+            ushort avgValue = (ushort)(totalValue / (targetSize * targetSize));
+            return (interpolated, avgValue);
         }
 
         private async Task HandleWebSocketCommunication(WebSocket webSocket)
@@ -127,29 +129,16 @@ namespace SmartBotWebApi.Controllers
                         {
                             var dataFrame = ConvertData(buffer, result.Count);
 
-                            //var interpolatedFrame = InterpolateData(dataFrame);
-                            //var avgDistance = dataFrame.Select(x => (double)x).Average();
-                            
-                            var interpolationTask = Task.Run(() => InterpolateData(dataFrame));
-                            var averageTask = Task.Run(() =>
-                            {
-                                return (ushort)dataFrame.Select(x => (int)x).Average(x => x);
-                            });
+                            var (interpolatedData, avgDistance) = InterpolateDataAvgTuple(data: dataFrame);
 
-                            var jsonMatrix = JsonSerializer.Serialize(interpolationTask.Result);
-                             
-                            //_logger.LogInformation($"Average distance: {averageTask.Result} mm");
+                            await _hubContext.Clients.All.SendAsync("ReceiveMatrix", "API Websocket", 20.5, new double[] { 1, -2, 0, -1.5, 5, -0.5 },  interpolatedData, avgDistance);
 
-                            await _hubContext.Clients.All.SendAsync("ReceiveMatrix", "API WS", jsonMatrix, averageTask.Result);
+                            //_logger.LogInformation($"Average distance: {avgDistance} mm");
                         }
                         else
                         {
                             _logger.LogWarning("Received binary data does not align with expected 16-bit values.");
                         }
-
-                        // Respond with acknowledgment message
-                       // var serverResponse = Encoding.UTF8.GetBytes("Binary frame decoded on server");
-                       // await webSocket.SendAsync(new ArraySegment<byte>(serverResponse), WebSocketMessageType.Text, true, CancellationToken.None);
 
                     }
                     else if (result.MessageType == WebSocketMessageType.Text)
@@ -158,11 +147,11 @@ namespace SmartBotWebApi.Controllers
                         _logger.LogInformation($"Text message received: {message}");
 
                         // Respond with acknowledgment message
-                        var responseText = $"WS recieved text message:{message}";
+                        var responseText = $"API WS recieved text message:{message}";
                         // var serverResponse = Encoding.UTF8.GetBytes(responseText);
                         // await webSocket.SendAsync(new ArraySegment<byte>(serverResponse), WebSocketMessageType.Text, true, CancellationToken.None);
 
-                        await _hubContext.Clients.All.SendAsync("ReceiveMessage", "API", responseText);
+                        await _hubContext.Clients.All.SendAsync("ReceiveMessage", "API Websocket", responseText);
                     }
                 }
             }
