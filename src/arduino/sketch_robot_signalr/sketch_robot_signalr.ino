@@ -1,3 +1,4 @@
+
 /*
   SmartBotDevice
   By: Kamil Rataj,
@@ -10,6 +11,8 @@
 #include <Wire.h>                       // I2C
 #include <SparkFun_VL53L5CX_Library.h>  // "SparkFun VL53L5CX Arduino Library" by SparkFun
 #include <ArduinoJson.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
 
 #include "arduino_secrets.h"
 #include "config.h"
@@ -23,6 +26,9 @@ const int websocketPort = SERVER_PORT;     // API PORT
 WebSocketsClient webSocket;
 SparkFun_VL53L5CX myImager;
 VL53L5CX_ResultsData measurementData;  // Result data class structure, 1356 bytes of RAM
+Adafruit_MPU6050 mpu;
+
+sensors_event_t a, g, temp;
 
 const int imageWidth = 8;
 const int imageResolution = 64;
@@ -50,6 +56,7 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
       break;
     case WStype_TEXT:
       USE_SERIAL.printf("[WS] Message from server: %s\n", payload);
+      // TODO: Handle incoming messages
       break;
     case WStype_BIN:
       USE_SERIAL.printf("[WS] Binary data received, length: %u\n", length);
@@ -83,29 +90,46 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
   }
 }
 
-String createRangingDataString(const VL53L5CX_ResultsData &measurementData, const int width = 8, const int resolution = 64) {
+String createDataString(const VL53L5CX_ResultsData &measurementData, sensors_event_t &a, sensors_event_t &g, sensors_event_t &temp, const int width = 8, const int resolution = 64) {
   JsonDocument doc;
+  uint32_t totalCenterDistance = 0;
+  int centerCount = 0;
+  uint16_t avgDistance = 0;
 
-  // Ustawienie podstawowych danych JSON
   doc["type"] = 1;
-  doc["target"] = "ReceiveRawMatrix";
-  doc["arguments"][0] = "Robot";
+  doc["target"] = "ReceiveRobotData";  //method
+  doc["arguments"][0] = "Robot";       //user
+  doc["arguments"][1] = (double_t)temp.temperature;          //tempMeasure
 
-  // Serializacja danych odległości do tablicy JSON
-  JsonArray distances = doc["arguments"][1].to<JsonArray>();
+  JsonArray measurements = doc["arguments"][2].to<JsonArray>();
+  JsonArray distances = doc["arguments"][3].to<JsonArray>();
 
-  // Iteruj przez dane i dodaj je do tablicy JSON
+  measurements[0] = (double_t)a.acceleration.x;
+  measurements[1] = (double_t)a.acceleration.y;
+  measurements[2] = (double_t)a.acceleration.z;
+  measurements[3] = (double_t)g.gyro.x;
+  measurements[4] = (double_t)g.gyro.y;
+  measurements[5] = (double_t)g.gyro.z;
+
   for (int y = (width * (width - 1)); y >= 0; y -= width) {
     for (int x = 0; x < width; x++) {
       uint16_t distance = measurementData.distance_mm[x + y];
       distances.add(distance);
+
+      // Calculate avgDistance only for the central 4x4 block
+      if (x >= 2 && x <= 5 && (y / width) >= 2 && (y / width) <= 5) {
+        totalCenterDistance += distance;
+        centerCount++;
+      }
     }
   }
 
-  // Serializuj JSON do stringu
+  avgDistance = (centerCount > 0) ? (totalCenterDistance / centerCount) : 0;
+  doc["arguments"][4] = avgDistance;  //avgDistance
+
   String jsonString;
   serializeJson(doc, jsonString);
-  jsonString += ""; // Dodanie znacznika zakończenia, jeśli jest wymagany
+  jsonString += "";
 
   return jsonString;
 }
@@ -150,16 +174,15 @@ void setup() {
   Wire.setClock(I2C_FREQ);  // Set I2C frequency
 
   pinMode(9, OUTPUT);
-  pinMode(0, OUTPUT);
-  pinMode(1, OUTPUT);
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
-  pinMode(4, OUTPUT);
-  pinMode(5, OUTPUT);
+  // pinMode(0, OUTPUT);
+  // pinMode(1, OUTPUT);
+  // pinMode(2, OUTPUT);
+  // pinMode(3, OUTPUT);
+  // pinMode(4, OUTPUT);
+  // pinMode(5, OUTPUT);
 
   digitalWrite(9, LOW);
 
-  //while (!USE_SERIAL);  // Wait for the USE_SERIAL port to connect (only needed for native USB)
   USE_SERIAL.println("USE_SERIAL communication initialized!");
 
   WiFi.begin(ssid, password);  // Connect to WiFi
@@ -167,6 +190,9 @@ void setup() {
 
   if (myImager.begin() == false) {
     USE_SERIAL.println("Failed to initialize VL53L5CX sensor. Restarting ...");
+    ESP.restart();
+  } else if (!mpu.begin()) {
+    Serial.println("Failed to find MPU6050 chip. Restarting ...");
     ESP.restart();
   } else {
     setLEDColor(0, 255, 255);  // Cyan
@@ -179,12 +205,19 @@ void setup() {
   myImager.setTargetOrder(TOF_TARGET_ORDER);
   myImager.setIntegrationTime(TOF_INTEGRATION_TIME);
 
+  mpu.setAccelerometerRange(MPU_G_RANGE);
+  mpu.setGyroRange(MPU_DEG_RANGE);
+  mpu.setFilterBandwidth(MPU_HZ_BAND);
+  mpu.setCycleRate(MPU_HZ_CYCLE);
+  mpu.enableSleep(false);
+
   webSocket.beginSSL(websocketServer, websocketPort, "/signalhub");  // Initialize WebSocket client
   webSocket.setReconnectInterval(WS_RECONNECT_INTERVAL);
   //webSocket.enableHeartbeat(pingInterval,pongTimeout,disconnectTimeoutCount); // TODO
   webSocket.onEvent(webSocketEvent);  // Set event handler
 
   myImager.startRanging();  // Start ranging
+  mpu.enableCycle(true);
   delay(100);
 }
 
@@ -193,11 +226,13 @@ void loop() {
   //currentMillis = millis();                                                                      // Get the current time
   if (myImager.isDataReady() && webSocket.isConnected()) {  // Poll the VL53L5CX sensor for new data  TODO: Attach the interrupt
     setLEDColor(64, 0, 64);                                 // White
-    if (myImager.getRangingData(&measurementData))          // Read distance data into array
+
+    if (myImager.getRangingData(&measurementData) && mpu.getEvent(&a, &g, &temp))  // Read distance data into array
     {
-      String data = createRangingDataString(measurementData, imageWidth, imageResolution);
+      String data = createDataString(measurementData, a, g, temp, imageWidth, imageResolution);
       webSocket.sendTXT(data);
     }
+
     setLEDColor(0, 128, 0);  // Green
   }
 }
