@@ -78,13 +78,12 @@ class WebSocketTester:
             async with websockets.connect(self.url, ssl=self.ssl_context) as websocket:
                 print("Connected to WebSocket.")
                 while True:
-                    # Send binary data every 5 seconds
                     data, distances = self.generate_depth_image()
                     await websocket.send(data)
-                    await websocket.send("Test message from Python!")
+                    #await websocket.send("Test message from Python!")
                     #print(f"Sent binary data: {data}")
                     print(f"Distances (mm): {distances}")  # Print the distance values
-                    await asyncio.sleep(0.5)  # Wait for 5 seconds between transmissions
+                    await asyncio.sleep(0.07)  # Wait between transmissions
         except Exception as e:
             print(f"Failed to run WebSocket (async): {e}")
 
@@ -100,7 +99,7 @@ class WebSocketTester:
 
 # Usage
 if __name__ == "__main__":
-    websocket_url = "wss://smartbotapi.azurewebsites.net/api/WebSocket/ws"
+    websocket_url =  "wss://localhost:32773/api/WebSocket/ws" #"wss://smartbotapi.azurewebsites.net/api/WebSocket/ws"
 
     tester = WebSocketTester(websocket_url)
     tester_mode = MODE
