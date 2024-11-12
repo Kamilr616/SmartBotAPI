@@ -71,10 +71,10 @@ else
                 .Build();
         
 
-        _hubConnection.On<string, ushort[], ushort>("ReceiveMatrix", (user, jsonMatrix, avgDistanceValue) =>
+        _hubConnection.On<string, double, double[], ushort[], ushort>("ReceiveMatrix", (user, temperature, measurements, interpolatedMatrix, avgDistance) =>
         {
-            _dataFrame = jsonMatrix;
-            _avgDistance = avgDistanceValue;
+            _dataFrame = interpolatedMatrix;
+            _avgDistance = avgDistance;
             _hubUser = user;
 
             InvokeAsync(StateHasChanged);

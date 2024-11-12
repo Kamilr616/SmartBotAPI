@@ -1,5 +1,5 @@
 ﻿@page "/matrix-receiver-canvas"
-@rendermode InteractiveAuto
+@rendermode InteractiveWebAssembly
 @using Blazor.Extensions
 @using Blazor.Extensions.Canvas
 @using Blazor.Extensions.Canvas.Canvas2D
@@ -54,15 +54,15 @@ else
             .WithUrl(@Configuration["Api:HubURL"]) 
             .Build();
 
-        _hubConnection.On<string, ushort[], ushort>("ReceiveMatrix", async (user, jsonMatrix, avgDistanceValue) =>
+        _hubConnection.On<string, double, double[], ushort[], ushort>("ReceiveMatrix", (user, temperature, measurements, interpolatedMatrix, avgDistance) =>
         {
-            _dataFrame = jsonMatrix;
-            _avgDistance = avgDistanceValue;
+            _dataFrame = interpolatedMatrix;
+            _avgDistance = avgDistance;
             _hubUser = user;
 
             if (_dataFrame != null && _context != null)
             {
-                await DrawMatrixAsync(32);
+                DrawMatrixAsync(32);
             }
 
             InvokeAsync(StateHasChanged);
