@@ -138,7 +138,7 @@ void waitForWiFiConnectOrReboot(bool printOnSerial = true, int numOfAttempts = 5
   int notConnectedCounter = 0;
   setLEDColor(255, 255, 0);  // Yellow
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
+    delay(800);
     if (printOnSerial) {
       USE_SERIAL.printf("[WIFI] Connecting to %s ...\n", ssid);
     }
