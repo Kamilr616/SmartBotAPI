@@ -1,0 +1,165 @@
+﻿@page "/matrix-receiver-canvas"
+@rendermode InteractiveAuto
+@using Blazor.Extensions
+@using Blazor.Extensions.Canvas
+@using Blazor.Extensions.Canvas.Canvas2D
+@using Microsoft.AspNetCore.SignalR.Client
+@inject IConfiguration Configuration
+@inject IJSRuntime JS
+
+<PageTitle>Live view Canvas</PageTitle>
+
+<div style="display: flex; justify-content: space-between;">
+    <h5>Hub Connection Status</h5>
+    @if (IsConnected)
+    {
+        <p style="color: green;">Connected</p>
+    }
+    else
+    {
+        <p style="color: red;">Disconnected</p>
+    }
+</div>
+@if (_avgDistance == null)
+{
+    <p><em>Waiting for data ...</em></p>
+}
+else
+{
+    <div style="display: flex; justify-content: space-between;">
+        <h5>Average Distance</h5>
+        <p>@_avgDistance mm</p>
+        <h5>User</h5>
+        <p>@_hubUser</p>
+    </div>
+}
+
+<div style="flex: 1;">
+        <BECanvas Width="640" Height="640" @ref="_canvasReference"> </BECanvas>
+   </div>
+
+
+@code {
+    private HubConnection? _hubConnection;
+    private ushort[]? _dataFrame;
+    private ushort? _avgDistance;
+    private string? _hubUser;
+    private Canvas2DContext? _context;
+    protected BECanvasComponent? _canvasReference;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(@Configuration["Api:HubURL"]) 
+            .Build();
+
+        _hubConnection.On<string, ushort[], ushort>("ReceiveMatrix", async (user, jsonMatrix, avgDistanceValue) =>
+        {
+            _dataFrame = jsonMatrix;
+            _avgDistance = avgDistanceValue;
+            _hubUser = user;
+
+            if (_dataFrame != null && _context != null)
+            {
+                await DrawMatrixAsync(32);
+            }
+
+            InvokeAsync(StateHasChanged);
+        });
+
+        await _hubConnection.StartAsync();
+    }
+
+    public bool IsConnected =>
+        _hubConnection?.State == HubConnectionState.Connected;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("import", "/_content/Blazor.Extensions.Canvas/Blazor.Extensions.Canvas.js");
+            _context = await _canvasReference.CreateCanvas2DAsync();
+        }
+    }
+
+    private async Task DrawMatrixAsync(int resolution = 32)
+    {
+        int pixelSize = 640 / resolution;
+
+        await _context.BeginBatchAsync();
+
+        for (int i = 0; i < resolution; i++)
+        {
+            for (int j = 0; j < resolution; j++)
+            {
+                int index = i * resolution + j;
+                var value = _dataFrame[index];
+                var color = GetColorFromValue(value);
+
+                await _context.SetFillStyleAsync(color); 
+                await _context.FillRectAsync(j * pixelSize, i * pixelSize, pixelSize, pixelSize);
+            }
+        }
+
+        await _context.EndBatchAsync();
+    }
+
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+        {
+            if (_hubConnection.State == HubConnectionState.Connected)
+            {
+                await _hubConnection.StopAsync();
+            }
+            await _hubConnection.DisposeAsync();
+            _hubConnection = null;
+        }
+
+        // TODO: Dispose of the canvas context
+        if (_context is not null)
+        {
+            _context = null;
+        }
+
+        _canvasReference = null;
+    }
+
+
+    private string GetColorFromValue(ushort value)
+    {
+        double ratio = Math.Clamp(value / (double)4000, 0, 1);
+        int scaledRatio = (int)(ratio * 255);
+
+        int r, g, b;
+
+        if (ratio <= 0.25)
+        {
+            r = 255;
+            g = scaledRatio * 4;
+            b = 0;
+        }
+        else if (ratio <= 0.5)
+        {
+            r = 255 - ((scaledRatio - 64) * 4);
+            g = 255;
+            b = 0;
+        }
+        else if (ratio <= 0.75)
+        {
+            r = 0;
+            g = 255 - ((scaledRatio - 128) * 4);
+            b = (scaledRatio - 128) * 4;
+        }
+        else
+        {
+            r = (scaledRatio - 192) * 4;
+            g = 0;
+            b = 255;
+        }
+
+        return $"rgb({Math.Clamp(r, 0, 255)}, {Math.Clamp(g, 0, 255)}, {Math.Clamp(b, 0, 255)})";
+    }
+}
