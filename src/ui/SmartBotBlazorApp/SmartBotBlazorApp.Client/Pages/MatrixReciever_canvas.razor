@@ -62,7 +62,7 @@ else
 
             if (_dataFrame != null && _context != null)
             {
-                DrawMatrixAsync(32);
+                DrawMatrixAsync(32).Wait();
             }
 
             InvokeAsync(StateHasChanged);

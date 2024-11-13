@@ -97,12 +97,11 @@ String createDataString(const VL53L5CX_ResultsData &measurementData, sensors_eve
   uint16_t avgDistance = 0;
 
   doc["type"] = 1;
-  doc["target"] = "ReceiveRobotData";  //method
-  doc["arguments"][0] = "Robot";       //user
-  doc["arguments"][1] = (double_t)temp.temperature;          //tempMeasure
+  doc["target"] = "ReceiveRobotData2";  //method
+  doc["arguments"][0] = "Robot_01";       //user
 
-  JsonArray measurements = doc["arguments"][2].to<JsonArray>();
-  JsonArray distances = doc["arguments"][3].to<JsonArray>();
+  JsonArray measurements = doc["arguments"][1].to<JsonArray>();
+  JsonArray distances = doc["arguments"][2].to<JsonArray>();
 
   measurements[0] = (double_t)a.acceleration.x;
   measurements[1] = (double_t)a.acceleration.y;
@@ -110,6 +109,7 @@ String createDataString(const VL53L5CX_ResultsData &measurementData, sensors_eve
   measurements[3] = (double_t)g.gyro.x;
   measurements[4] = (double_t)g.gyro.y;
   measurements[5] = (double_t)g.gyro.z;
+  measurements[6] = (double_t)temp.temperature;
 
   for (int y = (width * (width - 1)); y >= 0; y -= width) {
     for (int x = 0; x < width; x++) {
@@ -125,7 +125,7 @@ String createDataString(const VL53L5CX_ResultsData &measurementData, sensors_eve
   }
 
   avgDistance = (centerCount > 0) ? (totalCenterDistance / centerCount) : 0;
-  doc["arguments"][4] = avgDistance;  //avgDistance
+  doc["arguments"][3] = avgDistance;  //avgDistance
 
   String jsonString;
   serializeJson(doc, jsonString);
@@ -208,8 +208,8 @@ void setup() {
   mpu.setAccelerometerRange(MPU_G_RANGE);
   mpu.setGyroRange(MPU_DEG_RANGE);
   mpu.setFilterBandwidth(MPU_HZ_BAND);
-  mpu.setCycleRate(MPU_HZ_CYCLE);
-  mpu.enableSleep(false);
+  //mpu.setCycleRate(MPU_HZ_CYCLE);
+  //mpu.enableSleep(false);
 
   webSocket.beginSSL(websocketServer, websocketPort, "/signalhub");  // Initialize WebSocket client
   webSocket.setReconnectInterval(WS_RECONNECT_INTERVAL);
@@ -217,7 +217,7 @@ void setup() {
   webSocket.onEvent(webSocketEvent);  // Set event handler
 
   myImager.startRanging();  // Start ranging
-  mpu.enableCycle(true);
+  //mpu.enableCycle(true);
   delay(100);
 }
 
