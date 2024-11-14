@@ -7,6 +7,7 @@
 */
 
 #include <WiFi.h>                       // "WiFi" by Arduino
+#include <WiFiMulti.h>
 #include <WebSocketsClient.h>           //"WebSockets" by Markus Sattler  TODO: check deprecated func
 #include <Wire.h>                       // I2C
 #include <SparkFun_VL53L5CX_Library.h>  // "SparkFun VL53L5CX Arduino Library" by SparkFun
@@ -20,6 +21,8 @@
 
 const char ssid[] = SECRET_SSID;           // WiFi SSID
 const char password[] = SECRET_PASS;       // WiFi Password
+const char ssid2[] = SECRET_SSID2;           // WiFi SSID2
+const char password2[] = SECRET_PASS2;       // WiFi Password2
 const char websocketServer[] = SERVER_IP;  // API URL
 const int websocketPort = SERVER_PORT;     // API PORT
 
@@ -27,12 +30,12 @@ WebSocketsClient webSocket;
 SparkFun_VL53L5CX myImager;
 VL53L5CX_ResultsData measurementData;  // Result data class structure, 1356 bytes of RAM
 Adafruit_MPU6050 mpu;
+WiFiMulti wifiMulti;
 
 sensors_event_t a, g, temp;
 
 const int imageWidth = 8;
 const int imageResolution = 64;
-//const size_t dataSize = 128;
 
 //static unsigned long lastTime = 0;
 //unsigned long currentMillis;
@@ -137,10 +140,14 @@ String createDataString(const VL53L5CX_ResultsData &measurementData, sensors_eve
 void waitForWiFiConnectOrReboot(bool printOnSerial = true, int numOfAttempts = 50) {
   int notConnectedCounter = 0;
   setLEDColor(255, 255, 0);  // Yellow
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(800);
+      if (printOnSerial) {
+      USE_SERIAL.printf("[WIFI] Connecting to %s |", ssid);
+    }
+
+  while (wifiMulti.run(5000) != WL_CONNECTED) {
+    delay(2500);
     if (printOnSerial) {
-      USE_SERIAL.printf("[WIFI] Connecting to %s ...\n", ssid);
+      USE_SERIAL.print(" |");
     }
 
     notConnectedCounter++;
@@ -185,14 +192,18 @@ void setup() {
 
   USE_SERIAL.println("USE_SERIAL communication initialized!");
 
-  WiFi.begin(ssid, password);  // Connect to WiFi
+  //WiFi.begin(ssid, password);  // Connect to WiFi
+  WiFi.mode(WIFI_STA);
+  wifiMulti.addAP(ssid, password);
+  wifiMulti.addAP(ssid2, password2);
+
   waitForWiFiConnectOrReboot(USE_SERIAL, 50);
 
-  if (myImager.begin() == false) {
+  if (!myImager.begin()) {
     USE_SERIAL.println("Failed to initialize VL53L5CX sensor. Restarting ...");
     ESP.restart();
   } else if (!mpu.begin()) {
-    Serial.println("Failed to find MPU6050 chip. Restarting ...");
+    Serial.println("Failed to initialize MPU6050 chip. Restarting ...");
     ESP.restart();
   } else {
     setLEDColor(0, 255, 255);  // Cyan
@@ -203,7 +214,7 @@ void setup() {
   myImager.setRangingMode(TOF_RANGING_MODE);
   myImager.setSharpenerPercent(TOF_SHARPENER_PERCENT);
   myImager.setTargetOrder(TOF_TARGET_ORDER);
-  myImager.setIntegrationTime(TOF_INTEGRATION_TIME);
+  //myImager.setIntegrationTime(TOF_INTEGRATION_TIME);
 
   mpu.setAccelerometerRange(MPU_G_RANGE);
   mpu.setGyroRange(MPU_DEG_RANGE);
@@ -211,10 +222,10 @@ void setup() {
   //mpu.setCycleRate(MPU_HZ_CYCLE);
   //mpu.enableSleep(false);
 
-  webSocket.beginSSL(websocketServer, websocketPort, "/signalhub");  // Initialize WebSocket client
   webSocket.setReconnectInterval(WS_RECONNECT_INTERVAL);
   //webSocket.enableHeartbeat(pingInterval,pongTimeout,disconnectTimeoutCount); // TODO
   webSocket.onEvent(webSocketEvent);  // Set event handler
+  webSocket.beginSSL(websocketServer, websocketPort, "/signalhub");  // Initialize WebSocket client
 
   myImager.startRanging();  // Start ranging
   //mpu.enableCycle(true);
