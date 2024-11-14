@@ -4,7 +4,7 @@ using System.Drawing.Imaging;
 
 namespace SmartBotWebAPI
 {
-    internal class ImageProcessor
+    public class ImageProcessor
     {
         protected internal string GenerateHeatmapBase64Image(ushort[] depthData)
         {

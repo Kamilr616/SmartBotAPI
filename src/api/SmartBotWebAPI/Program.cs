@@ -10,7 +10,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
-//builder.Services.AddScoped<ImageProcessor>();
+builder.Services.AddScoped<ImageProcessor>();
 
 builder.Services.AddCors(options =>
 {
