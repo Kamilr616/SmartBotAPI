@@ -6,24 +6,24 @@ namespace SmartBotWebAPI
     {
         private readonly ImageProcessor _imageProcessor;
 
-        internal SignalHub()
+        public SignalHub(ImageProcessor imageProcessor)
         {
-            _imageProcessor = new ImageProcessor(); 
+            _imageProcessor = imageProcessor;
         }
 
-        internal async Task SendMessage(string user, string message)
+        public async Task SendMessage(string user, string message)
         {
             Console.WriteLine($"Received message from {user}: {message}");
             await Clients.All.SendAsync("ReceiveMessage", $"API SignalHub -> {user}", $"Received message:{message}");
         }
 
-        internal async Task ReceiveMessage(string user, string message)
+        public async Task ReceiveMessage(string user, string message)
         {
             Console.WriteLine($"Message from {user}: {message}");
             await Clients.Caller.SendAsync("ReceiveMessage", "API", "Message received!");
         }
 
-        internal async Task ReceiveRobotData2(string user, double[] measurements, ushort[] rawMatrix, ushort avgDistance)
+        public async Task ReceiveRobotData2(string user, double[] measurements, ushort[] rawMatrix, ushort avgDistance)
         {
             var base64Img = _imageProcessor.GenerateHeatmapBase64Image(rawMatrix);
 
@@ -31,7 +31,7 @@ namespace SmartBotWebAPI
         }
 
 
-        internal async Task ReceiveRobotData(string user, double[] measurements, ushort[] rawMatrix, ushort avgDistance)
+        public async Task ReceiveRobotData(string user, double[] measurements, ushort[] rawMatrix, ushort avgDistance)
         {
             var interpolatedMatrix = _imageProcessor.InterpolateData(rawMatrix, 32);
 
