@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using SmartBotWebAPI;
-using System.Diagnostics.Metrics;
 using System.Net.WebSockets;
 using System.Text;
-using System.Text.Json;
 
 
 namespace SmartBotWebApi.Controllers
@@ -29,10 +27,8 @@ namespace SmartBotWebApi.Controllers
             {
                 try
                 {
-                    using (var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync())
-                    {
-                        await HandleWebSocketCommunication(webSocket);
-                    }
+                    using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
+                    await HandleWebSocketCommunication(webSocket);
                 }
                 catch (Exception ex)
                 {
@@ -48,7 +44,7 @@ namespace SmartBotWebApi.Controllers
 
         private ushort[] ConvertData(byte[] data, int length)
         {
-            ushort[] result = new ushort[length / 2];
+            var result = new ushort[length / 2];
             for (int i = 0; i < length; i += 2)
             {
                 result[i / 2] = BitConverter.ToUInt16(new byte[] { data[i], data[i + 1] }, 0);
@@ -131,7 +127,7 @@ namespace SmartBotWebApi.Controllers
 
                             var (interpolatedData, avgDistance) = InterpolateDataAvgTuple(data: dataFrame);
 
-                            await _hubContext.Clients.All.SendAsync("ReceiveMatrix", "API Websocket", 20.5, new double[] { 1, -2, 0, -1.5, 5, -0.5 },  interpolatedData, avgDistance);
+                            await _hubContext.Clients.All.SendAsync("ReceiveMatrix", "API Websocket", new double[] { 1, -2, 0, -1.5, 5, -0.5, 22.5},  interpolatedData, avgDistance);
 
                             //_logger.LogInformation($"Average distance: {avgDistance} mm");
                         }
