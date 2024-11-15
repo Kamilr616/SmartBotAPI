@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
+﻿using SkiaSharp;
 
 namespace SmartBotWebAPI
 {
@@ -8,79 +6,56 @@ namespace SmartBotWebAPI
     {
         protected internal string GenerateHeatmapBase64Image(ushort[] depthData)
         {
-            // Przekształć 1D na 2D dla obrazu 8x8
-            int width = 8, height = 8;
+            // Constants for image size
+            int width = 8, height = 8, scaledWidth = 32, scaledHeight = 32;
+
+            // Transform 1D array to 2D for the 8x8 image
             var depth2D = new ushort[height, width];
             for (int i = 0; i < depthData.Length; i++)
             {
                 depth2D[i / width, i % width] = depthData[i];
             }
 
-            // Ustal zakres głębi (zakładamy, że depthData zawiera wartości 1-4000)
+            // Depth range assumption
             ushort minDepth = 1;
             ushort maxDepth = 4000;
             double scale = 1.0 / (maxDepth - minDepth);
 
-            // Tworzenie bitmapy 8x8 z mapą ciepła
-            using var bmp = new Bitmap(width, height);
+            // Create an 8x8 bitmap
+            using var bitmap = new SKBitmap(width, height);
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    // Normalizacja wartości głębi do przedziału 0-1
+                    // Normalize depth to 0-1 range
                     double normalizedValue = (depth2D[y, x] - minDepth) * scale;
+                    normalizedValue = Math.Clamp(normalizedValue, 0, 1);
 
-                    // Generowanie koloru z mapy ciepła
-                    Color heatmapColor = GetHeatmapColor(normalizedValue);
-                    bmp.SetPixel(x, y, heatmapColor);
+                    // Generate color using a heatmap function
+                    var heatmapColor = GetHeatmapColor(normalizedValue);
+
+                    // Set pixel color
+                    bitmap.SetPixel(x, y, heatmapColor);
                 }
             }
 
-            // Skalowanie obrazu do 32x32
-            using var scaledBmp = new Bitmap(32, 32);
-            using (var graphics = Graphics.FromImage(scaledBmp))
-            {
-                graphics.InterpolationMode = InterpolationMode.Bilinear;
-                graphics.DrawImage(bmp, 0, 0, 32, 32);
-            }
+            // Scale the bitmap to 32x32
+            using var scaledBitmap = bitmap.Resize(new SKImageInfo(scaledWidth, scaledHeight), SKFilterQuality.Medium);
 
-            // Konwertowanie na Base64
-            using var ms = new MemoryStream();
-            scaledBmp.Save(ms, ImageFormat.Png);
-            byte[] imageBytes = ms.ToArray();
-
-            return Convert.ToBase64String(imageBytes);
+            // Encode to PNG and convert to Base64
+            using var image = SKImage.FromBitmap(scaledBitmap);
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            return Convert.ToBase64String(data.ToArray());
         }
 
-        protected static Color GetHeatmapColor(double value)
+        private SKColor GetHeatmapColor(double value)
         {
-            // Przypisywanie koloru na podstawie wartości znormalizowanej (0.0 - 1.0)
-            // Mapujemy wartość na kolory od niebieskiego do czerwonego
-            if (value <= 0.25)
-            {
-                // Przejście od niebieskiego do zielonego
-                int g = (int)(value / 0.25 * 255);
-                return Color.FromArgb(0, g, 255);
-            }
-            else if (value <= 0.5)
-            {
-                // Przejście od zielonego do żółtego
-                int r = (int)((value - 0.25) / 0.25 * 255);
-                return Color.FromArgb(r, 255, 0);
-            }
-            else if (value <= 0.75)
-            {
-                // Przejście od żółtego do pomarańczowego
-                int g = (int)(255 - (value - 0.5) / 0.25 * 255);
-                return Color.FromArgb(255, g, 0);
-            }
-            else
-            {
-                // Przejście od pomarańczowego do czerwonego
-                int b = (int)((1.0 - value) / 0.25 * 255);
-                return Color.FromArgb(255, 0, b);
-            }
+            // Simple heatmap gradient (blue -> red -> yellow -> white)
+            if (value < 0.33) return SKColor.FromHsv((float)(240 - value * 240), 1f, 1f); // Blue -> Red
+            if (value < 0.66) return SKColor.FromHsv((float)(120 - (value - 0.33) * 120), 1f, 1f); // Red -> Yellow
+            return SKColor.FromHsv(0, (float)(1 - (value - 0.66) * 3), 1f); // Yellow -> White
         }
+
         protected internal ushort[] InterpolateData(ushort[] data, int targetSize = 32)
         {
             if (data.Length != 64)
