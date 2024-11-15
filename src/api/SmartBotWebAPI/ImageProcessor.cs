@@ -1,4 +1,7 @@
-﻿using SkiaSharp;
+﻿using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+
 
 namespace SmartBotWebAPI
 {
@@ -6,54 +9,44 @@ namespace SmartBotWebAPI
     {
         protected internal string GenerateHeatmapBase64Image(ushort[] depthData)
         {
-            // Constants for image size
             int width = 8, height = 8, scaledWidth = 32, scaledHeight = 32;
 
-            // Transform 1D array to 2D for the 8x8 image
-            var depth2D = new ushort[height, width];
-            for (int i = 0; i < depthData.Length; i++)
-            {
-                depth2D[i / width, i % width] = depthData[i];
-            }
+            // Tworzenie obrazu
+            using var image = new Image<Rgba32>(width, height);
 
-            // Depth range assumption
-            ushort minDepth = 1;
-            ushort maxDepth = 4000;
+            // Normalizacja głębokości
+            ushort minDepth = 1, maxDepth = 4000;
             double scale = 1.0 / (maxDepth - minDepth);
 
-            // Create an 8x8 bitmap
-            using var bitmap = new SKBitmap(width, height);
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    // Normalize depth to 0-1 range
-                    double normalizedValue = (depth2D[y, x] - minDepth) * scale;
+                    int index = y * width + x;
+                    double normalizedValue = (depthData[index] - minDepth) * scale;
                     normalizedValue = Math.Clamp(normalizedValue, 0, 1);
 
-                    // Generate color using a heatmap function
+                    // Ustawienie koloru pikseli
                     var heatmapColor = GetHeatmapColor(normalizedValue);
-
-                    // Set pixel color
-                    bitmap.SetPixel(x, y, heatmapColor);
+                    image[x, y] = heatmapColor;
                 }
             }
 
-            // Scale the bitmap to 32x32
-            using var scaledBitmap = bitmap.Resize(new SKImageInfo(scaledWidth, scaledHeight), SKFilterQuality.Medium);
+            // Skalowanie do 32x32
+            image.Mutate(ctx => ctx.Resize(scaledWidth, scaledHeight));
 
-            // Encode to PNG and convert to Base64
-            using var image = SKImage.FromBitmap(scaledBitmap);
-            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-            return Convert.ToBase64String(data.ToArray());
+            // Zapisanie jako PNG i konwersja do Base64
+            using var ms = new MemoryStream();
+            image.SaveAsPng(ms);
+            return Convert.ToBase64String(ms.ToArray());
         }
 
-        private SKColor GetHeatmapColor(double value)
+        private Rgba32 GetHeatmapColor(double value)
         {
-            // Simple heatmap gradient (blue -> red -> yellow -> white)
-            if (value < 0.33) return SKColor.FromHsv((float)(240 - value * 240), 1f, 1f); // Blue -> Red
-            if (value < 0.66) return SKColor.FromHsv((float)(120 - (value - 0.33) * 120), 1f, 1f); // Red -> Yellow
-            return SKColor.FromHsv(0, (float)(1 - (value - 0.66) * 3), 1f); // Yellow -> White
+            // Gradient kolorów (niebieski -> czerwony -> żółty -> biały)
+            if (value < 0.33) return new Rgba32(0, (byte)(value * 3 * 255), 255); // Niebieski -> czerwony
+            if (value < 0.66) return new Rgba32((byte)((value - 0.33) * 3 * 255), 255, 0); // Czerwony -> żółty
+            return new Rgba32(255, (byte)(255 - (value - 0.66) * 3 * 255), 0); // Żółty -> biały
         }
 
         protected internal ushort[] InterpolateData(ushort[] data, int targetSize = 32)

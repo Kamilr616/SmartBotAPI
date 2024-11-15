@@ -8,8 +8,8 @@
  * Copyright (c) 2024 Kamil Rataj. All rights reserved.
 **/
 
-#ifndef config_h
-#define config_h
+#ifndef CONFIG_H
+#define CONFIG_H
 
 
 #define USE_SERIAL Serial
@@ -35,8 +35,7 @@
 #define MPU_HZ_BAND MPU6050_BAND_21_HZ
 #define MPU_HZ_CYCLE MPU6050_CYCLE_20_HZ
 
+//#define RGB_BRIGHTNESS 10
 
-//#define RGB_BRIGHTNESS 10 
 
-
-#endif
+#endif  // CONFIG_H
