@@ -1,10 +1,10 @@
-
 /*
   SmartBotDevice
   By: Kamil Rataj,
       Mateusz Ciszek,
       Izabela Panek.
 */
+
 
 #include <WiFi.h>                       // "WiFi" by Arduino
 #include <WiFiMulti.h>
@@ -23,19 +23,24 @@ const char ssid[] = SECRET_SSID;           // WiFi SSID
 const char password[] = SECRET_PASS;       // WiFi Password
 const char ssid2[] = SECRET_SSID2;           // WiFi SSID2
 const char password2[] = SECRET_PASS2;       // WiFi Password2
+const char ssid3[] = SECRET_SSID3;           // WiFi SSID3
+const char password3[] = SECRET_PASS3;       // WiFi Password3
+const char ssid4[] = SECRET_SSID4;           // WiFi SSID4
+const char password4[] = SECRET_PASS4;       // WiFi Password4
+
 const char websocketServer[] = SERVER_IP;  // API URL
 const int websocketPort = SERVER_PORT;     // API PORT
+
+sensors_event_t a, g, temp;
+
+const int imageWidth = 8;
+const int imageResolution = 64;
 
 WebSocketsClient webSocket;
 SparkFun_VL53L5CX myImager;
 VL53L5CX_ResultsData measurementData;  // Result data class structure, 1356 bytes of RAM
 Adafruit_MPU6050 mpu;
 WiFiMulti wifiMulti;
-
-sensors_event_t a, g, temp;
-
-const int imageWidth = 8;
-const int imageResolution = 64;
 
 //static unsigned long lastTime = 0;
 //unsigned long currentMillis;
@@ -106,13 +111,13 @@ String createDataString(const VL53L5CX_ResultsData &measurementData, sensors_eve
   JsonArray measurements = doc["arguments"][1].to<JsonArray>();
   JsonArray distances = doc["arguments"][2].to<JsonArray>();
 
-  measurements[0] = (double_t)a.acceleration.x;
-  measurements[1] = (double_t)a.acceleration.y;
-  measurements[2] = (double_t)a.acceleration.z;
-  measurements[3] = (double_t)g.gyro.x;
-  measurements[4] = (double_t)g.gyro.y;
-  measurements[5] = (double_t)g.gyro.z;
-  measurements[6] = (double_t)temp.temperature;
+  measurements[0] = (float_t)a.acceleration.x;
+  measurements[1] = (float_t)a.acceleration.y;
+  measurements[2] = (float_t)a.acceleration.z;
+  measurements[3] = (float_t)g.gyro.x;
+  measurements[4] = (float_t)g.gyro.y;
+  measurements[5] = (float_t)g.gyro.z;
+  measurements[6] = (float_t)temp.temperature;
 
   for (int y = (width * (width - 1)); y >= 0; y -= width) {
     for (int x = 0; x < width; x++) {
@@ -223,7 +228,6 @@ void setup() {
   //mpu.enableSleep(false);
 
   webSocket.setReconnectInterval(WS_RECONNECT_INTERVAL);
-  //webSocket.enableHeartbeat(pingInterval,pongTimeout,disconnectTimeoutCount); // TODO
   webSocket.onEvent(webSocketEvent);  // Set event handler
   webSocket.beginSSL(websocketServer, websocketPort, "/signalhub");  // Initialize WebSocket client
 
@@ -233,12 +237,13 @@ void setup() {
 }
 
 void loop() {
+    //currentMillis = millis();                                                                      // Get the current time
   webSocket.loop();  // Handle WebSocket events and communication
-  //currentMillis = millis();                                                                      // Get the current time
-  if (myImager.isDataReady() && webSocket.isConnected()) {  // Poll the VL53L5CX sensor for new data  TODO: Attach the interrupt
-    setLEDColor(64, 0, 64);                                 // White
 
-    if (myImager.getRangingData(&measurementData) && mpu.getEvent(&a, &g, &temp))  // Read distance data into array
+  if (myImager.isDataReady() && webSocket.isConnected()) {  // Poll the VL53L5CX sensor for new data  TODO: Attach the interrupt
+    setLEDColor(64, 0, 64);                                
+
+    if (myImager.getRangingData(&measurementData) && mpu.getEvent(&a, &g, &temp))  // Read data
     {
       String data = createDataString(measurementData, a, g, temp, imageWidth, imageResolution);
       webSocket.sendTXT(data);
