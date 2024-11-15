@@ -6,9 +6,10 @@
 */
 
 
-#include <WiFi.h>                       // "WiFi" by Arduino
+#include <WiFi.h>  // "WiFi" by Arduino
 #include <WiFiMulti.h>
-#include <WebSocketsClient.h>           //"WebSockets" by Markus Sattler  TODO: check deprecated func
+#include <WebSocketsClient.h>  //"WebSockets" by Markus Sattler  TODO: check deprecated func
+//#include <WiFiClientSecure.h>
 #include <Wire.h>                       // I2C
 #include <SparkFun_VL53L5CX_Library.h>  // "SparkFun VL53L5CX Arduino Library" by SparkFun
 #include <ArduinoJson.h>
@@ -19,14 +20,14 @@
 #include "config.h"
 
 
-const char ssid[] = SECRET_SSID;           // WiFi SSID
-const char password[] = SECRET_PASS;       // WiFi Password
-const char ssid2[] = SECRET_SSID2;           // WiFi SSID2
-const char password2[] = SECRET_PASS2;       // WiFi Password2
-const char ssid3[] = SECRET_SSID3;           // WiFi SSID3
-const char password3[] = SECRET_PASS3;       // WiFi Password3
-const char ssid4[] = SECRET_SSID4;           // WiFi SSID4
-const char password4[] = SECRET_PASS4;       // WiFi Password4
+const char ssid[] = SECRET_SSID;        // WiFi SSID
+const char password[] = SECRET_PASS;    // WiFi Password
+const char ssid2[] = SECRET_SSID2;      // WiFi SSID2
+const char password2[] = SECRET_PASS2;  // WiFi Password2
+const char ssid3[] = SECRET_SSID3;      // WiFi SSID3
+const char password3[] = SECRET_PASS3;  // WiFi Password3
+const char ssid4[] = SECRET_SSID4;      // WiFi SSID4
+const char password4[] = SECRET_PASS4;  // WiFi Password4
 
 const char websocketServer[] = SERVER_IP;  // API URL
 const int websocketPort = SERVER_PORT;     // API PORT
@@ -41,6 +42,7 @@ SparkFun_VL53L5CX myImager;
 VL53L5CX_ResultsData measurementData;  // Result data class structure, 1356 bytes of RAM
 Adafruit_MPU6050 mpu;
 WiFiMulti wifiMulti;
+WiFiClientSecure secureClient;
 
 //static unsigned long lastTime = 0;
 //unsigned long currentMillis;
@@ -106,7 +108,7 @@ String createDataString(const VL53L5CX_ResultsData &measurementData, sensors_eve
 
   doc["type"] = 1;
   doc["target"] = "ReceiveRobotData2";  //method
-  doc["arguments"][0] = "Robot_01";       //user
+  doc["arguments"][0] = "Robot_01";     //user
 
   JsonArray measurements = doc["arguments"][1].to<JsonArray>();
   JsonArray distances = doc["arguments"][2].to<JsonArray>();
@@ -145,9 +147,9 @@ String createDataString(const VL53L5CX_ResultsData &measurementData, sensors_eve
 void waitForWiFiConnectOrReboot(bool printOnSerial = true, int numOfAttempts = 50) {
   int notConnectedCounter = 0;
   setLEDColor(255, 255, 0);  // Yellow
-      if (printOnSerial) {
-      USE_SERIAL.printf("[WIFI] Connecting to %s |", ssid);
-    }
+  if (printOnSerial) {
+    USE_SERIAL.printf("[WIFI] Connecting to %s |", ssid);
+  }
 
   while (wifiMulti.run(5000) != WL_CONNECTED) {
     delay(2500);
@@ -197,12 +199,14 @@ void setup() {
 
   USE_SERIAL.println("USE_SERIAL communication initialized!");
 
-  //WiFi.begin(ssid, password);  // Connect to WiFi
   WiFi.mode(WIFI_STA);
   wifiMulti.addAP(ssid, password);
   wifiMulti.addAP(ssid2, password2);
-
+  wifiMulti.addAP(ssid3, password3);
+  wifiMulti.addAP(ssid4, password4);
   waitForWiFiConnectOrReboot(USE_SERIAL, 50);
+
+  //secureClient.setCACert(root_ca);
 
   if (!myImager.begin()) {
     USE_SERIAL.println("Failed to initialize VL53L5CX sensor. Restarting ...");
@@ -228,7 +232,7 @@ void setup() {
   //mpu.enableSleep(false);
 
   webSocket.setReconnectInterval(WS_RECONNECT_INTERVAL);
-  webSocket.onEvent(webSocketEvent);  // Set event handler
+  webSocket.onEvent(webSocketEvent);                                                // Set event handler
   webSocket.beginSSL(websocketServer, websocketPort, "/signalhub");  // Initialize WebSocket client
 
   myImager.startRanging();  // Start ranging
@@ -237,11 +241,11 @@ void setup() {
 }
 
 void loop() {
-    //currentMillis = millis();                                                                      // Get the current time
+  //currentMillis = millis();                                                                      // Get the current time
   webSocket.loop();  // Handle WebSocket events and communication
 
   if (myImager.isDataReady() && webSocket.isConnected()) {  // Poll the VL53L5CX sensor for new data  TODO: Attach the interrupt
-    setLEDColor(64, 0, 64);                                
+    setLEDColor(64, 0, 64);
 
     if (myImager.getRangingData(&measurementData) && mpu.getEvent(&a, &g, &temp))  // Read data
     {
