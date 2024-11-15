@@ -127,7 +127,7 @@ namespace SmartBotWebApi.Controllers
 
                             var (interpolatedData, avgDistance) = InterpolateDataAvgTuple(data: dataFrame);
 
-                            await _hubContext.Clients.All.SendAsync("ReceiveMatrix", "API Websocket", new double[] { 1, -2, 0, -1.5, 5, -0.5, 22.5},  interpolatedData, avgDistance);
+                            await _hubContext.Clients.All.SendAsync("ReceiveMatrix", "API Websocket", new float[] { 1f, -2f, 0f, -1.5f, 5, -0.5f, 22.5f},  interpolatedData, avgDistance);
 
                             //_logger.LogInformation($"Average distance: {avgDistance} mm");
                         }

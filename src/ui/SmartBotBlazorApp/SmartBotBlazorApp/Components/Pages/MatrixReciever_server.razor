@@ -10,7 +10,8 @@
     <!-- Depth Image on the Left Side -->
     <div style="flex: 1; max-width: 700px; margin-right: 20px;">
         <h5>Depth Image</h5>
-        <div class="depth-image" style="width: 640px; height: 640px; display: grid; grid-template-columns: repeat(32, 1fr); gap: 0px;">
+        <div class="depth-image" 
+        style="width: 640px; height: 640px; display: grid; grid-template-columns: repeat(32, 1fr); gap: 0px;">
             @if (_dataFrame == null)
             {
                 <p><em>Waiting for image ...</em></p>
@@ -110,7 +111,7 @@
     private ushort[]? _dataFrame;
     private ushort? _avgDistance;
     private string? _hubUser;
-    private double[]? _measurements;
+    private float[]? _measurements;
 
 
     protected override async Task OnInitializedAsync()
@@ -119,7 +120,7 @@
             .WithUrl(@Configuration["Api:HubURL"]) 
             .Build();
 
-        _hubConnection.On<string, double, double[], ushort[], ushort>("ReceiveMatrix", (user, temperature, measurements, interpolatedMatrix, avgDistance) =>
+        _hubConnection.On<string, float[], ushort[], ushort>("ReceiveMatrix", (user, measurements, interpolatedMatrix, avgDistance) =>
         {
             _hubUser = user;
             _measurements = measurements;

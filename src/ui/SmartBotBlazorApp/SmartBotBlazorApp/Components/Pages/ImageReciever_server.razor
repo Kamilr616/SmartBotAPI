@@ -95,7 +95,7 @@
     private HubConnection? _hubConnection;
     private ushort? _avgDistance;
     private string? _hubUser;
-    private double[]? _measurements;
+    private float[]? _measurements;
     private string? _imageSrc;
 
     protected override async Task OnInitializedAsync()
@@ -104,7 +104,7 @@
             .WithUrl(@Configuration["Api:HubURL"])
             .Build();
 
-        _hubConnection.On<string, double[], string, ushort>("ReceiveBase64Frame", (user, measurements, base64Image, avgDistance) =>
+        _hubConnection.On<string, float[], string, ushort>("ReceiveBase64Frame", (user, measurements, base64Image, avgDistance) =>
         {
             _hubUser = user;
             _measurements = measurements;
