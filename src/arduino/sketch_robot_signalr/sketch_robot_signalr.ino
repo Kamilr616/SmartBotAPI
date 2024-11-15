@@ -232,7 +232,7 @@ void setup() {
   //mpu.enableSleep(false);
 
   webSocket.setReconnectInterval(WS_RECONNECT_INTERVAL);
-  webSocket.onEvent(webSocketEvent);                                                // Set event handler
+  webSocket.onEvent(webSocketEvent);                                 // Set event handler
   webSocket.beginSSL(websocketServer, websocketPort, "/signalhub");  // Initialize WebSocket client
 
   myImager.startRanging();  // Start ranging
