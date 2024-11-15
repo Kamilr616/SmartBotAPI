@@ -25,9 +25,8 @@ namespace SmartBotWebAPI
 
         public async Task ReceiveRobotData2(string user, float[] measurements, ushort[] rawMatrix, ushort avgDistance)
         {
-            var base64Img = _imageProcessor.GenerateHeatmapBase64Image(rawMatrix);
-
-            await Clients.Others.SendAsync("ReceiveBase64Frame", $"SignalHub({user})", measurements, base64Img, avgDistance);
+            //var base64Img = _imageProcessor.GenerateHeatmapBase64Image(rawMatrix);
+            //await Clients.Others.SendAsync("ReceiveBase64Frame", $"SignalHub({user})", measurements, base64Img, avgDistance);
 
             await Clients.Others.SendAsync("ReceiveMatrix", $"SignalHub({user})", measurements, _imageProcessor.InterpolateData(rawMatrix, 32), avgDistance);
         }
