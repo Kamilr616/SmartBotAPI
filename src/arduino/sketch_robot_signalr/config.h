@@ -36,7 +36,7 @@
 #define MPU_HZ_CYCLE MPU6050_CYCLE_20_HZ
 
 
-//#define RGB_BRIGHTNESS 10 // Change white brightness (max 255)
+//#define RGB_BRIGHTNESS 10 
 
 
 #endif
