@@ -1,53 +1,53 @@
-﻿using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+﻿//using SixLabors.ImageSharp;
+//using SixLabors.ImageSharp.PixelFormats;
+//using SixLabors.ImageSharp.Processing;
 
 
 namespace SmartBotWebAPI
 {
     public class ImageProcessor
     {
-        protected internal string GenerateHeatmapBase64Image(ushort[] depthData)
-        {
-            int width = 8, height = 8, scaledWidth = 32, scaledHeight = 32;
+        //protected internal string GenerateHeatmapBase64Image(ushort[] depthData)
+        //{
+        //    int width = 8, height = 8, scaledWidth = 32, scaledHeight = 32;
 
-            // Tworzenie obrazu
-            using var image = new Image<Rgba32>(width, height);
+        //    // Tworzenie obrazu
+        //    using var image = new Image<Rgba32>(width, height);
 
-            // Normalizacja głębokości
-            ushort minDepth = 1, maxDepth = 4000;
-            double scale = 1.0 / (maxDepth - minDepth);
+        //    // Normalizacja głębokości
+        //    ushort minDepth = 1, maxDepth = 4000;
+        //    double scale = 1.0 / (maxDepth - minDepth);
 
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    int index = y * width + x;
-                    double normalizedValue = (depthData[index] - minDepth) * scale;
-                    normalizedValue = Math.Clamp(normalizedValue, 0, 1);
+        //    for (int y = 0; y < height; y++)
+        //    {
+        //        for (int x = 0; x < width; x++)
+        //        {
+        //            int index = y * width + x;
+        //            double normalizedValue = (depthData[index] - minDepth) * scale;
+        //            normalizedValue = Math.Clamp(normalizedValue, 0, 1);
 
-                    // Ustawienie koloru pikseli
-                    var heatmapColor = GetHeatmapColor(normalizedValue);
-                    image[x, y] = heatmapColor;
-                }
-            }
+        //            // Ustawienie koloru pikseli
+        //            var heatmapColor = GetHeatmapColor(normalizedValue);
+        //            image[x, y] = heatmapColor;
+        //        }
+        //    }
 
-            // Skalowanie do 32x32
-            image.Mutate(ctx => ctx.Resize(scaledWidth, scaledHeight));
+        //    // Skalowanie do 32x32
+        //    image.Mutate(ctx => ctx.Resize(scaledWidth, scaledHeight));
 
-            // Zapisanie jako PNG i konwersja do Base64
-            using var ms = new MemoryStream();
-            image.SaveAsPng(ms);
-            return Convert.ToBase64String(ms.ToArray());
-        }
+        //    // Zapisanie jako PNG i konwersja do Base64
+        //    using var ms = new MemoryStream();
+        //    image.SaveAsPng(ms);
+        //    return Convert.ToBase64String(ms.ToArray());
+        //}
 
-        private Rgba32 GetHeatmapColor(double value)
-        {
-            // Gradient kolorów (niebieski -> czerwony -> żółty -> biały)
-            if (value < 0.33) return new Rgba32(0, (byte)(value * 3 * 255), 255); // Niebieski -> czerwony
-            if (value < 0.66) return new Rgba32((byte)((value - 0.33) * 3 * 255), 255, 0); // Czerwony -> żółty
-            return new Rgba32(255, (byte)(255 - (value - 0.66) * 3 * 255), 0); // Żółty -> biały
-        }
+        //private Rgba32 GetHeatmapColor(double value)
+        //{
+        //    // Gradient kolorów (niebieski -> czerwony -> żółty -> biały)
+        //    if (value < 0.33) return new Rgba32(0, (byte)(value * 3 * 255), 255); // Niebieski -> czerwony
+        //    if (value < 0.66) return new Rgba32((byte)((value - 0.33) * 3 * 255), 255, 0); // Czerwony -> żółty
+        //    return new Rgba32(255, (byte)(255 - (value - 0.66) * 3 * 255), 0); // Żółty -> biały
+        //}
 
         protected internal ushort[] InterpolateData(ushort[] data, int targetSize = 32)
         {
