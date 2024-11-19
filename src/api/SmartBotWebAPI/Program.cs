@@ -1,10 +1,10 @@
+using Microsoft.AspNet.SignalR;
 using SmartBotWebAPI;
 //using SignalRChat.Hubs;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -17,14 +17,23 @@ builder.Services.AddSwaggerGen(options =>
         Description = "API for processing images and interacting with the SmartBot system"
     });
 });
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options =>
+{
+    // Configure options for the SignalR hub
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(60); // Timeout for clients
+    options.KeepAliveInterval = TimeSpan.FromSeconds(45); // Interval for sending "ping" messages to keep connection alive
+    options.HandshakeTimeout = TimeSpan.FromSeconds(30); // Timeout for the handshake
+    options.MaximumParallelInvocationsPerClient = 4; // Max number of simultaneous invocations per client
+    //options.MaximumReceiveMessageSize = 32 * 1024; // Maximum size for a message (32 KB)
+    options.EnableDetailedErrors = true; // Enable detailed error messages for debugging
+});
 builder.Services.AddScoped<ImageProcessor>();
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
     {
-        builder.WithOrigins("*") // Adres Blazor WebAssembly
+        builder.WithOrigins("*") // Adres Blazor WebAssembly?
             .AllowAnyHeader()
             .AllowAnyMethod();
         //.AllowCredentials();
@@ -35,15 +44,12 @@ builder.Services.AddCors(options =>
 builder.Logging.AddDebug();
 builder.Logging.AddConsole();
 
-
 var app = builder.Build();
 
-// Enable WebSocket support
 var webSocketOptions = new WebSocketOptions
 {
     KeepAliveInterval = TimeSpan.FromSeconds(120) // Keep alive interval
 };
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -57,6 +63,7 @@ if (app.Environment.IsDevelopment())
         logger.LogInformation("Response: {StatusCode}", context.Response.StatusCode);
     });
 }
+
 app.UseSwagger();
 
 app.UseCors("CorsPolicy");
