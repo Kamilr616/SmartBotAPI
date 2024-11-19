@@ -8,7 +8,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "SmartBot API",
+        Version = "v1",
+        Description = "API for processing images and interacting with the SmartBot system"
+    });
+});
 builder.Services.AddSignalR();
 builder.Services.AddScoped<ImageProcessor>();
 
@@ -40,7 +48,6 @@ var webSocketOptions = new WebSocketOptions
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
     app.UseSwaggerUI();
     app.Use(async (context, next) =>
     {
@@ -50,6 +57,7 @@ if (app.Environment.IsDevelopment())
         logger.LogInformation("Response: {StatusCode}", context.Response.StatusCode);
     });
 }
+app.UseSwagger();
 
 app.UseCors("CorsPolicy");
 
