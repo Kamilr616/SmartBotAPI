@@ -99,7 +99,7 @@ class WebSocketTester:
 
 # Usage
 if __name__ == "__main__":
-    websocket_url =  "wss://localhost:32773/api/WebSocket/ws" #"wss://smartbotapi.azurewebsites.net/api/WebSocket/ws"
+    websocket_url =  "wss://smartbotapi.azurewebsites.net/api/WebSocket/ws"
 
     tester = WebSocketTester(websocket_url)
     tester_mode = MODE
