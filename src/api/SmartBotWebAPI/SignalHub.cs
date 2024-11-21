@@ -1,5 +1,4 @@
-﻿//using Microsoft.AspNet.SignalR.Hubs;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 
 
 namespace SmartBotWebAPI
@@ -27,17 +26,18 @@ namespace SmartBotWebAPI
             await Clients.Caller.SendAsync("ReceiveMessage", "API", "Message received!");
         }
 
-        [HubMethodName("ReceiveRobotData2")]
-        public async Task ReceiveRobotData2(string user, float[] measurements, ushort[] rawMatrix, ushort avgDistance)
+        [HubMethodName("ReceiveRobotData")]
+        public async Task ReceiveRobotData(string user, double[] measurements, ushort[] rawMatrix, ushort avgDistance)
         {
+            Console.WriteLine("method hit!");
             var base64Img = _imageProcessor.GenerateHeatmapBase64Image(rawMatrix);
             await Clients.Others.SendAsync("ReceiveBase64Frame", $"SignalHub({user})", measurements, base64Img, avgDistance);
 
             await Clients.Others.SendAsync("ReceiveMatrix", $"SignalHub({user})", measurements, _imageProcessor.InterpolateData(rawMatrix, 32), avgDistance);
         }
 
-        [HubMethodName("ReceiveRobotData")]
-        public async Task ReceiveRobotData(string user, float[] measurements, ushort[] rawMatrix, ushort avgDistance)
+        [HubMethodName("ReceiveRobotDataA")]
+        public async Task ReceiveRobotDataA(string user, float[] measurements, ushort[] rawMatrix, ushort avgDistance)
         {
             var interpolatedMatrix = _imageProcessor.InterpolateData(rawMatrix, 32);
 

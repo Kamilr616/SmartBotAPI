@@ -1,6 +1,5 @@
-using Microsoft.AspNet.SignalR;
 using SmartBotWebAPI;
-//using SignalRChat.Hubs;
+//using Microsoft.AspNetCore.ResponseCompression;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +26,11 @@ builder.Services.AddSignalR(options =>
     //options.MaximumReceiveMessageSize = 32 * 1024; // Maximum size for a message (32 KB)
     options.EnableDetailedErrors = true; // Enable detailed error messages for debugging
 });
+//builder.Services.AddResponseCompression(opts =>
+//{
+//    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+//        ["application/octet-stream"]);
+//});
 builder.Services.AddScoped<ImageProcessor>();
 
 builder.Services.AddCors(options =>
@@ -50,6 +54,8 @@ var webSocketOptions = new WebSocketOptions
 {
     KeepAliveInterval = TimeSpan.FromSeconds(120) // Keep alive interval
 };
+
+//app.UseResponseCompression();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

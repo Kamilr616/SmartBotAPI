@@ -107,19 +107,19 @@ String createDataString(const VL53L5CX_ResultsData &measurementData, sensors_eve
   uint16_t avgDistance = 0;
 
   doc["type"] = 1;
-  doc["target"] = "ReceiveRobotData2";  //method
+  doc["target"] = "ReceiveRobotData";  //method
   doc["arguments"][0] = "Robot_01";     //user
 
   JsonArray measurements = doc["arguments"][1].to<JsonArray>();
   JsonArray distances = doc["arguments"][2].to<JsonArray>();
 
-  measurements[0] = (float_t)a.acceleration.x;
-  measurements[1] = (float_t)a.acceleration.y;
-  measurements[2] = (float_t)a.acceleration.z;
-  measurements[3] = (float_t)g.gyro.x;
-  measurements[4] = (float_t)g.gyro.y;
-  measurements[5] = (float_t)g.gyro.z;
-  measurements[6] = (float_t)temp.temperature;
+  measurements[0] = (double_t)a.acceleration.x;
+  measurements[1] = (double_t)a.acceleration.y;
+  measurements[2] = (double_t)a.acceleration.z;
+  measurements[3] = (double_t)g.gyro.x;
+  measurements[4] = (double_t)g.gyro.y;
+  measurements[5] = (double_t)g.gyro.z;
+  measurements[6] = (double_t)temp.temperature;
 
   for (int y = (width * (width - 1)); y >= 0; y -= width) {
     for (int x = 0; x < width; x++) {

@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "webhooks_webappSmartBotBlazorApp_serviceUri": {
+            "value": null
+        },
+        "sites_SmartBotAPI_name": {
+            "value": null
+        },
+        "sites_SmartBotBlazorApp_name": {
+            "value": null
+        },
+        "serverfarms_ASP_SmartBotAPIres_a6af_name": {
+            "value": null
+        },
+        "registries_smartbotacr_name": {
+            "value": null
+        },
+        "service_SmartBotAPI_apim_externalid": {
+            "value": null
+        }
+    }
+}
