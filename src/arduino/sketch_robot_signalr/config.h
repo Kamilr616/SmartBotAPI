@@ -15,8 +15,8 @@
 #define USE_SERIAL Serial
 #define SERIAL_BAUDRATE 115200
 
-#define SERVER_IP "192.168.50.100"//"smartbotapi.azurewebsites.net"
-#define SERVER_PORT 32775//443
+#define SERVER_IP "smartbotweb.azurewebsites.net"
+#define SERVER_PORT 443
 
 #define PIN_NEOPIXEL 10  // GPIO10
 
