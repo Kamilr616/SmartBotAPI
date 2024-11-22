@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35431.28
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartBotBlazorApp", "SmartBotBlazorApp\SmartBotBlazorApp.csproj", "{B28C1BC4-DBC1-4BF3-A82B-4DDF69C162CF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartBotBlazorApp.Client", "SmartBotBlazorApp.Client\SmartBotBlazorApp.Client.csproj", "{A936564A-D064-4307-8330-22763E48F696}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B28C1BC4-DBC1-4BF3-A82B-4DDF69C162CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B28C1BC4-DBC1-4BF3-A82B-4DDF69C162CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B28C1BC4-DBC1-4BF3-A82B-4DDF69C162CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B28C1BC4-DBC1-4BF3-A82B-4DDF69C162CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A936564A-D064-4307-8330-22763E48F696}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A936564A-D064-4307-8330-22763E48F696}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A936564A-D064-4307-8330-22763E48F696}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A936564A-D064-4307-8330-22763E48F696}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EA1BB772-E668-4A71-AF66-D5B37BF56E4A}
+	EndGlobalSection
+EndGlobal
