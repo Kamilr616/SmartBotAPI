@@ -1,6 +1,0 @@
-@SmartBotWebAPI_HostAddress = https://localhost:8081
-
-GET {{SmartBotWebAPI_HostAddress}}/api/weatherforecast/
-Accept: application/json
-
-###
