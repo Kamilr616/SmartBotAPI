@@ -54,7 +54,7 @@ else
             .WithUrl(@Configuration["Api:HubURL"]) 
             .Build();
 
-        _hubConnection.On<string, double, double[], ushort[], ushort>("ReceiveMatrix", (user, temperature, measurements, interpolatedMatrix, avgDistance) =>
+        _hubConnection.On<string, float[], ushort[], ushort>("ReceiveMatrix", (user, measurements, interpolatedMatrix, avgDistance) =>
         {
             _dataFrame = interpolatedMatrix;
             _avgDistance = avgDistance;
