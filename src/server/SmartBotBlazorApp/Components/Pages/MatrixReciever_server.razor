@@ -111,7 +111,7 @@
     private ushort[]? _dataFrame;
     private ushort? _avgDistance;
     private string? _hubUser;
-    private double[]? _measurements;
+    private float[]? _measurements;
 
 
     protected override async Task OnInitializedAsync()
@@ -120,7 +120,7 @@
             .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
             .Build();
 
-        _hubConnection.On<string, double[], ushort[], ushort>("ReceiveMatrix", (user, measurements, interpolatedMatrix, avgDistance) =>
+        _hubConnection.On<string, float[], ushort[], ushort>("ReceiveMatrix", (user, measurements, interpolatedMatrix, avgDistance) =>
         {
             _hubUser = user;
             _measurements = measurements;

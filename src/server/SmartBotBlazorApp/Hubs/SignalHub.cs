@@ -27,10 +27,10 @@ namespace SmartBotBlazorApp.Hubs
         }
 
         [HubMethodName("ReceiveRobotData")]
-        public async Task ReceiveRobotData(string user, double[] measurements, ushort[] rawMatrix, ushort avgDistance)
+        public async Task ReceiveRobotData(string user, float[] measurements, ushort[] rawMatrix, ushort avgDistance)
         {
-            Console.WriteLine("method hit!");
             var base64Img = _imageProcessor.GenerateHeatmapBase64Image(rawMatrix);
+
             await Clients.Others.SendAsync("ReceiveBase64Frame", $"SignalHub({user})", measurements, base64Img, avgDistance);
 
             await Clients.Others.SendAsync("ReceiveMatrix", $"SignalHub({user})", measurements, _imageProcessor.InterpolateData(rawMatrix, 32), avgDistance);
@@ -43,14 +43,6 @@ namespace SmartBotBlazorApp.Hubs
 
             await Clients.Others.SendAsync("ReceiveMatrix", $"SignalHub({user})",  measurements, interpolatedMatrix, avgDistance);
         }
-
-        //public async Task ReceiveRawMatrix(string user, ushort[] message)
-        //{
-        //    var (interpolatedData, avgDistance) = _imageProcessor.InterpolateDataAvgTuple(message, 32);
-
-        //    await Clients.Others.SendAsync("ReceiveMatrix", $"API SignalHub -> {user}", interpolatedData, avgDistance);
-        //}
-
 
     }
 
