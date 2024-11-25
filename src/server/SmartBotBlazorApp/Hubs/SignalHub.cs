@@ -27,11 +27,11 @@ namespace SmartBotBlazorApp.Hubs
         }
 
         [HubMethodName("ReceiveRobotData")]
-        public async Task ReceiveRobotData(string user, float[] measurements, ushort[] rawMatrix, ushort avgDistance)
+        public async Task ReceiveRobotData(string user, double[] measurements, ushort[] rawMatrix, ushort avgDistance)
         {
             var base64Img = _imageProcessor.GenerateHeatmapBase64Image(rawMatrix);
 
-            //RoundMeasurements(measurements, 2);
+            RoundMeasurements(measurements, 2);
 
             await Clients.Others.SendAsync("ReceiveBase64Frame", $"SignalHub({user})", measurements, base64Img, avgDistance);
 
