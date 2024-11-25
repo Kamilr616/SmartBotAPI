@@ -7,18 +7,18 @@ namespace SmartBotBlazorApp
 {
     public class ImageProcessor
     {
-        public string GenerateHeatmapBase64Image(ushort[] depthData)
+        internal string GenerateHeatmapBase64Image(ushort[] depthData)
         {
-            int width = 8, height = 8, scaledWidth = 32, scaledHeight = 32;
+            int width = 8, scaledWidth = 64;
 
             // Tworzenie obrazu
-            using var image = new Image<Rgba32>(width, height);
+            using var image = new Image<Rgba32>(width, width);
 
             // Normalizacja głębokości
             ushort minDepth = 1, maxDepth = 4000;
             double scale = 1.0 / (maxDepth - minDepth);
 
-            for (int y = 0; y < height; y++)
+            for (int y = 0; y < width; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
@@ -32,8 +32,10 @@ namespace SmartBotBlazorApp
                 }
             }
 
+            image.Mutate(ctx => ctx.Rotate(RotateMode.Rotate90));
+
             // Skalowanie do 32x32
-            image.Mutate(ctx => ctx.Resize(scaledWidth, scaledHeight));
+            image.Mutate(ctx => ctx.Resize(scaledWidth, scaledWidth));
 
             // Zapisanie jako PNG i konwersja do Base64
             using var ms = new MemoryStream();
@@ -41,13 +43,34 @@ namespace SmartBotBlazorApp
             return Convert.ToBase64String(ms.ToArray());
         }
 
-        private Rgba32 GetHeatmapColor(double value)
+        private static Rgba32 GetHeatmapColor(double value)
         {
-            // Gradient kolorów (niebieski -> czerwony -> żółty -> biały)
-            if (value < 0.33) return new Rgba32(0, (byte)(value * 3 * 255), 255); // Niebieski -> czerwony
-            if (value < 0.66) return new Rgba32((byte)((value - 0.33) * 3 * 255), 255, 0); // Czerwony -> żółty
-            return new Rgba32(255, (byte)(255 - (value - 0.66) * 3 * 255), 0); // Żółty -> biały
+            if (value < 0.25)
+            {
+                // Red → Yellow
+                double t = value / 0.25;
+                return new Rgba32(255, (byte)(t * 255), 0); // Increasing green
+            }
+            else if (value < 0.5)
+            {
+                // Yellow → Green
+                double t = (value - 0.25) / 0.25;
+                return new Rgba32((byte)(255 - t * 255), 255, 0); // Decreasing red
+            }
+            else if (value < 0.75)
+            {
+                // Green → Blue
+                double t = (value - 0.5) / 0.25;
+                return new Rgba32(0, (byte)(255 - t * 255), (byte)(t * 255)); // Decreasing green, increasing blue
+            }
+            else
+            {
+                // Blue → Purple
+                double t = (value - 0.75) / 0.25; 
+                return new Rgba32((byte)(t * 255), 0, 255); // Increasing red
+            }
         }
+
 
         internal ushort[] InterpolateData(ushort[] data, int targetSize = 32)
         {
