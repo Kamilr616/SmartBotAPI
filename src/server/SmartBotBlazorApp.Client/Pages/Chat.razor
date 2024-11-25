@@ -5,7 +5,10 @@
 @inject NavigationManager Navigation
 
 
-<PageTitle>Chat</PageTitle>
+<PageTitle>SignalR Chat</PageTitle>
+
+<h1>SignalR Chat</h1>
+
 
 @if (!IsConnected)
 {
@@ -46,8 +49,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        //var hubUrl = @Configuration["Api:HubURL"];
-
         hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
             .Build();

@@ -1,13 +1,14 @@
 ﻿@page "/weather"
 @attribute [StreamRendering]
+@rendermode InteractiveServer
 
 <PageTitle>Weather</PageTitle>
 
 <h1>Weather</h1>
 
-<p>This component demonstrates showing data from an API.</p>
+<p>Fetching Air quality data from InPost API (TAR01APP).</p>
 
-@if (forecasts == null)
+@if (_airData == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -15,43 +16,88 @@ else
 {
     <table class="table">
         <thead>
-        <tr>
-            <th>Date</th>
-            <th>Temp. (C)</th>
-            <th>Temp. (F)</th>
-            <th>Summary</th>
-        </tr>
+            <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+            </tr>
         </thead>
         <tbody>
-        @foreach (var forecast in forecasts)
-        {
-            <tr>
-                <td>@forecast.Date.ToShortDateString()</td>
-                <td>@forecast.TemperatureC</td>
-                <td>@forecast.TemperatureF</td>
-                <td>@forecast.Summary</td>
-            </tr>
-        }
+            @foreach (var entry in _airData)
+            {
+                <tr>
+                    <td>@entry.Parameter</td>
+                    <td>@entry.Value</td>
+                </tr>
+            }
         </tbody>
     </table>
 }
 
 @code {
-    private WeatherForecast[]? forecasts;
+    private List<AirSensorData>? _airData;
 
-    [Inject]
-    private HttpClient Http { get; set; }
+    [Inject] private HttpClient Http { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        forecasts = null;
+        try
+        {
+            // Add required headers
+            Http.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
+
+            // Make the POST request
+            var response = await Http.PostAsync(
+                "https://greencity.pl/shipx-point-data/1613/TAR01APP/air_index_level",
+                null // No content needed for this request
+            );
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var weatherData = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+
+                if (weatherData?.air_sensors != null)
+                {
+                    _airData = new List<AirSensorData>();
+
+                    _airData.Add(new AirSensorData
+                    {
+                            Parameter = "AIR INDEX LEVEL",
+                            Value = weatherData?.air_index_level.ToString()
+                    });
+                    foreach (var sensor in weatherData.air_sensors)
+                    {
+                        string[] parts = sensor.ToString().Split(':');
+                        if (parts.Length >= 2)
+                        {
+                            string parameter = parts[0];
+                            string value = parts[1];
+                            string additionalInfo = parts[2].Length > 0 ? $" / {parts[2]}" : string.Empty;
+
+                            _airData.Add(new AirSensorData
+                                {
+                                    Parameter = parameter,
+                                    Value = value + additionalInfo
+                                });
+                        }
+                    }
+                }
+            }
+            else
+            {
+                throw new HttpRequestException($"Failed to fetch data: {response.ReasonPhrase}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred: {ex.Message}"); // TODO: Replace with proper logging
+        }
     }
 
-    private class WeatherForecast
+    private class AirSensorData
     {
-        public DateOnly Date { get; set; }
-        public int TemperatureC { get; set; }
-        public string? Summary { get; set; }
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+        public string Parameter { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
     }
+
 }
