@@ -3,21 +3,52 @@
 @inject NavigationManager Navigation
 @implements IAsyncDisposable
 
+@using System.Text.Json
 
 <PageTitle>Live View Image Server</PageTitle>
 
 <div style="display: flex; justify-content: center; max-width: 1000px; margin: 0 auto; padding: 20px;">
     <!-- Depth Image on the Left Side -->
+    <table @ref="keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown">
     <div style="flex: 1; max-width: 700px; margin-right: 20px;">
             @if (_imageSrc == null)
             {
-            <p><em>Waiting for image ...</em></p>
+                <p><em>Waiting for image ...</em></p>
+            <div class=" justify-content-center align-items-center">
+                <div class="spinner-border" role="status">
+                </div>
+            </div>
             }
             else
             {
                 <img src="@_imageSrc" alt="Depth Image" width="640" height="640" />
+
+            <thead>
+                <tr>
+                    <th>
+                        Pressed Key
+                    </th>
+                    <th>
+                        Counter
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>
+                            @pressedKey
+                    </td>
+                    <td>
+                            @counter
+                    </td>
+                </tr>
+            </tbody>
             }
+
     </div>
+    </table>
+
 
     <!-- Info Section on the Right Side -->
     <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
@@ -38,6 +69,9 @@
         @if (_avgDistance == null || _measurements == null || _hubUser == null)
         {
             <p><em>Waiting for data ...</em></p>
+                <div class="spinner-border" role="status">
+  
+            </div>
         }
         else
         {
@@ -98,8 +132,116 @@
     private double[]? _measurements;
     private string? _imageSrc;
 
+
+    //keyboardInputs
+    //--------------------------------------------------------------------------------------------------
+    private ElementReference keyboardInputRef;
+    private string? pressedKey;
+    private int counter = 0;
+    private int previousDir = -1;
+
+    public struct keyboardInputHandler
+    {
+        public string keyName;
+        public int robotDir;
+        public bool validInput;
+
+        public keyboardInputHandler(KeyboardEventArgs e)
+        {
+
+            switch (e.Key)
+            {
+                case "ArrowUp":
+                    keyName = "Up Arrow";
+                    robotDir = 0;
+                    validInput = true;
+                    break;
+
+                case "ArrowDown":
+                    keyName = "Down Arrow";
+                    robotDir = 1;
+                    validInput = true;
+                    break;
+
+                case "ArrowLeft":
+                    keyName = "Left Arrow";
+                    robotDir = 2;
+                    validInput = true;
+                    break;
+
+                case "ArrowRight":
+                    keyName = "Right Arrow";
+                    robotDir = 3;
+                    validInput = true;
+                    break;
+
+                default:
+                    keyName = "Wrong Button";
+                    robotDir = -1;
+                    validInput = false;
+                    break;
+            }
+        }
+    }
+
+    //to jest przykladowy format jsona ktorego wyslemy robotowi
+    public struct robotCommand
+    {
+        public string type { get; set; }
+        public string target { get; set; }
+        public int nextDirection { get; set; }
+
+        public robotCommand(int nextDir)
+        {
+            type = "";
+            target = "movementController";
+            nextDirection = nextDir;
+        }
+
+        public string toJson()
+        {
+            return System.Text.Json.JsonSerializer.Serialize(this);
+        }
+
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        keyboardInputHandler tmp = new keyboardInputHandler(e);
+        pressedKey = tmp.keyName;
+        if (previousDir != tmp.robotDir)
+            counter = 0;
+
+
+        if (tmp.validInput)
+        {
+            sendInputToRobot(new robotCommand(tmp.robotDir).toJson());
+            counter++;
+
+
+            previousDir = tmp.robotDir;
+        }
+    }
+
+
+    private void sendInputToRobot(string jsonCommand)
+    {
+        //tutaj wydmuszka, funkcja dostaje jsona z komenda ktora trzeba wyslac robotowi
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await keyboardInputRef.FocusAsync();
+        }
+    }
+
+    //---------------------------------------------------------------------------------------
+
     protected override async Task OnInitializedAsync()
     {
+
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
             .Build();
@@ -128,4 +270,7 @@
             await _hubConnection.DisposeAsync();
         }
     }
+
+
+
 }

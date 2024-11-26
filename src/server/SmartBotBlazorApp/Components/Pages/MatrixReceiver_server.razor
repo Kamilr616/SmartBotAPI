@@ -41,7 +41,8 @@
 
             }
         </div>
-        @if(_dataFrame != null)
+            <!-- dlaczego powtarzam if? Bo inaczej układ strony sie rozwala-->
+            @if(_dataFrame != null)
             {
                 
                 <thead>
@@ -170,6 +171,7 @@
         public int robotDir;
         public bool validInput;
 
+        //to jest przykladowy format jsona ktorego wyslemy robotowi
         public keyboardInputHandler(KeyboardEventArgs e)
         {
 
@@ -249,7 +251,7 @@
 
     private void sendInputToRobot(string jsonCommand)
     {
-
+        //tutaj wydmuszka, funkcja dostaje jsona z komenda ktora trzeba wyslac robotowi
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
