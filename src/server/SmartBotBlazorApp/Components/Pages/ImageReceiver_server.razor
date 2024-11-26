@@ -193,7 +193,7 @@
 
         public robotCommand(int nextDir)
         {
-            type = "";
+            type = "input";
             target = "movementController";
             nextDirection = nextDir;
         }
@@ -228,6 +228,7 @@
     {
         //tutaj wydmuszka, funkcja dostaje jsona z komenda ktora trzeba wyslac robotowi
     }
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
