@@ -3,17 +3,27 @@
 @implements IAsyncDisposable
 @inject NavigationManager Navigation
 
+@using System.Text.Json
 
 <PageTitle>Live View Server</PageTitle>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+
 <div style="display: flex; justify-content: center; max-width: 1000px; margin: 0 auto; padding: 20px;">
     <!-- Depth Image on the Left Side -->
+<table @ref="keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown">
     <div style="flex: 1; max-width: 700px; margin-right: 20px;">
         <div class="depth-image" 
         style="width: 640px; height: 640px; display: grid; grid-template-columns: repeat(32, 1fr); gap: 0px;">
             @if (_dataFrame == null)
             {
-                <p><em>Waiting for image ...</em></p>
+                    <div class=" justify-content-center align-items-center">
+                    <p><em>Waiting for image ...</em></p>
+                        <div class="spinner-border" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
             }
             else
             {
@@ -28,9 +38,39 @@
                         <div class="pixel" style="background-color: @color; width: 100%; height: 100%; margin 0; padding: 0;"></div>
                     }
                 }
+
             }
         </div>
+        @if(_dataFrame != null)
+            {
+                
+                <thead>
+                        <tr>
+                            <th>
+                                Pressed Key
+                            </th>
+                            <th>
+                                Counter
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td>
+                                @pressedKey
+                            </td>
+                            <td>
+                                @counter
+                            </td>
+                        </tr>
+                    </tbody>
+            }
+
+    
     </div>
+    </table>
+
 
     <!-- Info Section on the Right Side -->
     <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
@@ -51,6 +91,11 @@
         @if (_avgDistance == null || _measurements == null || _hubUser == null)
         {
             <p><em>Waiting for data ...</em></p>
+            <div class="d-flex justify-content-center">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
         }
         else
         {
@@ -106,15 +151,129 @@
 
 
 @code {
+    //hub connection
     private HubConnection? _hubConnection;
     private ushort[]? _dataFrame;
     private ushort? _avgDistance;
     private string? _hubUser;
     private double[]? _measurements;
 
+    //keyboardInputs
+    private ElementReference keyboardInputRef;
+    private string? pressedKey;
+    private int counter = 0;
+    private int previousDir = -1;
+
+    public struct keyboardInputHandler
+    {
+        public string keyName;
+        public int robotDir;
+        public bool validInput;
+
+        public keyboardInputHandler(KeyboardEventArgs e)
+        {
+
+            switch (e.Key)
+            {
+                case "ArrowUp":
+                    keyName = "Up Arrow";
+                    robotDir = 0;
+                    validInput = true;
+                    break;
+
+                case "ArrowDown":
+                    keyName = "Down Arrow";
+                    robotDir = 1;
+                    validInput = true;
+                    break;
+
+                case "ArrowLeft":
+                    keyName = "Left Arrow";
+                    robotDir = 2;
+                    validInput = true;
+                    break;
+
+                case "ArrowRight":
+                    keyName = "Right Arrow";
+                    robotDir = 3;
+                    validInput = true;
+                    break;
+
+                default:
+                    keyName = "Wrong Button";
+                    robotDir = -1;
+                    validInput = false;
+                    break;
+            }
+        }
+    }
+
+    public struct robotCommand
+    {
+        public string type { get; set; }
+        public string target { get; set; }
+        public int nextDirection { get; set; }
+
+        public robotCommand(int nextDir)
+        {
+            type = "";
+            target = "movementController";
+            nextDirection = nextDir;
+        }
+
+        public string toJson()
+        {
+            return System.Text.Json.JsonSerializer.Serialize(this);
+        }
+
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        keyboardInputHandler tmp = new keyboardInputHandler(e);
+        pressedKey = tmp.keyName;
+        if (previousDir != tmp.robotDir)
+            counter = 0;
+
+
+        if (tmp.validInput)
+        {
+            sendInputToRobot(new robotCommand(tmp.robotDir).toJson());
+            counter++;
+
+
+            previousDir = tmp.robotDir;
+        }
+    }
+
+
+    private void sendInputToRobot(string jsonCommand)
+    {
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await keyboardInputRef.FocusAsync();
+        }
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
+
+        //------------------------------------------------------------
+        // _dataFrame = GenerateTestDataAscend(32);
+        // _avgDistance = null;
+        // _hubUser = "TEST_DATA";
+
+        
+        // await Task.CompletedTask; 
+
+        //-------------------------------------------------------------
+
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
             .Build();
@@ -184,6 +343,41 @@
         return $"rgb({Math.Clamp(r, 0, 255)}, {Math.Clamp(g, 0, 255)}, {Math.Clamp(b, 0, 255)})";
     }
 
+    //================================================================================================================================
+    //DEBUG FUNCTIONS
+
+    private ushort[] GenerateTestData(int resolution)
+    {
+        var random = new Random();
+        ushort[] data = new ushort[resolution * resolution];
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            data[i] = (ushort)random.Next(0, 4000);
+        }
+
+        return data;
+    }
+
+    private ushort[] GenerateTestDataAscend(int resolution)
+    {
+        ushort[] data = new ushort[resolution * resolution];
+
+        int index = 0;
+
+        for (int i = 0; i < resolution; i++)
+        {
+            for (int j = 0; j < resolution; j++)
+            {
+                data[index] = (ushort)(i * 125 + j);
+                index++;
+            }
+        }
+
+        return data;
+    }
+
+    //================================================================================================================================
 
 
 }
