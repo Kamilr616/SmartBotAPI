@@ -112,15 +112,15 @@
 <div class="joystick-container">
     <!-- Joystick Section -->
     <div id="joystickContainer" @onpointerdown="OnPointerDown" @onpointermove="OnPointerMove" @onpointerup="OnPointerUp" @onpointercancel="OnPointerUp">
-        <div id="joystickKnob" style="left: @(knobPosX - 25)px; top: @(knobPosY - 25)px;"></div>
+        <div id="joystickKnob" style="left: @(_joystickHandler.KnobPosX - 25)px; top: @(_joystickHandler.KnobPosY - @joystickRadius)px;"></div>
     </div>
 
     <!-- Data Section -->
     <table>
         <tbody>
             <tr>
-                <td>@joyDir</td>
-                <td>@joycounter</td>
+                <td>@_joystickHandler.Direction</td>
+                <td>@_joystickHandler.Counter</td>
             </tr>
         </tbody>
     </table>
@@ -131,103 +131,27 @@
 
 
 @code {
-    private double joystickCenterX = 50;
-    private double joystickCenterY = 50;
-    private double knobPosX = 50;       
-    private double knobPosY = 50;
 
-    private bool isTouching = false;
-    private double touchStartX;
-    private double touchStartY;
+    private static int joystickCenterX = 50;
+    private static int joystickCenterY = 50;
+    private static int joystickRadius = 25;
+    private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX,joystickCenterY,joystickRadius);
 
-    private string? joyDir;
-    private int joycounter = 0;
-
+    //passthorugh, for implemeneting inner logic later on
+    //TODO: refactor later
     private void OnPointerDown(PointerEventArgs e)
     {
-        isTouching = true;
-        touchStartX = e.ClientX;
-        touchStartY = e.ClientY;
-
+        _joystickHandler.OnPointerDown(e.ClientX, e.ClientY);
     }
 
     private void OnPointerMove(PointerEventArgs e)
     {
-        if (isTouching)
-        {
-            double deltaX = e.ClientX - touchStartX;
-            double deltaY = e.ClientY - touchStartY;
-            //distance from center
-            double distance = Math.Sqrt(Math.Pow(deltaX, 2) + Math.Pow(deltaY, 2));
-
-            // Limit the distance to the radius of the joystick container
-            double radius = 25; // maximum distance from center
-            double newX = joystickCenterX + deltaX;
-            double newY = joystickCenterY + deltaY;
-
-            if (distance > radius)
-            {
-                newX = knobPosX;
-                newY = knobPosY;
-            }
-
-            knobPosX = newX;
-            knobPosY = newY;
-            joycounter++;
-            joyDir = GetJoystickDirection(knobPosX, knobPosY);
-
-        }
+        _joystickHandler.OnPointerMove(e.ClientX, e.ClientY);
     }
 
     private void OnPointerUp(PointerEventArgs e)
     {
-        isTouching = false;
-        knobPosX = joystickCenterX;
-        knobPosY = joystickCenterY;
-    }
-
-
-    public string GetJoystickDirection(double knobPosX, double knobPosY)
-    {
-        // Joystick container dimensions
-        double containerWidth = 100;
-        double containerHeight = 100;
-
-        // Calculate the center of the joystick container
-        double centerX = containerWidth / 2;
-        double centerY = containerHeight / 2;
-
-        // Calculate the distance of the knob from the center
-        double deltaX = knobPosX - centerX;
-        double deltaY = knobPosY - centerY;
-
-        // Define the threshold for considering the knob to be in the "middle" area
-        double threshold = 5;
-
-        // Determine the direction based on the deltas
-        if (Math.Abs(deltaX) > Math.Abs(deltaY))  // Horizontal
-        {
-            if (deltaX > threshold)
-            {
-                return "Right";
-            }
-            else if (deltaX < -threshold)
-            {
-                return "Left";
-            }
-        }
-        else  // Vertical
-        {
-            if (deltaY > threshold)
-            {
-                return "Down";
-            }
-            else if (deltaY < -threshold)
-            {
-                return "Up";
-            }
-        }
-        return "Center";
+        _joystickHandler.OnPointerUp();
     }
 
 
@@ -244,30 +168,8 @@
     private ElementReference keyboardInputRef;
     private string? pressedKey;
     private int counter = 0;
-    private int previousDir = -1;
+    private ROBOT_DIRECITON previousDir = ROBOT_DIRECITON.STOP;
 
-
-
-    //to jest przykladowy format jsona ktorego wyslemy robotowi
-    public struct robotCommand
-    {
-        public string type { get; set; }
-        public string target { get; set; }
-        public int nextDirection { get; set; }
-
-        public robotCommand(int nextDir)
-        {
-            type = "input";
-            target = "movementController";
-            nextDirection = nextDir;
-        }
-
-        public string toJson()
-        {
-            return System.Text.Json.JsonSerializer.Serialize(this);
-        }
-
-    }
 
     private void HandleKeyDown(KeyboardEventArgs e)
     {
@@ -276,12 +178,10 @@
         if (previousDir != tmp.robotDir)
             counter = 0;
 
-
         if (tmp.validInput)
         {
-            sendInputToRobot(new robotCommand(tmp.robotDir).toJson());
+            sendInputToRobot(new RobotCommand(tmp.robotDir).toJson());
             counter++;
-
 
             previousDir = tmp.robotDir;
         }
