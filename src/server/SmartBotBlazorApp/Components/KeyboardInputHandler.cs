@@ -4,8 +4,9 @@ namespace SmartBotBlazorApp.Components
 {
     public class keyboardInputHandler
     {
+
         public string keyName;
-        public int robotDir;
+        public ROBOT_DIRECITON robotDir;
         public bool validInput;
 
         public keyboardInputHandler(KeyboardEventArgs e)
@@ -15,31 +16,31 @@ namespace SmartBotBlazorApp.Components
             {
                 case "ArrowUp":
                     keyName = "Up Arrow";
-                    robotDir = 0;
+                    robotDir = ROBOT_DIRECITON.UP;
                     validInput = true;
                     break;
 
                 case "ArrowDown":
                     keyName = "Down Arrow";
-                    robotDir = 1;
+                    robotDir = ROBOT_DIRECITON.DOWN;
                     validInput = true;
                     break;
 
                 case "ArrowLeft":
                     keyName = "Left Arrow";
-                    robotDir = 2;
+                    robotDir = ROBOT_DIRECITON.LEFT;
                     validInput = true;
                     break;
 
                 case "ArrowRight":
                     keyName = "Right Arrow";
-                    robotDir = 3;
+                    robotDir = ROBOT_DIRECITON.RIGHT;
                     validInput = true;
                     break;
 
                 default:
                     keyName = "Wrong Button";
-                    robotDir = -1;
+                    //robotDir = -1;
                     validInput = false;
                     break;
             }
