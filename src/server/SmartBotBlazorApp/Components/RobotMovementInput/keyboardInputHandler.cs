@@ -1,17 +1,31 @@
-﻿using Microsoft.AspNetCore.Components.Web;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
-namespace SmartBotBlazorApp.Components
+namespace SmartBotBlazorApp.Components.RobotMovementInput
 {
     public class keyboardInputHandler
     {
+        public ElementReference keyboardInputRef;
+        public string? pressedKey { get; private set; }
+        public int counter { get; private set; }
 
-        public string keyName;
-        public ROBOT_DIRECITON robotDir;
-        public bool validInput;
+   
+        public string keyName { get; private set; }
+        public ROBOT_DIRECITON robotDir { get; private set; }
+        public bool validInput { get; private set; }
 
-        public keyboardInputHandler(KeyboardEventArgs e)
+        public keyboardInputHandler()
         {
+            counter = 0;
+            keyName = "";
+            robotDir = ROBOT_DIRECITON.STOP;
+            validInput = false;
+        }
 
+        public void onKeyDown(KeyboardEventArgs e, bool resetCounter)
+        {
+            counter++;
+            pressedKey = e.Key;
             switch (e.Key)
             {
                 case "ArrowUp":
@@ -44,6 +58,11 @@ namespace SmartBotBlazorApp.Components
                     validInput = false;
                     break;
             }
+        }
+
+        public void resetCounter()
+        {
+            counter = 0;
         }
     }
 }

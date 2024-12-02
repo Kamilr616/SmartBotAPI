@@ -1,4 +1,4 @@
-﻿namespace SmartBotBlazorApp.Components
+﻿namespace SmartBotBlazorApp.Components.RobotMovementInput
 {
     public class JoystickInputHandler
     {
@@ -51,8 +51,8 @@
                 // Limit the distance to the radius of the joystick container
                 if (distance > _radius)
                 {
-                    newPosX = _knobPosX;    
-                    newPosY = _knobPosY;    
+                    newPosX = _knobPosX;
+                    newPosY = _knobPosY;
                 }
 
                 _knobPosX = newPosX;

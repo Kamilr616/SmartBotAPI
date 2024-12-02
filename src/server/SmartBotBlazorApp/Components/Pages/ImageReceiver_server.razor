@@ -5,12 +5,14 @@
 
 @using System.Numerics
 @using System.Text.Json
+@using RobotMovementInput
+
 
 <PageTitle>Live View Image Server</PageTitle>
 
 <div class="container">
     <!-- Depth Image on the Left Side -->
-    <table @ref="keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown">
+    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown">
         <div class="left-section">
             @if (_imageSrc == null)
             {
@@ -30,8 +32,8 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>@pressedKey</td>
-                    <td>@counter</td>
+                    <td>@_keyobardInputHandler.pressedKey</td>
+                    <td>@_keyobardInputHandler.counter</td>
                 </tr>
             </tbody>
             }
@@ -165,27 +167,24 @@
 
     //keyboardInputs
     //--------------------------------------------------------------------------------------------------
-    private ElementReference keyboardInputRef;
-    private string? pressedKey;
-    private int counter = 0;
+    //keyboardInputs
+    private keyboardInputHandler _keyobardInputHandler = new keyboardInputHandler();
     private ROBOT_DIRECITON previousDir = ROBOT_DIRECITON.STOP;
+
 
 
     private void HandleKeyDown(KeyboardEventArgs e)
     {
-        keyboardInputHandler tmp = new keyboardInputHandler(e);
-        pressedKey = tmp.keyName;
-        if (previousDir != tmp.robotDir)
-            counter = 0;
 
-        if (tmp.validInput)
+        _keyobardInputHandler.onKeyDown(e, previousDir != _keyobardInputHandler.robotDir);
+
+        if (_keyobardInputHandler.validInput)
         {
-            sendInputToRobot(new RobotCommand(tmp.robotDir).toJson());
-            counter++;
-
-            previousDir = tmp.robotDir;
+            sendInputToRobot(new RobotCommand(_keyobardInputHandler.robotDir).toJson());
+            previousDir = _keyobardInputHandler.robotDir;
         }
     }
+
 
 
     private void sendInputToRobot(string jsonCommand)
@@ -198,7 +197,7 @@
     {
         if (firstRender)
         {
-            await keyboardInputRef.FocusAsync();
+            await _keyobardInputHandler.keyboardInputRef.FocusAsync();
         }
     }
 

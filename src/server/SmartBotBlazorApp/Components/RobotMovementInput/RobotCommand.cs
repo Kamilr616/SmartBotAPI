@@ -1,4 +1,4 @@
-﻿namespace SmartBotBlazorApp.Components
+﻿namespace SmartBotBlazorApp.Components.RobotMovementInput
 {
     public class RobotCommand
     {
