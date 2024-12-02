@@ -4,6 +4,8 @@
 @inject NavigationManager Navigation
 
 @using System.Text.Json
+@using RobotMovementInput
+
 
 <PageTitle>Live View Server</PageTitle>
 
@@ -12,7 +14,7 @@
 
 <div style="display: flex; justify-content: center; max-width: 1000px; margin: 0 auto; padding: 20px;">
     <!-- Depth Image on the Left Side -->
-    <table @ref="keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown">
+    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown">
         <div style="flex: 1; max-width: 700px; margin-right: 20px;">
             <div class="depth-image"
                  style="width: 640px; height: 640px; display: grid; grid-template-columns: repeat(32, 1fr); gap: 0px;">
@@ -59,10 +61,10 @@
             <tbody>
                 <tr>
                     <td>
-                            @pressedKey
+                            @_keyobardInputHandler.pressedKey
                     </td>
                     <td>
-                            @counter
+                            @_keyobardInputHandler.counter
                     </td>
                 </tr>
             </tbody>
@@ -160,27 +162,20 @@
     private double[]? _measurements;
 
     //keyboardInputs
-    private ElementReference keyboardInputRef;
-    private string? pressedKey;
-    private int counter = 0;
+    private keyboardInputHandler _keyobardInputHandler = new keyboardInputHandler();
     private ROBOT_DIRECITON previousDir = ROBOT_DIRECITON.STOP;
 
 
 
     private void HandleKeyDown(KeyboardEventArgs e)
     {
-        keyboardInputHandler tmp = new keyboardInputHandler(e);
-        pressedKey = tmp.keyName;
-        if (previousDir != tmp.robotDir)
-            counter = 0;
 
+        _keyobardInputHandler.onKeyDown(e, previousDir != _keyobardInputHandler.robotDir);
 
-        if (tmp.validInput)
+        if (_keyobardInputHandler.validInput)
         {
-            sendInputToRobot(new RobotCommand(tmp.robotDir).toJson());
-            counter++;
-
-            previousDir = tmp.robotDir;
+            sendInputToRobot(new RobotCommand(_keyobardInputHandler.robotDir).toJson());
+            previousDir = _keyobardInputHandler.robotDir;
         }
     }
 
@@ -194,7 +189,7 @@
     {
         if (firstRender)
         {
-            await keyboardInputRef.FocusAsync();
+            await _keyobardInputHandler.keyboardInputRef.FocusAsync();
         }
     }
 
@@ -203,12 +198,12 @@
     {
 
         //------------------------------------------------------------
-        // _dataFrame = GenerateTestDataAscend(32);
-        // _avgDistance = null;
-        // _hubUser = "TEST_DATA";
+        _dataFrame = GenerateTestDataAscend(32);
+        _avgDistance = null;
+        _hubUser = "TEST_DATA";
 
 
-        // await Task.CompletedTask;
+        await Task.CompletedTask;
 
         //-------------------------------------------------------------
 
