@@ -22,12 +22,11 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
             validInput = false;
         }
 
-        public void onKeyDown(KeyboardEventArgs e, bool resetCounter)
+        public void onKeyDown(KeyboardEventArgs e)
         {
             counter++;
             pressedKey = e.Key;
-            if (resetCounter)
-                counter = 0;
+ 
             switch (e.Key)
             {
                 case "ArrowUp":
@@ -62,9 +61,10 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
             }
         }
 
-        public void resetCounter()
+        public void amIResetingCounter(bool reset)
         {
-            counter = 0;
+            if(reset)
+                counter = 0;
         }
     }
 }

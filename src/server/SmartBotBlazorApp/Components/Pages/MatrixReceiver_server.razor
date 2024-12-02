@@ -170,12 +170,14 @@
     private void HandleKeyDown(KeyboardEventArgs e)
     {
 
-        _keyobardInputHandler.onKeyDown(e, previousDir != _keyobardInputHandler.robotDir);
+        _keyobardInputHandler.onKeyDown(e);
+        _keyobardInputHandler.amIResetingCounter(previousDir != _keyobardInputHandler.robotDir);
+        previousDir = _keyobardInputHandler.robotDir;
+
 
         if (_keyobardInputHandler.validInput)
         {
             sendInputToRobot(new RobotCommand(_keyobardInputHandler.robotDir).toJson());
-            previousDir = _keyobardInputHandler.robotDir;
         }
     }
 
