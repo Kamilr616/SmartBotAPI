@@ -157,15 +157,13 @@
                     _joystickHandler.increaseCounter();
                 }
 
-
-             
                 InvokeAsync(StateHasChanged);
-                await Task.Delay(10, token); // Adjust interval as needed
+                await Task.Delay(10, token);
             }
         }
         catch (TaskCanceledException)
         {
-            // Expected exception on cancellation
+
         }
     }
 
