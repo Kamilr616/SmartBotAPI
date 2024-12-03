@@ -176,6 +176,7 @@
 
 
 @code {
+    //---------------------------------------------------------------------------------------
 
     private static int joystickCenterX = 50;
     private static int joystickCenterY = 50;
@@ -235,7 +236,7 @@
         StopJoystickMessageLoop();
     }
 
-
+    //---------------------------------------------------------------------------------------
     //hub connection
     private HubConnection? _hubConnection;
     private ushort[]? _dataFrame;
@@ -243,10 +244,11 @@
     private string? _hubUser;
     private double[]? _measurements;
 
+
+    //---------------------------------------------------------------------------------------
     //keyboardInputs
     private keyboardInputHandler _keyobardInputHandler = new keyboardInputHandler();
     private ROBOT_DIRECITON previousDir = ROBOT_DIRECITON.STOP;
-
 
 
     private void HandleKeyDown(KeyboardEventArgs e)
@@ -278,6 +280,7 @@
             await _keyobardInputHandler.keyboardInputRef.FocusAsync();
         }
     }
+    //---------------------------------------------------------------------------------------
 
 
     protected override async Task OnInitializedAsync()

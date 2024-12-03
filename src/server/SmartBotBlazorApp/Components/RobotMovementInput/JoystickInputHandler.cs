@@ -130,6 +130,7 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
                 Counter = 0;
 
             }
+            
         }
 
 
