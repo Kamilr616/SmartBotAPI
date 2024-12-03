@@ -3,118 +3,212 @@
 @implements IAsyncDisposable
 @inject NavigationManager Navigation
 
+@using System.Text.Json
+@using RobotMovementInput
+
 
 <PageTitle>Live View Server</PageTitle>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+
 <div style="display: flex; justify-content: center; max-width: 1000px; margin: 0 auto; padding: 20px;">
     <!-- Depth Image on the Left Side -->
-    <div style="flex: 1; max-width: 700px; margin-right: 20px;">
-        <div class="depth-image" 
-        style="width: 640px; height: 640px; display: grid; grid-template-columns: repeat(32, 1fr); gap: 0px;">
-            @if (_dataFrame == null)
-            {
-                <p><em>Waiting for image ...</em></p>
-            }
-            else
-            {
-                int res = 32;
-                for (int i = 0; i < res; i++)
+    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown">
+        <div style="flex: 1; max-width: 700px; margin-right: 20px;">
+            <div class="depth-image"
+                 style="width: 640px; height: 640px; display: grid; grid-template-columns: repeat(32, 1fr); gap: 0px;">
+                @if (_dataFrame == null)
                 {
-                    for (int j = 0; j < res; j++)
-                    {
-                        int index = i * res + j;
-                        var value = _dataFrame[index];
-                        var color = GetColorFromValue(value);
-                        <div class="pixel" style="background-color: @color; width: 100%; height: 100%; margin 0; padding: 0;"></div>
-                    }
+                    <div class=" justify-content-center align-items-center">
+                        <p><em>Waiting for image ...</em></p>
+                        <div class="spinner-border" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
                 }
-            }
-        </div>
-    </div>
+                else
+                {
+                    int res = 32;
+                    for (int i = 0; i < res; i++)
+                    {
+                        for (int j = 0; j < res; j++)
+                        {
+                            int index = i * res + j;
+                            var value = _dataFrame[index];
+                            var color = GetColorFromValue(value);
+                            <div class="pixel" style="background-color: @color; width: 100%; height: 100%; margin 0; padding: 0;"></div>
+                        }
+                    }
 
-    <!-- Info Section on the Right Side -->
-    <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
-        <!-- Connection Status Section -->
-        <div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 10px; background-color: #f5f5f5; border-radius: 8px;">
-            <h5>Hub Connection Status</h5>
+                }
+            </div>
+            <!-- dlaczego powtarzam if? Bo inaczej układ strony sie rozwala-->
+            @if (_dataFrame != null)
+            {
+
+            <thead>
+                <tr>
+                    <th>
+                        Pressed Key
+                    </th>
+                    <th>
+                        Counter
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>
+                            @_keyobardInputHandler.pressedKey
+                    </td>
+                    <td>
+                            @_keyobardInputHandler.counter
+                    </td>
+                </tr>
+            </tbody>
+            }
+
+
+</div>
+    </table>
+
+
+<!-- Info Section on the Right Side -->
+<div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
+    <!-- Connection Status Section -->
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 10px; background-color: #f5f5f5; border-radius: 8px;">
+        <h5>Hub Connection Status</h5>
             @if (IsConnected)
             {
-                <p style="color: green; font-weight: bold;">Connected</p>
+            <p style="color: green; font-weight: bold;">Connected</p>
             }
             else
             {
-                <p style="color: red; font-weight: bold;">Disconnected</p>
+            <p style="color: red; font-weight: bold;">Disconnected</p>
             }
-        </div>
+    </div>
 
-        <!-- Data Status Section -->
+    <!-- Data Status Section -->
         @if (_avgDistance == null || _measurements == null || _hubUser == null)
         {
-            <p><em>Waiting for data ...</em></p>
+        <p><em>Waiting for data ...</em></p>
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
         }
         else
         {
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <!-- User and Average Distance Section -->
-                <div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 10px; background-color: #f5f5f5; border-radius: 8px;">
-                    <div style="flex: 1; min-width: 100px;">
-                        <h5>User</h5>
-                        <p>@_hubUser</p>
-                    </div>
-                    <div style="flex: 1; min-width: 100px;">
-                        <h5>Average Distance</h5>
-                        <p>@_avgDistance mm</p>
-                    </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- User and Average Distance Section -->
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 10px; background-color: #f5f5f5; border-radius: 8px;">
+                <div style="flex: 1; min-width: 100px;">
+                    <h5>User</h5>
+                    <p>@_hubUser</p>
                 </div>
-
-                <!-- Acceleration and Rotation Section -->
-                <div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 10px; background-color: #e9e9e9; border-radius: 8px;">
-                    <div style="flex: 1; min-width: 100px;">
-                        <h5>Acceleration X</h5>
-                        <p>@_measurements[0]</p>
-                    </div>
-                    <div style="flex: 1; min-width: 100px;">
-                        <h5>Acceleration Y</h5>
-                        <p>@_measurements[1]</p>
-                    </div>
-                    <div style="flex: 1; min-width: 100px;">
-                        <h5>Acceleration Z</h5>
-                        <p>@_measurements[2]</p>
-                    </div>
-                    <div style="flex: 1; min-width: 100px;">
-                        <h5>Rotation X</h5>
-                        <p>@_measurements[3]</p>
-                    </div>
-                    <div style="flex: 1; min-width: 100px;">
-                        <h5>Rotation Y</h5>
-                        <p>@_measurements[4]</p>
-                    </div>
-                    <div style="flex: 1; min-width: 100px;">
-                        <h5>Rotation Z</h5>
-                        <p>@_measurements[5]</p>
-                    </div>
-                    <div style="flex: 1; min-width: 100px;">
-                        <h5>Temperature</h5>
-                        <p>@_measurements[6] C</p>
-                    </div>
+                <div style="flex: 1; min-width: 100px;">
+                    <h5>Average Distance</h5>
+                    <p>@_avgDistance mm</p>
                 </div>
             </div>
+
+            <!-- Acceleration and Rotation Section -->
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 10px; background-color: #e9e9e9; border-radius: 8px;">
+                <div style="flex: 1; min-width: 100px;">
+                    <h5>Acceleration X</h5>
+                    <p>@_measurements[0]</p>
+                </div>
+                <div style="flex: 1; min-width: 100px;">
+                    <h5>Acceleration Y</h5>
+                    <p>@_measurements[1]</p>
+                </div>
+                <div style="flex: 1; min-width: 100px;">
+                    <h5>Acceleration Z</h5>
+                    <p>@_measurements[2]</p>
+                </div>
+                <div style="flex: 1; min-width: 100px;">
+                    <h5>Rotation X</h5>
+                    <p>@_measurements[3]</p>
+                </div>
+                <div style="flex: 1; min-width: 100px;">
+                    <h5>Rotation Y</h5>
+                    <p>@_measurements[4]</p>
+                </div>
+                <div style="flex: 1; min-width: 100px;">
+                    <h5>Rotation Z</h5>
+                    <p>@_measurements[5]</p>
+                </div>
+                <div style="flex: 1; min-width: 100px;">
+                    <h5>Temperature</h5>
+                    <p>@_measurements[6] C</p>
+                </div>
+            </div>
+        </div>
         }
-    </div>
+</div>
 </div>
 
 
 
 @code {
+    //hub connection
     private HubConnection? _hubConnection;
     private ushort[]? _dataFrame;
     private ushort? _avgDistance;
     private string? _hubUser;
     private double[]? _measurements;
 
+    //keyboardInputs
+    private keyboardInputHandler _keyobardInputHandler = new keyboardInputHandler();
+    private ROBOT_DIRECITON previousDir = ROBOT_DIRECITON.STOP;
+
+
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+
+        _keyobardInputHandler.onKeyDown(e);
+        _keyobardInputHandler.amIResetingCounter(previousDir != _keyobardInputHandler.robotDir);
+        previousDir = _keyobardInputHandler.robotDir;
+
+
+        if (_keyobardInputHandler.validInput)
+        {
+            sendInputToRobot(new RobotCommand(_keyobardInputHandler.robotDir).toJson());
+        }
+    }
+
+
+    private void sendInputToRobot(string jsonCommand)
+    {
+        //tutaj wydmuszka, funkcja dostaje jsona z komenda ktora trzeba wyslac robotowi
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _keyobardInputHandler.keyboardInputRef.FocusAsync();
+        }
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
+
+        //------------------------------------------------------------
+        _dataFrame = GenerateTestDataAscend(32);
+        _avgDistance = null;
+        _hubUser = "TEST_DATA";
+
+
+        await Task.CompletedTask;
+
+        //-------------------------------------------------------------
+
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
             .Build();
@@ -184,6 +278,41 @@
         return $"rgb({Math.Clamp(r, 0, 255)}, {Math.Clamp(g, 0, 255)}, {Math.Clamp(b, 0, 255)})";
     }
 
+    //================================================================================================================================
+    //DEBUG FUNCTIONS
+
+    private ushort[] GenerateTestData(int resolution)
+    {
+        var random = new Random();
+        ushort[] data = new ushort[resolution * resolution];
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            data[i] = (ushort)random.Next(0, 4000);
+        }
+
+        return data;
+    }
+
+    private ushort[] GenerateTestDataAscend(int resolution)
+    {
+        ushort[] data = new ushort[resolution * resolution];
+
+        int index = 0;
+
+        for (int i = 0; i < resolution; i++)
+        {
+            for (int j = 0; j < resolution; j++)
+            {
+                data[index] = (ushort)(i * 125 + j);
+                index++;
+            }
+        }
+
+        return data;
+    }
+
+    //================================================================================================================================
 
 
 }
