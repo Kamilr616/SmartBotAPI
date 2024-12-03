@@ -1,4 +1,6 @@
-﻿namespace SmartBotBlazorApp.Components.RobotMovementInput
+﻿using SmartBotBlazorApp.Client.Pages;
+
+namespace SmartBotBlazorApp.Components.RobotMovementInput
 {
     public class JoystickInputHandler
     {
@@ -10,7 +12,10 @@
         private double _touchStartX;
         private double _touchStartY;
 
-        public string? Direction { get; private set; }
+        public string? joystickDirection { get; private set; }
+        public ROBOT_DIRECITON robotDir { get; private set; }
+        public bool validInput { get; private set; }
+
         public int Counter { get; private set; }
         public bool IsTouching { get; private set; }
 
@@ -24,7 +29,7 @@
             _knobPosX = centerX;
             _knobPosY = centerY;
             _radius = radius;
-            Direction = "Center";
+            joystickDirection = "Center";
             Counter = 0;
             IsTouching = false;
         }
@@ -59,7 +64,7 @@
                 _knobPosY = newPosY;
 
                 Counter++;
-                Direction = GetJoystickDirection(_knobPosX, _knobPosY);
+                GetJoystickDirection(_knobPosX, _knobPosY);
             }
         }
 
@@ -68,34 +73,74 @@
             IsTouching = false;
             _knobPosX = _centerX;
             _knobPosY = _centerY;
-            Direction = "Center";
+            joystickDirection = "Center";
             _touchStartX = _centerX;
             _touchStartY = _centerY;
         }
 
-        private string GetJoystickDirection(double knobPosX, double knobPosY)
+        private void GetJoystickDirection(double knobPosX, double knobPosY)
         {
             double deltaX = knobPosX - _centerX;
             double deltaY = knobPosY - _centerY;
             double threshold = 5;
-
+            ROBOT_DIRECITON prevDir = robotDir;
             if (Math.Abs(deltaX) > Math.Abs(deltaY)) // Horizontal
             {
                 if (deltaX > threshold)
-                    return "Right";
+                {
+                    validInput = true;
+                    robotDir = ROBOT_DIRECITON.RIGHT;
+                    joystickDirection = "Right";
+
+                }
                 else if (deltaX < -threshold)
-                    return "Left";
+                {
+                    validInput = true;
+                    robotDir = ROBOT_DIRECITON.LEFT;
+                    joystickDirection = "Left";
+                    
+                }
             }
             else // Vertical
             {
                 if (deltaY > threshold)
-                    return "Down";
+                {
+                    validInput = true;
+                    robotDir = ROBOT_DIRECITON.DOWN;
+                    joystickDirection = "Down";
+                }
                 else if (deltaY < -threshold)
-                    return "Up";
-            }
+                {
+                    validInput = true;
+                    robotDir = ROBOT_DIRECITON.UP;
+                    joystickDirection = "Up";
+                }
+                else
+                {
 
-            return "Center";
+                    validInput = false;
+                    robotDir = ROBOT_DIRECITON.STOP;
+                    joystickDirection = "Center";
+                    Counter = 0;
+                }
+
+            }
+            if (prevDir != robotDir)
+            {
+                Counter = 0;
+
+            }
         }
+
+
+
+        public void increaseCounter()
+        {
+            Counter++;
+        }
+
     }
+
+
 
 }

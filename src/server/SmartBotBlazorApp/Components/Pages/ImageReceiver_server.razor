@@ -121,7 +121,7 @@
     <table>
         <tbody>
             <tr>
-                <td>@_joystickHandler.Direction</td>
+                <td>@_joystickHandler.joystickDirection</td>
                 <td>@_joystickHandler.Counter</td>
             </tr>
         </tbody>
@@ -138,12 +138,49 @@
     private static int joystickCenterY = 50;
     private static int joystickRadius = 25;
     private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX,joystickCenterY,joystickRadius);
+    private CancellationTokenSource? _joystickCancellationTokenSource;
+
+
+    private async Task StartJoystickMessageLoop()
+    {
+        _joystickCancellationTokenSource?.Cancel();
+        _joystickCancellationTokenSource = new CancellationTokenSource();
+        var token = _joystickCancellationTokenSource.Token;
+
+        try
+        {
+            while (!token.IsCancellationRequested)
+            {
+                if(_joystickHandler.validInput)
+                {
+                    sendInputToRobot(new RobotCommand(_joystickHandler.robotDir).toJson());
+                    _joystickHandler.increaseCounter();
+                }
+
+
+             
+                InvokeAsync(StateHasChanged);
+                await Task.Delay(10, token); // Adjust interval as needed
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // Expected exception on cancellation
+        }
+    }
+
+
+    private void StopJoystickMessageLoop()
+    {
+        _joystickCancellationTokenSource?.Cancel();
+    }
 
     //passthorugh, for implemeneting inner logic later on
     //TODO: refactor later
     private void OnPointerDown(PointerEventArgs e)
     {
         _joystickHandler.OnPointerDown(e.ClientX, e.ClientY);
+        _ = StartJoystickMessageLoop();
     }
 
     private void OnPointerMove(PointerEventArgs e)
@@ -154,6 +191,7 @@
     private void OnPointerUp(PointerEventArgs e)
     {
         _joystickHandler.OnPointerUp();
+        StopJoystickMessageLoop();
     }
 
 
