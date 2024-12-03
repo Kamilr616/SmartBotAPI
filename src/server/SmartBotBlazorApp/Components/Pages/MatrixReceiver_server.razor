@@ -196,7 +196,7 @@
             {
                 if (_joystickHandler.validInput)
                 {
-                    sendInputToRobot(new RobotCommand(_joystickHandler.robotDir).toJson());
+                    sendInputToRobot(new RobotCommand(_joystickHandler.robotDir).nextDirection.ToString());
                     _joystickHandler.increaseCounter();
                 }
 
@@ -259,16 +259,18 @@
 
         if (_keyobardInputHandler.validInput)
         {
-            sendInputToRobot(new RobotCommand(_keyobardInputHandler.robotDir).toJson());
+            sendInputToRobot(new RobotCommand(_keyobardInputHandler.robotDir).nextDirection.ToString());
         }
     }
 
 
-    private void sendInputToRobot(string jsonCommand)
+    private async void sendInputToRobot(string message)
     {
-        //tutaj wydmuszka, funkcja dostaje jsona z komenda ktora trzeba wyslac robotowi
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("SendMessage", "User", message);
+        }
     }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
