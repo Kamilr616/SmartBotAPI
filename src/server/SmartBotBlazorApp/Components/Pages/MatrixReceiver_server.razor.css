@@ -125,3 +125,26 @@ tbody tr:hover {
             margin-right: 0;
         }
 }
+
+#joystickContainer {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+#joystickKnob {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 255, 0.7);
+}
+
+.joystickView {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}

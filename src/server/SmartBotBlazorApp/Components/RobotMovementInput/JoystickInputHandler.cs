@@ -133,7 +133,10 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
         }
 
 
-
+        public void resetCounter()
+        {
+            Counter = 0;
+        }
         public void increaseCounter()
         {
             Counter++;

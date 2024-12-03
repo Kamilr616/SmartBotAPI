@@ -55,7 +55,19 @@
                     <th>
                         Counter
                     </th>
+                    <th>
+                        <div class="joystick-container">
+                            <!-- Joystick Section -->
+                            <div id="joystickContainer" @onpointerdown="OnPointerDown" @onpointermove="OnPointerMove" @onpointerup="OnPointerUp" @onpointercancel="OnPointerUp">
+                                <div id="joystickKnob" style="left: @(_joystickHandler.KnobPosX - 25)px; top: @(_joystickHandler.KnobPosY - @joystickRadius)px;"></div>
+                            </div>
+                        </div>
+                    </th>
+                    <th>
+                        Joystick Counter
+                    </th>
                 </tr>
+
             </thead>
 
             <tbody>
@@ -65,13 +77,20 @@
                     </td>
                     <td>
                             @_keyobardInputHandler.counter
+
                     </td>
+                    <td>@_joystickHandler.joystickDirection</td>
+                    <td>@_joystickHandler.Counter</td>
                 </tr>
             </tbody>
+
+
+
             }
 
 
 </div>
+
     </table>
 
 
@@ -149,11 +168,74 @@
         </div>
         }
 </div>
+
+
+
 </div>
 
 
 
 @code {
+
+    private static int joystickCenterX = 50;
+    private static int joystickCenterY = 50;
+    private static int joystickRadius = 25;
+    private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX, joystickCenterY, joystickRadius);
+    private CancellationTokenSource? _joystickCancellationTokenSource;
+
+
+    private async Task StartJoystickMessageLoop()
+    {
+        _joystickCancellationTokenSource?.Cancel();
+        _joystickCancellationTokenSource = new CancellationTokenSource();
+        var token = _joystickCancellationTokenSource.Token;
+
+        try
+        {
+            while (!token.IsCancellationRequested)
+            {
+                if (_joystickHandler.validInput)
+                {
+                    sendInputToRobot(new RobotCommand(_joystickHandler.robotDir).toJson());
+                    _joystickHandler.increaseCounter();
+                }
+
+                InvokeAsync(StateHasChanged);
+                await Task.Delay(10, token);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            _joystickHandler.resetCounter();
+        }
+    }
+
+
+    private void StopJoystickMessageLoop()
+    {
+        _joystickCancellationTokenSource?.Cancel();
+    }
+
+    //passthorugh, for implemeneting inner logic later on
+    //TODO: refactor later
+    private void OnPointerDown(PointerEventArgs e)
+    {
+        _joystickHandler.OnPointerDown(e.ClientX, e.ClientY);
+        _ = StartJoystickMessageLoop();
+    }
+
+    private void OnPointerMove(PointerEventArgs e)
+    {
+        _joystickHandler.OnPointerMove(e.ClientX, e.ClientY);
+    }
+
+    private void OnPointerUp(PointerEventArgs e)
+    {
+        _joystickHandler.OnPointerUp();
+        StopJoystickMessageLoop();
+    }
+
+
     //hub connection
     private HubConnection? _hubConnection;
     private ushort[]? _dataFrame;
