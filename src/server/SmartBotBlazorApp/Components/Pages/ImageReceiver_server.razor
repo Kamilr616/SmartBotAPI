@@ -133,6 +133,9 @@
 
 
 @code {
+
+    //--------------------------------------------------------------------------------------------------
+    // joystick inputs
     private static int joystickCenterX = 50;
     private static int joystickCenterY = 50;
     private static int joystickRadius = 25;
@@ -167,7 +170,6 @@
         }
     }
 
-
     private void StopJoystickMessageLoop()
     {
         _joystickCancellationTokenSource?.Cancel();
@@ -193,12 +195,22 @@
     }
 
 
-    //--------------------------------
+    //--------------------------------------------------------------------------------------------------
     private HubConnection? _hubConnection;
     private ushort? _avgDistance;
     private string? _hubUser;
     private double[]? _measurements;
     private string? _imageSrc;
+
+
+    //TODO
+    private async void sendInputToRobot(string message)
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.SendAsync("SendMessage", "TestUser", message);
+        }
+    }
 
 
     //keyboardInputs
@@ -222,17 +234,6 @@
             sendInputToRobot(new RobotCommand(_keyobardInputHandler.robotDir).nextDirection.ToString());
         }
     }
-
-
-
-    private async void sendInputToRobot(string message)
-    {
-        if(_hubConnection is not null)
-        {
-            await _hubConnection.SendAsync("SendMessage", "User", message);
-        }
-    }
-
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -274,7 +275,4 @@
             await _hubConnection.DisposeAsync();
         }
     }
-
-
-
 }
