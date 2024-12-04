@@ -13,7 +13,7 @@
 }
 
 table {
-    border-collapse: collapse;
+/*    border-collapse: collapse;*/
     width: 100%;
 }
 
@@ -87,13 +87,3 @@ thead th {
     justify-content: center;
 }
 
-table {
-    margin-top: 20px;
-    border-collapse: collapse;
-}
-
-td {
-    padding: 5px 10px;
-    text-align: center;
-    min-width: 100px;
-}
