@@ -39,6 +39,7 @@ thead th {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    min-width: 500px;
 }
 
 .status-section {
