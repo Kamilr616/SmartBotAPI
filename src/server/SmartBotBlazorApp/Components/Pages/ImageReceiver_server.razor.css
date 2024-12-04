@@ -12,6 +12,22 @@
     margin-right: 20px;
 }
 
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+thead th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
 .spinner-wrapper {
     display: flex;
     justify-content: center;
