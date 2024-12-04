@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using SmartBotBlazorApp.Components;
 using SmartBotBlazorApp.Hubs;
 using SmartBotBlazorApp;
+using Microsoft.Extensions.DependencyInjection;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,11 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, PersistingRevalidatingAuthenticationStateProvider>();
+
+
+//builder.Services.AddDefaultIdentity<IdentityUser>()
+//    .AddEntityFrameworkStores<ApplicationDbContext>();
+
 
 builder.Services.AddAuthentication(options =>
     {
@@ -59,6 +65,10 @@ builder.Services.AddScoped<ImageProcessor>();
 
 builder.Services.AddHttpClient();
 
+
+
+
+//----------------------------------------------------------------------------------------
 //var baseUrl = builder.Configuration["Api:BaseUrl"];
 //builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseUrl) });
 
@@ -69,6 +79,22 @@ builder.Services.AddResponseCompression(opts =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    context.Database.Migrate();
+
+    var seedUserPass = builder.Configuration.GetValue<string>("SeedUserPass");
+    var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
+    await SeedData.Initialize(services, seedUserPass);
+
+
+
+    //var seedUserPass = builder.Configuration.GetValue<string>("SeedUserPass");
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

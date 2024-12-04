@@ -2,10 +2,13 @@
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
 @implements IAsyncDisposable
+@attribute [Authorize]
+
 
 @using System.Numerics
 @using System.Text.Json
 @using RobotMovementInput
+@using Microsoft.AspNetCore.Authorization
 
 <PageTitle>Live View Image Server</PageTitle>
 
