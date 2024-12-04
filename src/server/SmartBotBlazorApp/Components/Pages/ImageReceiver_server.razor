@@ -26,16 +26,41 @@
                 <img src="@_imageSrc" alt="Depth Image" width="640" height="640" />
             <thead>
                 <tr>
-                    <th>Pressed Key</th>
-                    <th>Counter</th>
+                    <th>
+                        Pressed Key
+                    </th>
+                    <th>
+                        Counter
+                    </th>
+                    <th>
+                        <div class="joystick-container">
+                            <!-- Joystick Section -->
+                            <div id="joystickContainer" @onpointerdown="OnPointerDown" @onpointermove="OnPointerMove" @onpointerup="OnPointerUp" @onpointercancel="OnPointerUp">
+                                <div id="joystickKnob" style="left: @(_joystickHandler.KnobPosX - 25)px; top: @(_joystickHandler.KnobPosY - @joystickRadius)px;"></div>
+                            </div>
+                        </div>
+                    </th>
+                    <th>
+                        Joystick Counter
+                    </th>
                 </tr>
+
             </thead>
+
             <tbody>
                 <tr>
-                    <td>@_keyobardInputHandler.pressedKey</td>
-                    <td>@_keyobardInputHandler.counter</td>
+                    <td>
+                            @_keyobardInputHandler.pressedKey
+                    </td>
+                    <td>
+                            @_keyobardInputHandler.counter
+
+                    </td>
+                    <td>@_joystickHandler.joystickDirection</td>
+                    <td>@_joystickHandler.Counter</td>
                 </tr>
             </tbody>
+
             }
 </div>
     </table>
@@ -111,23 +136,6 @@
         }
 </div>
 
-<div class="joystick-container">
-    <!-- Joystick Section -->
-    <div id="joystickContainer" @onpointerdown="OnPointerDown" @onpointermove="OnPointerMove" @onpointerup="OnPointerUp" @onpointercancel="OnPointerUp">
-        <div id="joystickKnob" style="left: @(_joystickHandler.KnobPosX - 25)px; top: @(_joystickHandler.KnobPosY - @joystickRadius)px;"></div>
-    </div>
-
-    <!-- Data Section -->
-    <table>
-        <tbody>
-            <tr>
-                <td>@_joystickHandler.joystickDirection</td>
-                <td>@_joystickHandler.Counter</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-
 
 </div>
 
@@ -139,7 +147,7 @@
     private static int joystickCenterX = 50;
     private static int joystickCenterY = 50;
     private static int joystickRadius = 25;
-    private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX,joystickCenterY,joystickRadius);
+    private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX, joystickCenterY, joystickRadius);
     private CancellationTokenSource? _joystickCancellationTokenSource;
 
 
@@ -153,7 +161,7 @@
         {
             while (!token.IsCancellationRequested)
             {
-                if(_joystickHandler.validInput)
+                if (_joystickHandler.validInput)
                 {
                     sendInputToRobot(new RobotCommand(_joystickHandler.robotDir).nextDirection.ToString());
                     _joystickHandler.increaseCounter();
@@ -259,7 +267,7 @@
 
             _imageSrc = $"data:image/png;base64,{base64Image}";
 
-            InvokeAsync(StateHasChanged); 
+            InvokeAsync(StateHasChanged);
         });
 
         await _hubConnection.StartAsync();
