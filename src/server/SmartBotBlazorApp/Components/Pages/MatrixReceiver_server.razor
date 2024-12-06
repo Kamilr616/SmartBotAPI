@@ -18,8 +18,7 @@
                 {
                     <div class=" justify-content-center align-items-center">
                         <p><em>Waiting for image</em></p>
-                        <div class="spinner-border" role="status">
-                        </div>
+                        <div class="spinner-border" role="status"/>
                     </div>
                 }
                 else
@@ -101,11 +100,9 @@
     <!-- Data Status Section -->
         @if (_avgDistance == null || _measurements == null || _hubUser == null)
         {
-        <p><em>Waiting for data ...</em></p>
+        <p><em>Waiting for data</em></p>
         <div class="d-flex justify-content-center">
-            <div class="spinner-border" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
+            <div class="spinner-border" role="status"/>
         </div>
         }
         else
