@@ -42,13 +42,11 @@ else
     {
         try
         {
-            // Add required headers
             Http.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
 
-            // Make the POST request
             var response = await Http.PostAsync(
                 "https://greencity.pl/shipx-point-data/1613/TAR01APP/air_index_level",
-                null // No content needed for this request
+                null
             );
 
             if (response.IsSuccessStatusCode)
@@ -99,5 +97,4 @@ else
         public string Parameter { get; set; } = string.Empty;
         public string Value { get; set; } = string.Empty;
     }
-
 }
