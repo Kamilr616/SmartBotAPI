@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.ResponseCompression;
 using SmartBotBlazorApp.Components;
 using SmartBotBlazorApp.Hubs;
 using SmartBotBlazorApp;
-using Microsoft.Extensions.DependencyInjection;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,7 +33,6 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-//var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 var connectionString = Environment.GetEnvironmentVariable("SmartBotDBConnectionString") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
@@ -64,12 +62,7 @@ builder.Services.AddScoped<ImageProcessor>();
 
 builder.Services.AddHttpClient();
 
-
-
-
-//----------------------------------------------------------------------------------------
-//var baseUrl = builder.Configuration["Api:BaseUrl"];
-//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseUrl) });
+builder.Services.AddScoped<MeasurementService>();
 
 builder.Services.AddResponseCompression(opts =>
 {
@@ -89,13 +82,8 @@ using (var scope = app.Services.CreateScope())
     var seedUserPass = Environment.GetEnvironmentVariable("SeedAdminPass") ?? builder.Configuration.GetValue<string>("SeedUserPass");
     var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
     await SeedData.Initialize(services, seedUserPass);
-
-
-
-    //var seedUserPass = builder.Configuration.GetValue<string>("SeedUserPass");
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
@@ -123,7 +111,6 @@ app.MapRazorComponents<App>()
 
 app.MapHub<SignalHub>("/signalhub");
 
-// Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
 app.Run();
