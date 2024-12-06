@@ -11,7 +11,6 @@ using SmartBotBlazorApp;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
@@ -21,10 +20,8 @@ builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, PersistingRevalidatingAuthenticationStateProvider>();
 
-
-//builder.Services.AddDefaultIdentity<IdentityUser>()
+//builder.Services.AddDefaultIdentity<IdentityUser>() //TODO: check if nessesary
 //    .AddEntityFrameworkStores<ApplicationDbContext>();
-
 
 builder.Services.AddAuthentication(options =>
     {
@@ -49,7 +46,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
     {
-        builder.WithOrigins("*") // Adres Blazor WebAssembly?
+        builder.WithOrigins("*") // TODO: add actual origin and allow credentials
             .AllowAnyHeader()
             .AllowAnyMethod();
         //.AllowCredentials();
@@ -79,9 +76,9 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<ApplicationDbContext>();
     context.Database.Migrate();
 
-    var seedUserPass = Environment.GetEnvironmentVariable("SeedAdminPass") ?? builder.Configuration.GetValue<string>("SeedUserPass");
-    var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
-    await SeedData.Initialize(services, seedUserPass);
+    //var seedUserPass = Environment.GetEnvironmentVariable("SeedAdminPass") ?? builder.Configuration.GetValue<string>("SeedUserPass");
+    //var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
+    //await SeedData.Initialize(services, seedUserPass);
 }
 
 if (app.Environment.IsDevelopment())
