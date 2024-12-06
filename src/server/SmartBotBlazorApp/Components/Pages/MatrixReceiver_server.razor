@@ -179,8 +179,6 @@
 
 
 @code {
-    //---------------------------------------------------------------------------------------
-    //joystick inputs
     private static int joystickCenterX = 50;
     private static int joystickCenterY = 50;
     private static int joystickRadius = 25;
@@ -283,23 +281,9 @@
             await _keyobardInputHandler.keyboardInputRef.FocusAsync();
         }
     }
-    //---------------------------------------------------------------------------------------
-
 
     protected override async Task OnInitializedAsync()
     {
-
-        //------------------------------------------------------------
-        //debug
-
-        // _dataFrame = debugFunctions.GenerateTestDataAscend(32);
-        // _avgDistance = null;
-        // _hubUser = "TEST_DATA";
-
-        // await Task.CompletedTask;
-
-        //-------------------------------------------------------------
-
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
             .Build();
@@ -331,7 +315,6 @@
 
     private string GetColorFromValue(ushort value)
     {
-        // Załóżmy, że maksymalna wartość to 4000
         double ratio = Math.Clamp(value / (double)4000, 0, 1);
         int scaledRatio = (int)(ratio * 255);
 
@@ -339,31 +322,27 @@
 
         if (ratio <= 0.25)
         {
-            // Pierwsza ćwiartka: od czerwonego do żółtego
             r = 255;
-            g = scaledRatio * 4; // Zwiększanie zielonego
+            g = scaledRatio * 4;
             b = 0;
         }
         else if (ratio <= 0.5)
         {
-            // Druga ćwiartka: od żółtego do zielonego
-            r = 255 - ((scaledRatio - 64) * 4); // Redukcja czerwonego
-            g = 255; // Zielony jest maksymalny
+            r = 255 - ((scaledRatio - 64) * 4); 
+            g = 255;
             b = 0;
         }
         else if (ratio <= 0.75)
         {
-            // Trzecia ćwiartka: od zielonego do niebieskiego
-            r = 0; // Czerwony jest minimalny
-            g = 255 - ((scaledRatio - 128) * 4); // Redukcja zielonego
-            b = (scaledRatio - 128) * 4; // Zwiększanie niebieskiego
+            r = 0; 
+            g = 255 - ((scaledRatio - 128) * 4);
+            b = (scaledRatio - 128) * 4;
         }
         else
         {
-            // Czwarta ćwiartka: od niebieskiego do fioletowego
-            r = (scaledRatio - 192) * 4; // Zwiększanie czerwonego
-            g = 0; // Zielony jest minimalny
-            b = 255; // Niebieski jest maksymalny
+            r = (scaledRatio - 192) * 4;
+            g = 0; 
+            b = 255; 
         }
 
         return $"rgb({Math.Clamp(r, 0, 255)}, {Math.Clamp(g, 0, 255)}, {Math.Clamp(b, 0, 255)})";
