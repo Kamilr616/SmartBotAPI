@@ -242,7 +242,8 @@ namespace SmartBotBlazorApp.Migrations
 
                     b.Property<string>("RobotId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<double>("RotationX")
                         .HasColumnType("float");
