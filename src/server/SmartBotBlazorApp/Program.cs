@@ -7,12 +7,10 @@ using Microsoft.AspNetCore.ResponseCompression;
 using SmartBotBlazorApp.Components;
 using SmartBotBlazorApp.Hubs;
 using SmartBotBlazorApp;
-using Microsoft.Extensions.DependencyInjection;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
@@ -22,10 +20,8 @@ builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, PersistingRevalidatingAuthenticationStateProvider>();
 
-
-//builder.Services.AddDefaultIdentity<IdentityUser>()
+//builder.Services.AddDefaultIdentity<IdentityUser>() //TODO: check if nessesary
 //    .AddEntityFrameworkStores<ApplicationDbContext>();
-
 
 builder.Services.AddAuthentication(options =>
     {
@@ -34,7 +30,6 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-//var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 var connectionString = Environment.GetEnvironmentVariable("SmartBotDBConnectionString") ?? builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
@@ -51,7 +46,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
     {
-        builder.WithOrigins("*") // Adres Blazor WebAssembly?
+        builder.WithOrigins("*") // TODO: add actual origin and allow credentials
             .AllowAnyHeader()
             .AllowAnyMethod();
         //.AllowCredentials();
@@ -64,12 +59,7 @@ builder.Services.AddScoped<ImageProcessor>();
 
 builder.Services.AddHttpClient();
 
-
-
-
-//----------------------------------------------------------------------------------------
-//var baseUrl = builder.Configuration["Api:BaseUrl"];
-//builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(baseUrl) });
+builder.Services.AddScoped<MeasurementService>();
 
 builder.Services.AddResponseCompression(opts =>
 {
@@ -89,16 +79,11 @@ using (var scope = app.Services.CreateScope())
         context.Database.Migrate();
     }
 
-    var seedUserPass = Environment.GetEnvironmentVariable("SeedAdminPass") ?? builder.Configuration.GetValue<string>("SeedUserPass");
-    var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
-    await SeedData.Initialize(services, seedUserPass);
-
-
-
-    //var seedUserPass = builder.Configuration.GetValue<string>("SeedUserPass");
+    //var seedUserPass = Environment.GetEnvironmentVariable("SeedAdminPass") ?? builder.Configuration.GetValue<string>("SeedUserPass");
+    //var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
+    //await SeedData.Initialize(services, seedUserPass);
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
@@ -126,7 +111,6 @@ app.MapRazorComponents<App>()
 
 app.MapHub<SignalHub>("/signalhub");
 
-// Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
 app.Run();

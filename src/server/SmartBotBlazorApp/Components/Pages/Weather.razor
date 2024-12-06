@@ -42,30 +42,29 @@ else
     {
         try
         {
-            // Add required headers
             Http.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
 
-            // Make the POST request
             var response = await Http.PostAsync(
                 "https://greencity.pl/shipx-point-data/1613/TAR01APP/air_index_level",
-                null // No content needed for this request
+                null
             );
 
             if (response.IsSuccessStatusCode)
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var weatherData = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                var airSensors = weatherData?.air_sensors;
 
-                if (weatherData?.air_sensors != null)
+                if (airSensors != null)
                 {
                     _airData = new List<AirSensorData>();
 
                     _airData.Add(new AirSensorData
                     {
                             Parameter = "AIR INDEX LEVEL",
-                            Value = weatherData?.air_index_level.ToString()
-                    });
-                    foreach (var sensor in weatherData.air_sensors)
+                            Value = weatherData?.air_index_level.ToString() ?? "N/A"
+                    }); 
+                    foreach (var sensor in airSensors)
                     {
                         string[] parts = sensor.ToString().Split(':');
                         if (parts.Length >= 2)
@@ -99,5 +98,4 @@ else
         public string Parameter { get; set; } = string.Empty;
         public string Value { get; set; } = string.Empty;
     }
-
 }
