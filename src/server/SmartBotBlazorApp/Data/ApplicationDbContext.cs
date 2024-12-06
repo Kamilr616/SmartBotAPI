@@ -5,5 +5,8 @@ namespace SmartBotBlazorApp.Data
 {
     public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
+        public DbSet<Measurement> Measurements { get; set; }
+
     }
+
 }
