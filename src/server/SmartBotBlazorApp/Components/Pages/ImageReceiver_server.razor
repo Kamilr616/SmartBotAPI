@@ -3,12 +3,7 @@
 @inject NavigationManager Navigation
 @implements IAsyncDisposable
 @attribute [Authorize]
-
-
-@using System.Numerics
-@using System.Text.Json
 @using RobotMovementInput
-@using Microsoft.AspNetCore.Authorization
 
 <PageTitle>Live View Image Server</PageTitle>
 
@@ -18,7 +13,7 @@
         <div class="left-section">
             @if (_imageSrc == null)
             {
-                <p><em>Waiting for image ...</em></p>
+                <p><em>Waiting for image</em></p>
                 <div class="spinner-wrapper">
                     <div class="spinner-border" role="status"></div>
                 </div>
@@ -85,7 +80,7 @@
     <!-- Data Status Section -->
         @if (_avgDistance == null || _measurements == null || _hubUser == null)
         {
-        <p><em>Waiting for data ...</em></p>
+        <p><em>Waiting for data</em></p>
         <div class="spinner-border" role="status"></div>
         }
         else
@@ -137,21 +132,25 @@
         </div>
         }
 </div>
-
-
 </div>
 
 
-@code {
 
-    //--------------------------------------------------------------------------------------------------
-    // joystick inputs
+@code {
     private static int joystickCenterX = 50;
     private static int joystickCenterY = 50;
     private static int joystickRadius = 25;
     private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX, joystickCenterY, joystickRadius);
     private CancellationTokenSource? _joystickCancellationTokenSource;
 
+    private HubConnection? _hubConnection;
+    private ushort? _avgDistance;
+    private string? _hubUser;
+    private double[]? _measurements;
+    private string? _imageSrc;
+
+    private keyboardInputHandler _keyobardInputHandler = new keyboardInputHandler();
+    private ROBOT_DIRECITON previousDir = ROBOT_DIRECITON.STOP;
 
     private async Task StartJoystickMessageLoop()
     {
@@ -169,7 +168,7 @@
                     _joystickHandler.increaseCounter();
                 }
 
-                InvokeAsync(StateHasChanged);
+                await InvokeAsync(StateHasChanged);
                 await Task.Delay(10, token);
             }
         }
@@ -185,8 +184,7 @@
         _joystickCancellationTokenSource?.Cancel();
     }
 
-    //passthorugh, for implemeneting inner logic later on
-    //TODO: refactor later
+    // TODO: refactor, passthorugh, for implemeneting inner logic
     private void OnPointerDown(PointerEventArgs e)
     {
         _joystickHandler.OnPointerDown(e.ClientX, e.ClientY);
@@ -204,16 +202,7 @@
         StopJoystickMessageLoop();
     }
 
-
-    //--------------------------------------------------------------------------------------------------
-    private HubConnection? _hubConnection;
-    private ushort? _avgDistance;
-    private string? _hubUser;
-    private double[]? _measurements;
-    private string? _imageSrc;
-
-
-    //TODO
+    //TODO: ?
     private async void sendInputToRobot(string message)
     {
         if (_hubConnection is not null)
@@ -221,15 +210,6 @@
             await _hubConnection.SendAsync("SendMessage", "TestUser", message);
         }
     }
-
-
-    //keyboardInputs
-    //--------------------------------------------------------------------------------------------------
-    //keyboardInputs
-    private keyboardInputHandler _keyobardInputHandler = new keyboardInputHandler();
-    private ROBOT_DIRECITON previousDir = ROBOT_DIRECITON.STOP;
-
-
 
     private void HandleKeyDown(KeyboardEventArgs e)
     {
@@ -252,8 +232,6 @@
             await _keyobardInputHandler.keyboardInputRef.FocusAsync();
         }
     }
-
-    //---------------------------------------------------------------------------------------
 
     protected override async Task OnInitializedAsync()
     {
