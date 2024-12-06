@@ -12,8 +12,8 @@ using SmartBotBlazorApp.Data;
 namespace SmartBotBlazorApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241206100511_measurementsAttributes")]
-    partial class measurementsAttributes
+    [Migration("20241206113341_measurements")]
+    partial class measurements
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -245,7 +245,8 @@ namespace SmartBotBlazorApp.Migrations
 
                     b.Property<string>("RobotId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<double>("RotationX")
                         .HasColumnType("float");
