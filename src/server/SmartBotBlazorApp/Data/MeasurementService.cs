@@ -1,10 +1,12 @@
-﻿namespace SmartBotBlazorApp.Data
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace SmartBotBlazorApp.Data
 {
     public class MeasurementService
     {
         private readonly ApplicationDbContext _context;
-        private DateTime _lastSaveTime = DateTime.MinValue;
-        private readonly TimeSpan _saveThrottleDuration = TimeSpan.FromSeconds(1);
+        private static DateTime _lastSaveTime = DateTime.MinValue;
+        private static readonly TimeSpan SaveThrottleDuration = TimeSpan.FromSeconds(1);
 
 
         public MeasurementService(ApplicationDbContext context)
@@ -22,7 +24,7 @@
         {
             var currentTime = DateTime.Now;
 
-            if ((currentTime - _lastSaveTime) >= _saveThrottleDuration)
+            if ((currentTime - _lastSaveTime) >= SaveThrottleDuration)
             {
 
                 var newMeasurement = new Measurement
@@ -51,15 +53,26 @@
 
         public double[] RoundMeasurements(double[] measurementsArray, int precision = 2)
         {
-            double[] newMeasurementsArray = new double[7];
+            var newMeasurementsArray = new double[7];
 
-            for (int i = 0; i < measurementsArray.Length; i++)
+            for (var i = 0; i < measurementsArray.Length; i++)
             {
                 newMeasurementsArray[i] = Math.Round(measurementsArray[i], precision, MidpointRounding.ToEven);
             }
 
             return newMeasurementsArray;
         }
+
+        public async Task<List<Measurement>> GetMeasurementsFromDatabaseAsync()
+        {
+            // Pobierz wszystkie pomiary z bazy
+            return await _context.Measurements.OrderBy(m => m.Timestamp).ToListAsync();
+        }
+
+
+
     }
 
 }
+
+

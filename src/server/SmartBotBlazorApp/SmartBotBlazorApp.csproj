@@ -31,6 +31,9 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Formats.Asn1" Version="9.0.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
+	<PackageReference Include="MudBlazor" Version="6.0.0" />
+	<PackageReference Include="Blazorise.Charts" Version="1.0.0" />
+	  
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,88 @@
+﻿@page "/measurement-charts"
+@inject MeasurementService MeasurementService
+@using MudBlazor
+@using SmartBotBlazorApp.Data
+@using System.Linq
+
+<MudButton OnClick="LoadMeasurements">Load data</MudButton>
+
+<MudChart ChartType="ChartType.Line" Data="@temperatureData" Labels="@chartLabels" Title="Temperatura" />
+<MudChart ChartType="ChartType.Line" Data="@accelerationXData" Labels="@chartLabels" Title="Przyspieszenie X" />
+<MudChart ChartType="ChartType.Line" Data="@accelerationYData" Labels="@chartLabels" Title="Przyspieszenie Y" />
+<MudChart ChartType="ChartType.Line" Data="@accelerationZData" Labels="@chartLabels" Title="Przyspieszenie Z" />
+<MudChart ChartType="ChartType.Line" Data="@rotationXData" Labels="@chartLabels" Title="Obrót X" />
+<MudChart ChartType="ChartType.Line" Data="@rotationYData" Labels="@chartLabels" Title="Obrót Y" />
+<MudChart ChartType="ChartType.Line" Data="@rotationZData" Labels="@chartLabels" Title="Obrót Z" />
+<MudChart ChartType="ChartType.Line" Data="@avgDistanceData" Labels="@chartLabels" Title="Średnia odległość" />
+
+@if (isLoading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <MudText Color="Color.Error">@errorMessage</MudText>
+}
+
+@code {
+    private string[] chartLabels;
+    private double[] temperatureData;
+    private double[] accelerationXData;
+    private double[] accelerationYData;
+    private double[] accelerationZData;
+    private double[] rotationXData;
+    private double[] rotationYData;
+    private double[] rotationZData;
+    private double[] avgDistanceData;
+
+    private bool isLoading = false;
+    private bool isDataLoaded = false;
+    private string errorMessage = string.Empty;
+
+    private async Task LoadMeasurements()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = string.Empty;
+
+            // Pobierz wszystkie dane z bazy
+            var measurements = await MeasurementService.GetMeasurementsFromDatabaseAsync();
+
+            if (measurements != null && measurements.Any())
+            {
+                // Przygotowanie etykiet wykresów (np. czas w formacie HH:mm:ss)
+                chartLabels = measurements.Select(m => m.Timestamp.ToString("HH:mm:ss")).ToArray();
+
+                // Przygotowanie danych do wykresów
+                temperatureData = measurements.Select(m => m.TemperatureC).ToArray();
+                accelerationXData = measurements.Select(m => m.AccelerationX).ToArray();
+                accelerationYData = measurements.Select(m => m.AccelerationY).ToArray();
+                accelerationZData = measurements.Select(m => m.AccelerationZ).ToArray();
+                rotationXData = measurements.Select(m => m.RotationX).ToArray();
+                rotationYData = measurements.Select(m => m.RotationY).ToArray();
+                rotationZData = measurements.Select(m => m.RotationZ).ToArray();
+
+                // Konwersja AvgDistance z ushort[] na double[]
+                avgDistanceData = measurements.Select(m => (double)m.AvgDistance).ToArray();
+
+                isDataLoaded = true;
+            }
+            else
+            {
+                errorMessage = "Brak danych do wyświetlenia.";
+                isDataLoaded = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Wystąpił błąd: {ex.Message}";
+            isDataLoaded = false;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
