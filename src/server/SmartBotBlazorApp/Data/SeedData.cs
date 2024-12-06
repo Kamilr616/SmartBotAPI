@@ -11,7 +11,7 @@ namespace SmartBotBlazorApp.Data
             string password
             )
         {
-            
+
             using (var context = new ApplicationDbContext(
                 serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>()))
             {
@@ -27,7 +27,7 @@ namespace SmartBotBlazorApp.Data
 
             var user = await _userManager.FindByNameAsync(userName);
 
-            if(user == null)
+            if (user == null)
             {
                 user = new ApplicationUser
                 {
@@ -45,7 +45,7 @@ namespace SmartBotBlazorApp.Data
 
             return user.Id;
         }
-            
+
 
 
     }
