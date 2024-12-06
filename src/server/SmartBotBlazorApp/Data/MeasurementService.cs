@@ -15,11 +15,11 @@
             await _context.SaveChangesAsync();
         }
 
-        public async Task SaveMeasurementsToDatabase(string robotID, double[] measurements, ushort distance)
+        public async Task SaveMeasurementsToDatabase(string robotId, double[] measurements, ushort distance)
         {
             var newMeasurement = new Measurement
             {
-                RobotId = robotID,
+                RobotId = robotId,
                 AccelerationX = measurements[0],
                 AccelerationY = measurements[1],
                 AccelerationZ = measurements[2],
