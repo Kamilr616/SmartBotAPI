@@ -207,7 +207,7 @@
     {
         if (_hubConnection is not null)
         {
-            await _hubConnection.SendAsync("SendMessage", "TestUser", message);
+            await _hubConnection.SendAsync("SendMovementCommand", "API", message);
         }
     }
 
