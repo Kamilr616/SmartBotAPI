@@ -84,7 +84,10 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     
     var context = services.GetRequiredService<ApplicationDbContext>();
-    context.Database.Migrate();
+    if (context.Database.GetPendingMigrations().Any())
+    {
+        context.Database.Migrate();
+    }
 
     var seedUserPass = Environment.GetEnvironmentVariable("SeedAdminPass") ?? builder.Configuration.GetValue<string>("SeedUserPass");
     var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
