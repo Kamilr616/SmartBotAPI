@@ -63,13 +63,17 @@ namespace SmartBotBlazorApp.Data
             return newMeasurementsArray;
         }
 
-        public async Task<List<Measurement>> GetMeasurementsFromDatabaseAsync()
+        public async Task<List<Measurement>> GetAllMeasurementsFromDatabaseAsync()
         {
-            // Pobierz wszystkie pomiary z bazy
             return await _context.Measurements.OrderBy(m => m.Timestamp).ToListAsync();
         }
-
-
+        public async Task<List<Measurement>> GetMeasurementsFromDatabaseAsync(DateTime startTimestamp, DateTime endTimestamp)
+        {
+            return await _context.Measurements
+                .Where(m => m.Timestamp >= startTimestamp && m.Timestamp <= endTimestamp)
+                .OrderBy(m => m.Timestamp)
+                .ToListAsync();
+        }
 
     }
 

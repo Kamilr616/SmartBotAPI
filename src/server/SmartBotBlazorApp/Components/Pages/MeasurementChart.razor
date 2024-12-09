@@ -4,25 +4,22 @@
 @using SmartBotBlazorApp.Data
 @using System.Linq
 
-<MudButton OnClick="LoadMeasurements">Załaduj dane z bazy</MudButton>
 
-<MudChart ChartType="ChartType.Line" Data="@temperatureData" Labels="@chartLabels" Title="Temperatura" />
-<MudChart ChartType="ChartType.Line" Data="@accelerationXData" Labels="@chartLabels" Title="Przyspieszenie X" />
-<MudChart ChartType="ChartType.Line" Data="@accelerationYData" Labels="@chartLabels" Title="Przyspieszenie Y" />
-<MudChart ChartType="ChartType.Line" Data="@accelerationZData" Labels="@chartLabels" Title="Przyspieszenie Z" />
-<MudChart ChartType="ChartType.Line" Data="@rotationXData" Labels="@chartLabels" Title="Obrót X" />
-<MudChart ChartType="ChartType.Line" Data="@rotationYData" Labels="@chartLabels" Title="Obrót Y" />
-<MudChart ChartType="ChartType.Line" Data="@rotationZData" Labels="@chartLabels" Title="Obrót Z" />
-<MudChart ChartType="ChartType.Line" Data="@avgDistanceData" Labels="@chartLabels" Title="Średnia odległość" />
+@* TODO: apply CSS ! and repair button*@
+<MudButton OnClick="LoadMeasurements">Załaduj dane z bazy</MudButton>
 
 @if (isLoading)
 {
     <MudProgressCircular Indeterminate="true" />
 }
-@if (!isLoading && string.IsNullOrEmpty(errorMessage))
+else
 {
-    <MudText Typo="Typo.h6">Brak danych do wyświetlenia</MudText>
+    <MudChart ChartType="ChartType.Line" ChartSeries="@_seriesT" XAxisLabels="@chartLabels" Title="Temperatura" />
+    <MudChart ChartType="ChartType.Line" ChartSeries="@_seriesD" XAxisLabels="@chartLabels" Title="Średnia odległość" />
+    <MudChart ChartType="ChartType.Line" ChartSeries="@_seriesA" XAxisLabels="@chartLabels" Title="Przyspieszenie" />
+    <MudChart ChartType="ChartType.Line" ChartSeries="@_seriesR" XAxisLabels="@chartLabels" Title="Rotacja" />
 }
+
 @if (!isLoading && !string.IsNullOrEmpty(errorMessage))
 {
     <MudText Typo="Typo.h6" Color="Color.Error">@errorMessage</MudText>
@@ -30,18 +27,23 @@
 
 @code {
     private string[] chartLabels;
-    private double[] temperatureData;
-    private double[] accelerationXData;
-    private double[] accelerationYData;
-    private double[] accelerationZData;
-    private double[] rotationXData;
-    private double[] rotationYData;
-    private double[] rotationZData;
-    private double[] avgDistanceData;
+
+    private readonly List<ChartSeries> _seriesA = new();
+    private readonly List<ChartSeries> _seriesD = new();
+    private readonly List<ChartSeries> _seriesR = new();
+    private readonly List<ChartSeries> _seriesT = new();
+
+    private DateTime fromDateT = DateTime.Parse("2024-12-08 15:25:30"); //TODO: get datetime form input
+    private DateTime toDateT = DateTime.Parse("2024-12-08 15:27:00");
 
     private bool isLoading = false;
     private bool isDataLoaded = false;
     private string errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMeasurements();
+    }
 
     private async Task LoadMeasurements()
     {
@@ -51,29 +53,23 @@
             errorMessage = string.Empty;
 
             // Pobierz dane z bazy
-            var measurements = await MeasurementService.GetMeasurementsFromDatabaseAsync();
-
-            // Logowanie liczby pobranych pomiarów
-            Console.WriteLine($"Liczba pomiarów: {measurements.Count}");
-
+            var measurements = await MeasurementService.GetMeasurementsFromDatabaseAsync(fromDateT, toDateT); 
             if (measurements != null && measurements.Any())
             {
                 // Przygotowanie etykiet wykresów 
-                chartLabels = measurements.Select(m => m.Timestamp.ToString("HH:mm:ss")).ToArray();
+                chartLabels = measurements.Select(m => m.Timestamp.ToShortTimeString()).ToArray();
 
-                // Logowanie przykładowych danych przed przypisaniem do wykresów
-                Console.WriteLine($"Temperatura: {string.Join(", ", measurements.Select(m => m.TemperatureC))}");
-                Console.WriteLine($"Przyspieszenie X: {string.Join(", ", measurements.Select(m => m.AccelerationX))}");
+                _seriesT.Add(new ChartSeries { Name = "C", Data = measurements.Select(m => m.TemperatureC).ToArray() });
 
-                // Przygotowanie danych do wykresów
-                temperatureData = measurements.Select(m => m.TemperatureC).ToArray();
-                accelerationXData = measurements.Select(m => m.AccelerationX).ToArray();
-                accelerationYData = measurements.Select(m => m.AccelerationY).ToArray();
-                accelerationZData = measurements.Select(m => m.AccelerationZ).ToArray();
-                rotationXData = measurements.Select(m => m.RotationX).ToArray();
-                rotationYData = measurements.Select(m => m.RotationY).ToArray();
-                rotationZData = measurements.Select(m => m.RotationZ).ToArray();
-                avgDistanceData = measurements.Select(m => (double)m.AvgDistance).ToArray();
+                _seriesD.Add(new ChartSeries { Name = "mm", Data = measurements.Select(m => (double)m.AvgDistance).ToArray() });
+
+                _seriesA.Add(new ChartSeries { Name = "X", Data = measurements.Select(m => m.AccelerationX).ToArray() });
+                _seriesA.Add(new ChartSeries { Name = "Y", Data = measurements.Select(m => m.AccelerationY).ToArray() });
+                _seriesA.Add(new ChartSeries { Name = "Z", Data = measurements.Select(m => m.AccelerationZ).ToArray() });
+
+                _seriesR.Add(new ChartSeries { Name = "X", Data = measurements.Select(m => m.RotationX).ToArray() });
+                _seriesR.Add(new ChartSeries { Name = "Y", Data = measurements.Select(m => m.RotationY).ToArray() });
+                _seriesR.Add(new ChartSeries { Name = "Z", Data = measurements.Select(m => m.RotationZ).ToArray() });
 
                 isDataLoaded = true;
             }
@@ -91,6 +87,8 @@
         finally
         {
             isLoading = false;
+            await InvokeAsync(StateHasChanged);
+
         }
     }
 }
