@@ -4,15 +4,19 @@
 @using SmartBotBlazorApp.Data
 @using System.Linq
 
+<MudDatePicker @bind-Date="fromDate" Label="From Date" />
+<MudDatePicker @bind-Date="toDate" Label="To Date" />
 
-@* TODO: apply CSS ! and repair button*@
-<MudButton OnClick="LoadMeasurements">Załaduj dane z bazy</MudButton>
+<MudButton OnClick="LoadMeasurements" Disabled="isLoading" Class="mud-button">
+    Load data
+</MudButton>
 
 @if (isLoading)
 {
-    <MudProgressCircular Indeterminate="true" />
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" Size="Size.Small" />
 }
-else
+
+@if (isDataLoaded)
 {
     <MudChart ChartType="ChartType.Line" ChartSeries="@_seriesT" XAxisLabels="@chartLabels" Title="Temperatura" />
     <MudChart ChartType="ChartType.Line" ChartSeries="@_seriesD" XAxisLabels="@chartLabels" Title="Średnia odległość" />
@@ -27,23 +31,17 @@ else
 
 @code {
     private string[] chartLabels;
+    private DateTime? fromDate = DateTime.Now.AddDays(-1); // Default to 1 day ago
+    private DateTime? toDate = DateTime.Now; // Default to now
 
     private readonly List<ChartSeries> _seriesA = new();
     private readonly List<ChartSeries> _seriesD = new();
     private readonly List<ChartSeries> _seriesR = new();
     private readonly List<ChartSeries> _seriesT = new();
 
-    private DateTime fromDateT = DateTime.Parse("2024-12-08 15:25:30"); //TODO: get datetime form input
-    private DateTime toDateT = DateTime.Parse("2024-12-08 15:27:00");
-
     private bool isLoading = false;
     private bool isDataLoaded = false;
     private string errorMessage = string.Empty;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadMeasurements();
-    }
 
     private async Task LoadMeasurements()
     {
@@ -52,21 +50,26 @@ else
             isLoading = true;
             errorMessage = string.Empty;
 
+            if (!fromDate.HasValue || !toDate.HasValue || fromDate > toDate)
+            {
+                errorMessage = "Please select valid dates.";
+                isDataLoaded = false;
+                return;
+            }
+
             // Pobierz dane z bazy
-            var measurements = await MeasurementService.GetMeasurementsFromDatabaseAsync(fromDateT, toDateT); 
+            var measurements = await MeasurementService.GetMeasurementsFromDatabaseAsync(fromDate.Value, toDate.Value);
+
             if (measurements != null && measurements.Any())
             {
-                // Przygotowanie etykiet wykresów 
+                // Przygotowanie etykiet wykresów
                 chartLabels = measurements.Select(m => m.Timestamp.ToShortTimeString()).ToArray();
 
                 _seriesT.Add(new ChartSeries { Name = "C", Data = measurements.Select(m => m.TemperatureC).ToArray() });
-
                 _seriesD.Add(new ChartSeries { Name = "mm", Data = measurements.Select(m => (double)m.AvgDistance).ToArray() });
-
                 _seriesA.Add(new ChartSeries { Name = "X", Data = measurements.Select(m => m.AccelerationX).ToArray() });
                 _seriesA.Add(new ChartSeries { Name = "Y", Data = measurements.Select(m => m.AccelerationY).ToArray() });
                 _seriesA.Add(new ChartSeries { Name = "Z", Data = measurements.Select(m => m.AccelerationZ).ToArray() });
-
                 _seriesR.Add(new ChartSeries { Name = "X", Data = measurements.Select(m => m.RotationX).ToArray() });
                 _seriesR.Add(new ChartSeries { Name = "Y", Data = measurements.Select(m => m.RotationY).ToArray() });
                 _seriesR.Add(new ChartSeries { Name = "Z", Data = measurements.Select(m => m.RotationZ).ToArray() });
@@ -75,20 +78,19 @@ else
             }
             else
             {
-                errorMessage = "Brak danych do wyświetlenia.";
+                errorMessage = "No data available for the selected period.";
                 isDataLoaded = false;
             }
         }
         catch (Exception ex)
         {
-            errorMessage = $"Wystąpił błąd: {ex.Message}";
+            errorMessage = $"An error occurred: {ex.Message}";
             isDataLoaded = false;
         }
         finally
         {
             isLoading = false;
             await InvokeAsync(StateHasChanged);
-
         }
     }
 }
