@@ -242,7 +242,7 @@
     {
         if (_hubConnection is not null)
         {
-            await _hubConnection.SendAsync("SendMessage", "User", message);
+            await _hubConnection.SendAsync("SendMovementCommand", "API", message);
         }
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
