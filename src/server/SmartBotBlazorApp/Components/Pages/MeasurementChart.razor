@@ -4,7 +4,7 @@
 @using SmartBotBlazorApp.Data
 @using System.Linq
 
-<MudButton OnClick="LoadMeasurements">Load data</MudButton>
+<MudButton OnClick="LoadMeasurements">Załaduj dane z bazy</MudButton>
 
 <MudChart ChartType="ChartType.Line" Data="@temperatureData" Labels="@chartLabels" Title="Temperatura" />
 <MudChart ChartType="ChartType.Line" Data="@accelerationXData" Labels="@chartLabels" Title="Przyspieszenie X" />
@@ -19,10 +19,13 @@
 {
     <MudProgressCircular Indeterminate="true" />
 }
-
-@if (!string.IsNullOrEmpty(errorMessage))
+@if (!isLoading && string.IsNullOrEmpty(errorMessage))
 {
-    <MudText Color="Color.Error">@errorMessage</MudText>
+    <MudText Typo="Typo.h6">Brak danych do wyświetlenia</MudText>
+}
+@if (!isLoading && !string.IsNullOrEmpty(errorMessage))
+{
+    <MudText Typo="Typo.h6" Color="Color.Error">@errorMessage</MudText>
 }
 
 @code {
@@ -47,13 +50,20 @@
             isLoading = true;
             errorMessage = string.Empty;
 
-            // Pobierz wszystkie dane z bazy
+            // Pobierz dane z bazy
             var measurements = await MeasurementService.GetMeasurementsFromDatabaseAsync();
+
+            // Logowanie liczby pobranych pomiarów
+            Console.WriteLine($"Liczba pomiarów: {measurements.Count}");
 
             if (measurements != null && measurements.Any())
             {
-                // Przygotowanie etykiet wykresów (np. czas w formacie HH:mm:ss)
+                // Przygotowanie etykiet wykresów 
                 chartLabels = measurements.Select(m => m.Timestamp.ToString("HH:mm:ss")).ToArray();
+
+                // Logowanie przykładowych danych przed przypisaniem do wykresów
+                Console.WriteLine($"Temperatura: {string.Join(", ", measurements.Select(m => m.TemperatureC))}");
+                Console.WriteLine($"Przyspieszenie X: {string.Join(", ", measurements.Select(m => m.AccelerationX))}");
 
                 // Przygotowanie danych do wykresów
                 temperatureData = measurements.Select(m => m.TemperatureC).ToArray();
@@ -63,8 +73,6 @@
                 rotationXData = measurements.Select(m => m.RotationX).ToArray();
                 rotationYData = measurements.Select(m => m.RotationY).ToArray();
                 rotationZData = measurements.Select(m => m.RotationZ).ToArray();
-
-                // Konwersja AvgDistance z ushort[] na double[]
                 avgDistanceData = measurements.Select(m => (double)m.AvgDistance).ToArray();
 
                 isDataLoaded = true;
