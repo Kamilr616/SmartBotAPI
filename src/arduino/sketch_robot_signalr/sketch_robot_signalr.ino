@@ -52,6 +52,25 @@ void setLEDColor(uint8_t r = 0, uint8_t g = 0, uint8_t b = 0) {
   rgbLedWrite(PIN_NEOPIXEL, g, r, b);
 }
 
+void handleIncomingMessage(const char* payload) {
+  JsonDocument jsonDoc; 
+  DeserializationError error = deserializeJson(jsonDoc, payload);
+
+  if (error) {
+    Serial.printf("[WS] Failed to parse full JSON: %s\n", error.c_str());
+    return;
+  }
+
+  const char* target = jsonDoc["target"];
+
+  if (!target || strcmp(target, "ReceiveRobotCommand") != 0) {
+    Serial.println("[WS] Message ignored: target does not match.");
+    return;
+  }
+
+   Serial.printf("[WS] Command message: %s\n", jsonDoc["arguments"].as<const char*>()); //TODO: handle command
+}
+
 void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
   switch (type) {
     case WStype_DISCONNECTED:
@@ -65,8 +84,8 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
       setLEDColor(0, 255, 0);                                          // Green
       break;
     case WStype_TEXT:
-      USE_SERIAL.printf("[WS] Message from server: %s\n", payload);
-      // TODO: Handle incoming messages
+      //USE_SERIAL.printf("[WS] Message from server: %s\n", payload);
+      handleIncomingMessage((const char*)payload);
       break;
     case WStype_BIN:
       USE_SERIAL.printf("[WS] Binary data received, length: %u\n", length);
