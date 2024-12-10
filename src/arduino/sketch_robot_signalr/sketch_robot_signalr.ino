@@ -53,30 +53,22 @@ void setLEDColor(uint8_t r = 0, uint8_t g = 0, uint8_t b = 0) {
 }
 
 void handleIncomingMessage(const char* payload) {
-  // Perform a quick check for "target"
-  StaticJsonDocument<64> checkDoc; // Small buffer for quick target check
-  DeserializationError checkError = deserializeJson(checkDoc, payload);
+  JsonDocument jsonDoc; 
+  DeserializationError error = deserializeJson(jsonDoc, payload);
 
-  if (checkError) {
-    Serial.printf("[WS] Failed to parse JSON for quick check: %s\n", checkError.c_str());
+  if (error) {
+    Serial.printf("[WS] Failed to parse full JSON: %s\n", error.c_str());
     return;
   }
 
-  const char* target = checkDoc["target"];
+  const char* target = jsonDoc["target"];
+
   if (!target || strcmp(target, "ReceiveRobotCommand") != 0) {
     Serial.println("[WS] Message ignored: target does not match.");
     return;
   }
 
-  StaticJsonDocument<512> jsonDoc; // Larger buffer for full payload parsing
-  DeserializationError fullError = deserializeJson(jsonDoc, payload);
-
-  if (fullError) {
-    Serial.printf("[WS] Failed to parse full JSON: %s\n", fullError.c_str());
-    return;
-  }
-   Serial.printf("[WS] Command message: %s\n", jsonDoc); //TODO: handle command
-
+   Serial.printf("[WS] Command message: %s\n", jsonDoc["arguments"].as<const char*>()); //TODO: handle command
 }
 
 void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
