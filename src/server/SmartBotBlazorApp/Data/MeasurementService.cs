@@ -1,4 +1,6 @@
-﻿namespace SmartBotBlazorApp.Data
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace SmartBotBlazorApp.Data
 {
     public class MeasurementService
     {
@@ -24,7 +26,6 @@
 
             if ((currentTime - _lastSaveTime) >= SaveThrottleDuration)
             {
-
                 var newMeasurement = new Measurement
                 {
                     RobotId = robotId,
@@ -47,8 +48,7 @@
                 await Task.CompletedTask;
             }
         }
-    
-
+        
         public double[] RoundMeasurements(double[] measurementsArray, int precision = 2)
         {
             var newMeasurementsArray = new double[7];
@@ -59,6 +59,18 @@
             }
 
             return newMeasurementsArray;
+        }
+        public async Task<List<Measurement>> GetAllMeasurementsFromDatabaseAsync()
+        {
+            return await _context.Measurements.OrderBy(m => m.Timestamp).ToListAsync();
+        }
+
+        public async Task<List<Measurement>> GetMeasurementsFromDatabaseAsync(DateTime startTimestamp, DateTime endTimestamp)
+        {
+            return await _context.Measurements
+                .Where(m => m.Timestamp >= startTimestamp && m.Timestamp <= endTimestamp)
+                .OrderBy(m => m.Timestamp)
+                .ToListAsync();
         }
     }
 
