@@ -84,7 +84,7 @@ void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
       setLEDColor(0, 255, 0);                                          // Green
       break;
     case WStype_TEXT:
-      //USE_SERIAL.printf("[WS] Message from server: %s\n", payload);
+      USE_SERIAL.printf("[WS] Message from server: %s\n", payload);
       handleIncomingMessage((const char*)payload);
       break;
     case WStype_BIN:
@@ -170,8 +170,8 @@ void waitForWiFiConnectOrReboot(bool printOnSerial = true, int numOfAttempts = 5
     USE_SERIAL.printf("[WIFI] Connecting to %s |", ssid);
   }
 
-  while (wifiMulti.run(5000) != WL_CONNECTED) {
-    delay(2500);
+  while (wifiMulti.run() != WL_CONNECTED) {
+    delay(1500);
     if (printOnSerial) {
       USE_SERIAL.print(" |");
     }
