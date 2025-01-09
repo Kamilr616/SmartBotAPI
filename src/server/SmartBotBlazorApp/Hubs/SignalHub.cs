@@ -27,7 +27,44 @@ namespace SmartBotBlazorApp.Hubs
         {
             await Clients.Caller.SendAsync("ReceiveMessage", "API", "Message received!");
         }
+        
+        [HubMethodName("SendMovementCommand")]
+        public async Task SendMovementCommand(string user, string command)
+        {
+           double motorA = 0; 
+           double motorB = 0;
 
+            switch (command)
+           {
+                case "UP":
+                    motorA = 255;
+                    motorB = 255;
+                    break;
+                case "DOWN":
+                    motorA = -255;
+                    motorB = -255;
+                    break;
+                case "LEFT":
+                    motorA = -255;
+                    motorB = 255;
+                    break;
+                case "RIGHT":
+                    motorA = 255;
+                    motorB = -255;
+                    break;
+                case "STOP":
+                    motorA = 0;
+                    motorB = 0;
+                    break;
+                default:
+                    motorA = 0;
+                    motorB = 0;
+                    break;
+                }
+
+        await Clients.Others.SendAsync("ReceiveRobotCommand", motorA, motorB);
+
+        }
         [HubMethodName("ReceiveRobotData")]
         public async Task ReceiveRobotData(string user, double[] measurements, ushort[] rawMatrix, ushort avgDistance)
         {
