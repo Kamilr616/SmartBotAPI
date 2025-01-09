@@ -15,24 +15,24 @@ namespace SmartBotBlazorApp
             using var image = new Image<Rgba32>(width, width);
 
             // Normalizacja głębokości
-            ushort minDepth = 1, maxDepth = 4000;
+            ushort minDepth = 10, maxDepth = 3500;
             double scale = 1.0 / (maxDepth - minDepth);
 
-            for (int y = 0; y < width; y++)
+            for (int x1 = 0; x1 < width; x1++)
             {
-                for (int x = 0; x < width; x++)
+                for (int y1 = 0; y1 < width; y1++)
                 {
-                    int index = y * width + x;
+                    int index = x1 * width + y1;
                     double normalizedValue = (depthData[index] - minDepth) * scale;
                     normalizedValue = Math.Clamp(normalizedValue, 0, 1);
 
                     // Ustawienie koloru pikseli
                     var heatmapColor = GetHeatmapColor(normalizedValue);
-                    image[x, y] = heatmapColor;
+                    image[x1, y1] = heatmapColor;
                 }
             }
 
-            image.Mutate(ctx => ctx.Rotate(RotateMode.Rotate90));
+            //image.Mutate(ctx => ctx.Rotate(RotateMode.Rotate90));
 
             // Skalowanie
             image.Mutate(ctx => ctx.Resize(scaledWidth, scaledWidth));
