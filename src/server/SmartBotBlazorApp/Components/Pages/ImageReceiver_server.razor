@@ -9,7 +9,7 @@
 
 <div class="container">
     <!-- Depth Image on the Left Side -->
-    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" >
+    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="stopInputToRobot" >
         <div class="left-section">
             @if (_imageSrc == null)
             {
@@ -214,6 +214,8 @@
     private void OnPointerUp(PointerEventArgs e)
     {
         _joystickHandler.OnPointerUp();
+        stopInputToRobot();
+
         StopJoystickMessageLoop();
     }
 
@@ -231,6 +233,20 @@
         if (_hubConnection is not null)
         {
             await _hubConnection.SendAsync("SendMovementCommand", "API", engineValues.Item1, engineValues.Item2);
+        }
+    }
+
+    //szybki hack, kiedys sie zrobi ladniej
+    private async void stopInputToRobot()
+    {
+        _LeftEngineValue = 0;
+        _RightEngineValue = 0;
+        if (_hubConnection is not null)
+        {
+            var currentTime = DateTime.Now;
+            _lastSaveTimeRobotInput = currentTime;
+
+            await _hubConnection.SendAsync("SendMovementCommand", "API", 0, 0);
         }
     }
 
