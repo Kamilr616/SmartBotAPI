@@ -122,7 +122,7 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
                 else
                 {
 
-                    validInput = false;
+                    validInput = true;
                     robotDir = ROBOT_DIRECITON.STOP;
                     joystickDirection = "Center";
                     Counter = 0;
@@ -208,7 +208,8 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
         //XDD
         private void translateJoystickToRobotEngineValues()
         {
-            float deadzone = 0.2f;
+            float deadzone = 0.25f;
+            float stopDeadZone = 0.1f;
             const int maxEngineValue = 255;
            
             
@@ -219,10 +220,16 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
             tmpX *= -2;
 
 
-            //DeadZone, żeby łatwiej się jechało przód/tył
+            //DeadZone, żeby łatwiej się stopowało
             float leftSpeed = 0;
             float rightSpeed = 0;
-            if (Math.Abs(tmpX) < deadzone)
+            if(Math.Abs(tmpX) < stopDeadZone && Math.Abs(tmpY) < stopDeadZone )
+            {
+                leftSpeed = 0;
+                rightSpeed = 0;
+            }
+            //DeadZone, żeby łatwiej się jechało przód/tył
+            else if (Math.Abs(tmpX) < deadzone)
             {
                 leftSpeed = tmpY;
                 rightSpeed = tmpY;

@@ -289,29 +289,29 @@
 //       DEBUG        
 //--------------------------------------------------------------------------------------------------------
 
-        // _measurements = debugFunctions.GenerateTestDataAscendDouble(32);
-        // _dataFrame = debugFunctions.GenerateTestDataAscend(32);
-        // _avgDistance = 10;
-        // _hubUser = "TEST_DATA";
+        _measurements = debugFunctions.GenerateTestDataAscendDouble(32);
+        _dataFrame = debugFunctions.GenerateTestDataAscend(32);
+        _avgDistance = 10;
+        _hubUser = "TEST_DATA";
 
  //--------------------------------------------------------------------------------------------------------
 
 
-        _hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
-            .Build();
+        // _hubConnection = new HubConnectionBuilder()
+        //     .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
+        //     .Build();
 
-        _hubConnection.On<string, double[], ushort[], ushort>("ReceiveMatrix", (user, measurements, interpolatedMatrix, avgDistance) =>
-        {
-            _hubUser = user;
-            _measurements = measurements;
-            _dataFrame = interpolatedMatrix;
-            _avgDistance = avgDistance;
+        // _hubConnection.On<string, double[], ushort[], ushort>("ReceiveMatrix", (user, measurements, interpolatedMatrix, avgDistance) =>
+        // {
+        //     _hubUser = user;
+        //     _measurements = measurements;
+        //     _dataFrame = interpolatedMatrix;
+        //     _avgDistance = avgDistance;
 
-            InvokeAsync(StateHasChanged);
-        });
+        //     InvokeAsync(StateHasChanged);
+        // });
 
-        await _hubConnection.StartAsync();
+        // await _hubConnection.StartAsync();
 
     }
 
