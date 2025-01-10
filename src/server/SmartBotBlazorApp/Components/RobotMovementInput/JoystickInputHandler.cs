@@ -1,4 +1,5 @@
-﻿using SmartBotBlazorApp.Client.Pages;
+﻿using Microsoft.EntityFrameworkCore;
+using SmartBotBlazorApp.Client.Pages;
 
 namespace SmartBotBlazorApp.Components.RobotMovementInput
 {
@@ -24,6 +25,7 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
 
         public int LeftEngine { get; private set; } = 0 ;
         public int RightEngine { get; private set; } = 0;
+
 
         public JoystickInputHandler(double centerX, double centerY, double radius)
         {
@@ -80,6 +82,8 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
             joystickDirection = "Center";
             _touchStartX = _centerX;
             _touchStartY = _centerY;
+            LeftEngine = 0;
+            RightEngine = 0;
         }
 
         private void SetJoystickDirection(double knobPosX, double knobPosY)
@@ -208,8 +212,8 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
         //XDD
         private void translateJoystickToRobotEngineValues()
         {
-            float deadzone = 0.25f;
-            float stopDeadZone = 0.1f;
+            float deadzone = 0.35f;
+            float stopDeadZone = 0.15f;
             const int maxEngineValue = 255;
            
             
