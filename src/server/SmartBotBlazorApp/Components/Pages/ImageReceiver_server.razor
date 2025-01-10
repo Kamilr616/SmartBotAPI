@@ -9,7 +9,7 @@
 
 <div class="container">
     <!-- Depth Image on the Left Side -->
-    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown">
+    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" >
         <div class="left-section">
             @if (_imageSrc == null)
             {
@@ -152,6 +152,9 @@
     private keyboardInputHandler _keyobardInputHandler = new keyboardInputHandler();
     private ROBOT_DIRECITON previousDir = ROBOT_DIRECITON.STOP;
 
+    private int _LeftEngineValue = 0;
+    private int _RightEngineValue = 0;
+
     private async Task StartJoystickMessageLoop()
     {
         _joystickCancellationTokenSource?.Cancel();
@@ -164,7 +167,9 @@
             {
                 if (_joystickHandler.validInput)
                 {
-                    sendInputToRobot(new RobotCommand(_joystickHandler.robotDir).nextDirection.ToString());
+                    //DEPRECIATED
+                    // sendInputToRobot(new RobotCommand(_joystickHandler.robotDir).nextDirection.ToString());
+                    sendInputToRobot(_joystickHandler.GetRobotEngineValues());
                     _joystickHandler.increaseCounter();
                 }
 
@@ -188,6 +193,9 @@
     private void OnPointerDown(PointerEventArgs e)
     {
         _joystickHandler.OnPointerDown(e.ClientX, e.ClientY);
+        _LeftEngineValue = _joystickHandler.GetRobotEngineValues().Item1;
+        _RightEngineValue = _joystickHandler.GetRobotEngineValues().Item2;
+
         _ = StartJoystickMessageLoop();
     }
 
@@ -202,14 +210,23 @@
         StopJoystickMessageLoop();
     }
 
-    //TODO: ?
-    private async void sendInputToRobot(string message)
+    //DEPRECIATED
+    // private async void sendInputToRobot(string message)
+    // {
+    //     if (_hubConnection is not null)
+    //     {
+    //         await _hubConnection.SendAsync("SendMovementCommand", "API", message);
+    //     }
+    // }
+
+    private async void sendInputToRobot((int, int) engineValues)
     {
         if (_hubConnection is not null)
         {
-            await _hubConnection.SendAsync("SendMovementCommand", "API", message);
+            await _hubConnection.SendAsync("SendMovementCommand", "API", engineValues.Item1, engineValues.Item2);
         }
     }
+
 
     private void HandleKeyDown(KeyboardEventArgs e)
     {
@@ -218,12 +235,33 @@
         _keyobardInputHandler.amIResetingCounter(previousDir != _keyobardInputHandler.robotDir);
         previousDir = _keyobardInputHandler.robotDir;
 
+        _LeftEngineValue = _keyobardInputHandler.GetRobotEngineValues().Item1;
+        _RightEngineValue = _keyobardInputHandler.GetRobotEngineValues().Item2;
 
         if (_keyobardInputHandler.validInput)
         {
-            sendInputToRobot(new RobotCommand(_keyobardInputHandler.robotDir).nextDirection.ToString());
+            //Depreciated
+            // sendInputToRobot(new RobotCommand(_keyobardInputHandler.robotDir).nextDirection.ToString());
+            
+            
+            sendInputToRobot(_keyobardInputHandler.GetRobotEngineValues());
         }
     }
+
+    // private void HandleKeyUP(KeyboardEventArgs e)
+    // {
+
+    //     _keyobardInputHandler.onKeyUP(e);
+    //     _keyobardInputHandler.amIResetingCounter(true);
+
+    //     _LeftEngineValue = _keyobardInputHandler.GetRobotEngineValues().Item1;
+    //     _RightEngineValue = _keyobardInputHandler.GetRobotEngineValues().Item2;
+
+    //     if (_keyobardInputHandler.validInput)
+    //     {
+    //         sendInputToRobot(_keyobardInputHandler.GetRobotEngineValues());
+    //     }
+    // }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -235,6 +273,17 @@
 
     protected override async Task OnInitializedAsync()
     {
+        
+        // DEBUG nie dziala
+//--------------------------------------------------------------------------------------------------------
+        // _measurements = debugFunctions.GenerateTestDataAscendDouble(32);
+        // _avgDistance = 10;
+        // _hubUser = "TEST_DATA";
+        // await Task.CompletedTask; 
+        
+//--------------------------------------------------------------------------------------------------------
+
+
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
             .Build();
@@ -255,6 +304,7 @@
 
     public bool IsConnected =>
         _hubConnection?.State == HubConnectionState.Connected;
+
 
     public async ValueTask DisposeAsync()
     {
