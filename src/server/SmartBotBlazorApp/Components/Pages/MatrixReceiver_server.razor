@@ -65,6 +65,9 @@
                     <th>
                         RE Value
                     </th>
+                    <th>
+                        StopRobot
+                    </th>
                 </tr>
 
                 </thead>
@@ -82,6 +85,7 @@
                     <td>@_joystickHandler.Counter</td>
                     <td>@_LeftEngineValue</td>
                     <td>@_RightEngineValue</td>
+                    <td>@_didIStoppedRobot</td>
                 </tr>
                 </tbody>
             }
@@ -187,8 +191,11 @@
     //Throttle
 
     private static DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
-    private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromSeconds(0.250f);
     //-----------------
+
+    //debug
+    // private string stopInput = "";
 
     //sybkihack, kiedys sie to napisze ladniej
     private bool _didIStoppedRobot = false;
@@ -241,9 +248,11 @@
         _RightEngineValue = _joystickHandler.GetRobotEngineValues().Item2;
     }
 
+    // private async void OnPointerUp(PointerEventArgs e)
     private void OnPointerUp(PointerEventArgs e)
     {
         _joystickHandler.OnPointerUp();
+        // await stopInputToRobot();
         stopInputToRobot();
         StopJoystickMessageLoop();
     }
@@ -280,33 +289,49 @@
 
     private async void sendInputToRobot((int, int) engineValues)
     {
+        // if(_didIStoppedRobot)
+        // {
+        //     return;
+        // }
+        // _didIStoppedRobot = false;
+
         if (_hubConnection is not null)
         {
+
             var currentTime = DateTime.Now;
 
             if ((currentTime - _lastSaveTimeRobotInput) <= ThrottleDurationSendRobotInput)
             {
                 return;
             }
+            _didIStoppedRobot = false;
             _lastSaveTimeRobotInput = currentTime;
             await _hubConnection.SendAsync("SendMovementCommand", "API", engineValues.Item1, engineValues.Item2);
         }
     }
 
+
     //szybki hack, kiedys sie zrobi ladniej
+    // private async Task stopInputToRobot()
     private async void stopInputToRobot()
     {
         _LeftEngineValue = 0;
         _RightEngineValue = 0;
+        // _didIStoppedRobot = true;
+
         if (_hubConnection is not null)
         {
             var currentTime = DateTime.Now;
             _lastSaveTimeRobotInput = currentTime;
 
+            _didIStoppedRobot = true;
             await _hubConnection.SendAsync("SendMovementCommand", "API", 0, 0);
         }
-    }
+        // await Task.Delay(1000);
+        // _didIStoppedRobot = false;
 
+
+    }
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -322,29 +347,29 @@
 //       DEBUG        
 //--------------------------------------------------------------------------------------------------------
 
-        _measurements = debugFunctions.GenerateTestDataAscendDouble(32);
-        _dataFrame = debugFunctions.GenerateTestDataAscend(32);
-        _avgDistance = 10;
-        _hubUser = "TEST_DATA";
+        // _measurements = debugFunctions.GenerateTestDataAscendDouble(32);
+        // _dataFrame = debugFunctions.GenerateTestDataAscend(32);
+        // _avgDistance = 10;
+        // _hubUser = "TEST_DATA";
 
  //--------------------------------------------------------------------------------------------------------
 
 
-        // _hubConnection = new HubConnectionBuilder()
-        //     .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
-        //     .Build();
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
+            .Build();
 
-        // _hubConnection.On<string, double[], ushort[], ushort>("ReceiveMatrix", (user, measurements, interpolatedMatrix, avgDistance) =>
-        // {
-        //     _hubUser = user;
-        //     _measurements = measurements;
-        //     _dataFrame = interpolatedMatrix;
-        //     _avgDistance = avgDistance;
+        _hubConnection.On<string, double[], ushort[], ushort>("ReceiveMatrix", (user, measurements, interpolatedMatrix, avgDistance) =>
+        {
+            _hubUser = user;
+            _measurements = measurements;
+            _dataFrame = interpolatedMatrix;
+            _avgDistance = avgDistance;
 
-        //     InvokeAsync(StateHasChanged);
-        // });
+            InvokeAsync(StateHasChanged);
+        });
 
-        // await _hubConnection.StartAsync();
+        await _hubConnection.StartAsync();
 
     }
 
