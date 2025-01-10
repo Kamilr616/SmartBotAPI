@@ -65,6 +65,9 @@
                     <th>
                         RE Value
                     </th>
+                    <th>
+                        StopRobot
+                    </th>
                 </tr>
 
                 </thead>
@@ -82,6 +85,7 @@
                     <td>@_joystickHandler.Counter</td>
                     <td>@_LeftEngineValue</td>
                     <td>@_RightEngineValue</td>
+                    <td>@_didIStoppedRobot</td>
                 </tr>
                 </tbody>
             }
@@ -190,6 +194,9 @@
     private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromSeconds(1);
     //-----------------
 
+    //debug
+    // private string stopInput = "";
+
     //sybkihack, kiedys sie to napisze ladniej
     private bool _didIStoppedRobot = false;
 
@@ -241,9 +248,10 @@
         _RightEngineValue = _joystickHandler.GetRobotEngineValues().Item2;
     }
 
-    private void OnPointerUp(PointerEventArgs e)
+    private async void OnPointerUp(PointerEventArgs e)
     {
         _joystickHandler.OnPointerUp();
+        await stopInputToRobot();
         stopInputToRobot();
         StopJoystickMessageLoop();
     }
@@ -280,29 +288,36 @@
 
     private async void sendInputToRobot((int, int) engineValues)
     {
+        // _didIStoppedRobot = false;
         if (_hubConnection is not null)
         {
+
             var currentTime = DateTime.Now;
 
             if ((currentTime - _lastSaveTimeRobotInput) <= ThrottleDurationSendRobotInput)
             {
                 return;
             }
+            _didIStoppedRobot = false;
             _lastSaveTimeRobotInput = currentTime;
             await _hubConnection.SendAsync("SendMovementCommand", "API", engineValues.Item1, engineValues.Item2);
         }
     }
 
     //szybki hack, kiedys sie zrobi ladniej
-    private async void stopInputToRobot()
+    private async Task stopInputToRobot()
     {
+        await Task.Delay(1000);
         _LeftEngineValue = 0;
         _RightEngineValue = 0;
+        // _didIStoppedRobot = true;
+
         if (_hubConnection is not null)
         {
             var currentTime = DateTime.Now;
             _lastSaveTimeRobotInput = currentTime;
 
+            _didIStoppedRobot = true;
             await _hubConnection.SendAsync("SendMovementCommand", "API", 0, 0);
         }
     }
