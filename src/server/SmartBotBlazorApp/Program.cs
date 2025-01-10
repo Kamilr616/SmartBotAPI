@@ -9,6 +9,7 @@ using SmartBotBlazorApp.Hubs;
 using SmartBotBlazorApp;
 
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents()

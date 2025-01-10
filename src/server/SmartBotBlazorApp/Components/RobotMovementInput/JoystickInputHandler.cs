@@ -22,6 +22,9 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
         public double KnobPosX => _knobPosX;
         public double KnobPosY => _knobPosY;
 
+        public int LeftEngine { get; private set; } = 0 ;
+        public int RightEngine { get; private set; } = 0;
+
         public JoystickInputHandler(double centerX, double centerY, double radius)
         {
             _centerX = centerX;
@@ -64,7 +67,8 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
                 _knobPosY = newPosY;
 
                 Counter++;
-                GetJoystickDirection(_knobPosX, _knobPosY);
+                SetJoystickDirection(_knobPosX, _knobPosY);
+                translateJoystickToRobotEngineValues();
             }
         }
 
@@ -78,7 +82,7 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
             _touchStartY = _centerY;
         }
 
-        private void GetJoystickDirection(double knobPosX, double knobPosY)
+        private void SetJoystickDirection(double knobPosX, double knobPosY)
         {
             double deltaX = knobPosX - _centerX;
             double deltaY = knobPosY - _centerY;
@@ -133,10 +137,111 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
             
         }
 
+        public (int, int) GetRobotEngineValues()
+        {
+            return (LeftEngine, RightEngine);
+
+
+            //return ((int)_knobPosX, (int)_knobPosY);
+
+            //float tmpX = 0;
+            //float tmpY = 0;
+            //tmpX = (float)_knobPosX - 50;
+            //tmpY = (float)_knobPosY - 50;
+            //tmpX *= 10;
+            //tmpY *= -10;
+
+
+            //return ((int)tmpX, (int)tmpY);
+        }
+
+
+        /* 
+
+                private void translateJoystickToRobotEngineValues()
+                {
+                    //tlumaczenie na zasieg -255 : 255
+                    float tmpX = 0;
+                    float tmpY = 0;
+                    tmpX = (float)_knobPosX - 50;
+                    tmpY = (float)_knobPosY - 50;
+                    tmpX *= 10;
+                    tmpY *= -10;
+                    //obliczenia/no nie do konca dzialaja
+                    //prawdopodobnie sa zwalone przypisania do wartosci
+
+                    float Z = (tmpX * tmpX) + (tmpY * tmpY);
+                    Z = MathF.Sqrt(Z);
+
+                    if(tmpX<0)
+                    {
+                        if(tmpY<0)
+                        {
+                            LeftEngine = (int)tmpX;
+                            RightEngine = (-1) * (int)Z ;
+                        }
+                        else
+                        {
+                            LeftEngine = (int)Z;
+                            RightEngine = (int)tmpY;
+                        }
+                    }
+                    else
+                    {
+                        if(tmpY<0)
+                        {
+                            LeftEngine = (-1) * (int)Z;
+                            RightEngine = (int)tmpY;
+                        }
+                        else
+                        {
+                            LeftEngine = (int)tmpX;
+                            RightEngine = (int)Z;
+                        }
+
+                    }
+                }
+        */
+
+
+        //KISS
+        //XDD
+        private void translateJoystickToRobotEngineValues()
+        {
+            float deadzone = 0.2f;
+            const int maxEngineValue = 255;
+           
+            
+            float tmpX = ((float)_knobPosX - (float)_centerX) / (float)_centerX;
+            float tmpY = ((float)_knobPosY - (float)_centerY) / (float)_centerY;
+            //odwracamy Y, bo jest ośka liczona od góry
+            tmpY *= -2;
+            tmpX *= -2;
+
+
+            //DeadZone, żeby łatwiej się jechało przód/tył
+            float leftSpeed = 0;
+            float rightSpeed = 0;
+            if (Math.Abs(tmpX) < deadzone)
+            {
+                leftSpeed = tmpY;
+                rightSpeed = tmpY;
+            }
+            else
+            {
+                leftSpeed = tmpY + tmpX;
+                rightSpeed = tmpY - tmpX;
+            }
+
+            LeftEngine = (int)(Math.Clamp(leftSpeed, -1, 1) * maxEngineValue);
+            RightEngine = (int)(Math.Clamp(rightSpeed, -1, 1) * maxEngineValue);
+        }
 
         public void resetCounter()
         {
             Counter = 0;
+            //LeftEngine = 0;
+            //RightEngine = 0;
         }
         public void increaseCounter()
         {
