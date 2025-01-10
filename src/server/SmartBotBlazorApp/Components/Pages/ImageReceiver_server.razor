@@ -155,6 +155,13 @@
     private int _LeftEngineValue = 0;
     private int _RightEngineValue = 0;
 
+
+    //Throttle
+
+    private static DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
+    private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromSeconds(1);
+    //-----------------
+
     private async Task StartJoystickMessageLoop()
     {
         _joystickCancellationTokenSource?.Cancel();
@@ -242,7 +249,12 @@
         {
             //Depreciated
             // sendInputToRobot(new RobotCommand(_keyobardInputHandler.robotDir).nextDirection.ToString());
-            
+            var currentTime = DateTime.Now;
+
+            if ((currentTime - _lastSaveTimeRobotInput) <= ThrottleDurationSendRobotInput)
+            {
+                return;
+            }
             
             sendInputToRobot(_keyobardInputHandler.GetRobotEngineValues());
         }
