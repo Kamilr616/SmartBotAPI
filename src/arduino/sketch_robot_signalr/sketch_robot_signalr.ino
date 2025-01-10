@@ -44,8 +44,8 @@ Adafruit_MPU6050 mpu;
 WiFiMulti wifiMulti;
 WiFiClientSecure secureClient;
 
-//static unsigned long lastTime = 0;
-//unsigned long currentMillis;
+static unsigned long lastTime = 0;
+unsigned long currentMillis;
 
 
 void setLEDColor(uint8_t r = 0, uint8_t g = 0, uint8_t b = 0) {
@@ -91,6 +91,7 @@ void controlMotors(int valA = 0, int valB = 0, int stop = 1) {
   }
 
   USE_SERIAL.printf("Motor A -> %d  |  Motor B -> %d\n", valA, valB);
+  lastTime = millis();
 
   digitalWrite(MOTOR_A_IN1, output3);  // motor A (left)
   digitalWrite(MOTOR_A_IN2, output4);
@@ -325,7 +326,7 @@ void setup() {
 }
 
 void loop() {
-  //currentMillis = millis();                                                                      // Get the current time
+  currentMillis = millis();                                                                      // Get the current time
   webSocket.loop();  // Handle WebSocket events and communication
 
   if (myImager.isDataReady() && webSocket.isConnected()) {  // Poll the VL53L5CX sensor for new data  TODO: Attach the interrupt
@@ -336,7 +337,9 @@ void loop() {
       String data = createDataString(measurementData, a, g, temp, imageWidth, imageResolution);
       webSocket.sendTXT(data);
     }
-
+    if(currentMillis - lastTime  >= MAX_IDLE_TIME){
+          controlMotors(0, 0, -2); // force stop
+    }
     setLEDColor(0, 128, 0);  // Green
   }
 }
