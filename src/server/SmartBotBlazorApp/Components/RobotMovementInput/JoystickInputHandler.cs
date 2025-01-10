@@ -1,4 +1,5 @@
-﻿using SmartBotBlazorApp.Client.Pages;
+﻿using Microsoft.EntityFrameworkCore;
+using SmartBotBlazorApp.Client.Pages;
 
 namespace SmartBotBlazorApp.Components.RobotMovementInput
 {
@@ -24,6 +25,7 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
 
         public int LeftEngine { get; private set; } = 0 ;
         public int RightEngine { get; private set; } = 0;
+
 
         public JoystickInputHandler(double centerX, double centerY, double radius)
         {
@@ -80,6 +82,8 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
             joystickDirection = "Center";
             _touchStartX = _centerX;
             _touchStartY = _centerY;
+            LeftEngine = 0;
+            RightEngine = 0;
         }
 
         private void SetJoystickDirection(double knobPosX, double knobPosY)
@@ -122,7 +126,7 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
                 else
                 {
 
-                    validInput = false;
+                    validInput = true;
                     robotDir = ROBOT_DIRECITON.STOP;
                     joystickDirection = "Center";
                     Counter = 0;
@@ -208,7 +212,8 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
         //XDD
         private void translateJoystickToRobotEngineValues()
         {
-            float deadzone = 0.2f;
+            float deadzone = 0.35f;
+            float stopDeadZone = 0.15f;
             const int maxEngineValue = 255;
            
             
@@ -219,10 +224,16 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
             tmpX *= -2;
 
 
-            //DeadZone, żeby łatwiej się jechało przód/tył
+            //DeadZone, żeby łatwiej się stopowało
             float leftSpeed = 0;
             float rightSpeed = 0;
-            if (Math.Abs(tmpX) < deadzone)
+            if(Math.Abs(tmpX) < stopDeadZone && Math.Abs(tmpY) < stopDeadZone )
+            {
+                leftSpeed = 0;
+                rightSpeed = 0;
+            }
+            //DeadZone, żeby łatwiej się jechało przód/tył
+            else if (Math.Abs(tmpX) < deadzone)
             {
                 leftSpeed = tmpY;
                 rightSpeed = tmpY;

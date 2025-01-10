@@ -9,7 +9,7 @@
 
 <div class="container">
     <!-- Depth Image on the Left Side -->
-    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" >
+    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="stopInputToRobot" >
         <div class="left-section">
             @if (_imageSrc == null)
             {
@@ -40,6 +40,9 @@
                     <th>
                         Joystick Counter
                     </th>
+                    <th>
+                        StopRobot
+                    </th>
                 </tr>
 
             </thead>
@@ -55,6 +58,8 @@
                     </td>
                     <td>@_joystickHandler.joystickDirection</td>
                     <td>@_joystickHandler.Counter</td>
+                    <td>@_didIStoppedRobot</td>
+
                 </tr>
             </tbody>
 
@@ -155,6 +160,17 @@
     private int _LeftEngineValue = 0;
     private int _RightEngineValue = 0;
 
+
+    //Throttle
+
+    private static DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
+    private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromSeconds(1);
+    
+    //TODO, przerobic na stateMachine
+    //-----------------
+    //szybkihack
+    private bool _didIStoppedRobot = false;
+
     private async Task StartJoystickMessageLoop()
     {
         _joystickCancellationTokenSource?.Cancel();
@@ -204,27 +220,57 @@
         _joystickHandler.OnPointerMove(e.ClientX, e.ClientY);
     }
 
-    private void OnPointerUp(PointerEventArgs e)
+    private async void OnPointerUp(PointerEventArgs e)
     {
         _joystickHandler.OnPointerUp();
+        await stopInputToRobot();
+
         StopJoystickMessageLoop();
     }
 
-    //DEPRECIATED
-    // private async void sendInputToRobot(string message)
-    // {
-    //     if (_hubConnection is not null)
-    //     {
-    //         await _hubConnection.SendAsync("SendMovementCommand", "API", message);
-    //     }
-    // }
 
     private async void sendInputToRobot((int, int) engineValues)
     {
+        if (_didIStoppedRobot)
+        {
+            return;
+        }
+        _didIStoppedRobot = false;
+
         if (_hubConnection is not null)
         {
+
+            var currentTime = DateTime.Now;
+
+            if ((currentTime - _lastSaveTimeRobotInput) <= ThrottleDurationSendRobotInput)
+            {
+                return;
+            }
+            _didIStoppedRobot = false;
+            _lastSaveTimeRobotInput = currentTime;
             await _hubConnection.SendAsync("SendMovementCommand", "API", engineValues.Item1, engineValues.Item2);
         }
+    }
+
+    //szybki hack, kiedys sie zrobi ladniej
+    private async Task stopInputToRobot()
+    {
+        _LeftEngineValue = 0;
+        _RightEngineValue = 0;
+        _didIStoppedRobot = true;
+
+        if (_hubConnection is not null)
+        {
+            var currentTime = DateTime.Now;
+            _lastSaveTimeRobotInput = currentTime;
+
+            _didIStoppedRobot = true;
+            await _hubConnection.SendAsync("SendMovementCommand", "API", 0, 0);
+        }
+        await Task.Delay(1000);
+        _didIStoppedRobot = false;
+
+
     }
 
 
@@ -242,7 +288,12 @@
         {
             //Depreciated
             // sendInputToRobot(new RobotCommand(_keyobardInputHandler.robotDir).nextDirection.ToString());
-            
+            var currentTime = DateTime.Now;
+
+            if ((currentTime - _lastSaveTimeRobotInput) <= ThrottleDurationSendRobotInput)
+            {
+                return;
+            }
             
             sendInputToRobot(_keyobardInputHandler.GetRobotEngineValues());
         }
