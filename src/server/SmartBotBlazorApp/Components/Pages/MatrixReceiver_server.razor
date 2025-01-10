@@ -10,7 +10,7 @@
 
 <div style="display: flex; justify-content: center; max-width: 1000px; margin: 0 auto; padding: 20px;">
     <!-- Depth Image on the Left Side -->
-    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown">
+    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup=stopInputToRobot>
         <div style="flex: 1; max-width: 700px; margin-right: 20px;">
             <div class="depth-image"
                  style="width: 640px; height: 640px; display: grid; grid-template-columns: repeat(32, 1fr); gap: 0px;">
@@ -184,6 +184,15 @@
     private keyboardInputHandler _keyobardInputHandler = new keyboardInputHandler();
     private ROBOT_DIRECITON previousDir = ROBOT_DIRECITON.STOP;
 
+    //Throttle
+
+    private static DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
+    private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromSeconds(1);
+    //-----------------
+
+    //sybkihack, kiedys sie to napisze ladniej
+    private bool _didIStoppedRobot = false;
+
     private async Task StartJoystickMessageLoop()
     {
         _joystickCancellationTokenSource?.Cancel();
@@ -235,6 +244,7 @@
     private void OnPointerUp(PointerEventArgs e)
     {
         _joystickHandler.OnPointerUp();
+        stopInputToRobot();
         StopJoystickMessageLoop();
     }
 
@@ -272,9 +282,32 @@
     {
         if (_hubConnection is not null)
         {
+            var currentTime = DateTime.Now;
+
+            if ((currentTime - _lastSaveTimeRobotInput) <= ThrottleDurationSendRobotInput)
+            {
+                return;
+            }
+            _lastSaveTimeRobotInput = currentTime;
             await _hubConnection.SendAsync("SendMovementCommand", "API", engineValues.Item1, engineValues.Item2);
         }
     }
+
+    //szybki hack, kiedys sie zrobi ladniej
+    private async void stopInputToRobot()
+    {
+        _LeftEngineValue = 0;
+        _RightEngineValue = 0;
+        if (_hubConnection is not null)
+        {
+            var currentTime = DateTime.Now;
+            _lastSaveTimeRobotInput = currentTime;
+
+            await _hubConnection.SendAsync("SendMovementCommand", "API", 0, 0);
+        }
+    }
+
+
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

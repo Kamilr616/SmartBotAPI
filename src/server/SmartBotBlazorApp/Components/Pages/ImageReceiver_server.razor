@@ -9,7 +9,7 @@
 
 <div class="container">
     <!-- Depth Image on the Left Side -->
-    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" >
+    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="stopInputToRobot" >
         <div class="left-section">
             @if (_imageSrc == null)
             {
@@ -155,6 +155,13 @@
     private int _LeftEngineValue = 0;
     private int _RightEngineValue = 0;
 
+
+    //Throttle
+
+    private static DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
+    private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromSeconds(1);
+    //-----------------
+
     private async Task StartJoystickMessageLoop()
     {
         _joystickCancellationTokenSource?.Cancel();
@@ -207,6 +214,8 @@
     private void OnPointerUp(PointerEventArgs e)
     {
         _joystickHandler.OnPointerUp();
+        stopInputToRobot();
+
         StopJoystickMessageLoop();
     }
 
@@ -227,6 +236,20 @@
         }
     }
 
+    //szybki hack, kiedys sie zrobi ladniej
+    private async void stopInputToRobot()
+    {
+        _LeftEngineValue = 0;
+        _RightEngineValue = 0;
+        if (_hubConnection is not null)
+        {
+            var currentTime = DateTime.Now;
+            _lastSaveTimeRobotInput = currentTime;
+
+            await _hubConnection.SendAsync("SendMovementCommand", "API", 0, 0);
+        }
+    }
+
 
     private void HandleKeyDown(KeyboardEventArgs e)
     {
@@ -242,7 +265,12 @@
         {
             //Depreciated
             // sendInputToRobot(new RobotCommand(_keyobardInputHandler.robotDir).nextDirection.ToString());
-            
+            var currentTime = DateTime.Now;
+
+            if ((currentTime - _lastSaveTimeRobotInput) <= ThrottleDurationSendRobotInput)
+            {
+                return;
+            }
             
             sendInputToRobot(_keyobardInputHandler.GetRobotEngineValues());
         }
