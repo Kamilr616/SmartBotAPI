@@ -68,6 +68,7 @@ void controlMotors(int valA = 0, int valB = 0, int stop = 1) {
   } else if (stop > 0) {
     stopMotor = true;
     setLEDColor(255, 0, 0);  // Red
+    return;
   }
 
   if (valA > 0 && stopMotor == false) {
@@ -215,6 +216,7 @@ String createDataString(const VL53L5CX_ResultsData &measurementData, sensors_eve
   avgDistance = (centerCount > 0) ? (totalCenterDistance / centerCount) : 0;
   doc["arguments"][3] = avgDistance;  //avgDistance
 
+  static bool noRepeat;
   if (avgDistance < MIN_DISTANCE) {
     controlMotors(0, 0, 1);
   } else {
