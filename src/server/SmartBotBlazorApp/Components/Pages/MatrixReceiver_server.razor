@@ -248,10 +248,12 @@
         _RightEngineValue = _joystickHandler.GetRobotEngineValues().Item2;
     }
 
-    private async void OnPointerUp(PointerEventArgs e)
+    // private async void OnPointerUp(PointerEventArgs e)
+    private void OnPointerUp(PointerEventArgs e)
     {
         _joystickHandler.OnPointerUp();
-        await stopInputToRobot();
+        // await stopInputToRobot();
+        stopInputToRobot();
         StopJoystickMessageLoop();
     }
 
@@ -287,11 +289,11 @@
 
     private async void sendInputToRobot((int, int) engineValues)
     {
-        if(_didIStoppedRobot)
-        {
-            return;
-        }
-        _didIStoppedRobot = false;
+        // if(_didIStoppedRobot)
+        // {
+        //     return;
+        // }
+        // _didIStoppedRobot = false;
 
         if (_hubConnection is not null)
         {
@@ -310,7 +312,8 @@
 
 
     //szybki hack, kiedys sie zrobi ladniej
-    private async Task stopInputToRobot()
+    // private async Task stopInputToRobot()
+    private async void stopInputToRobot()
     {
         _LeftEngineValue = 0;
         _RightEngineValue = 0;
@@ -324,8 +327,8 @@
             _didIStoppedRobot = true;
             await _hubConnection.SendAsync("SendMovementCommand", "API", 0, 0);
         }
-        await Task.Delay(1000);
-        _didIStoppedRobot = false;
+        // await Task.Delay(1000);
+        // _didIStoppedRobot = false;
 
 
     }
