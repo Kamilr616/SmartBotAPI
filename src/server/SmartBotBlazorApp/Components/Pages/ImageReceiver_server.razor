@@ -165,6 +165,8 @@
 
     private static DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
     private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromSeconds(1);
+    
+    //TODO, przerobic na stateMachine
     //-----------------
     //szybkihack
     private bool _didIStoppedRobot = false;
@@ -226,19 +228,26 @@
         StopJoystickMessageLoop();
     }
 
-    //DEPRECIATED
-    // private async void sendInputToRobot(string message)
-    // {
-    //     if (_hubConnection is not null)
-    //     {
-    //         await _hubConnection.SendAsync("SendMovementCommand", "API", message);
-    //     }
-    // }
 
     private async void sendInputToRobot((int, int) engineValues)
     {
+        if (_didIStoppedRobot)
+        {
+            return;
+        }
+        _didIStoppedRobot = false;
+
         if (_hubConnection is not null)
         {
+
+            var currentTime = DateTime.Now;
+
+            if ((currentTime - _lastSaveTimeRobotInput) <= ThrottleDurationSendRobotInput)
+            {
+                return;
+            }
+            _didIStoppedRobot = false;
+            _lastSaveTimeRobotInput = currentTime;
             await _hubConnection.SendAsync("SendMovementCommand", "API", engineValues.Item1, engineValues.Item2);
         }
     }
@@ -246,10 +255,9 @@
     //szybki hack, kiedys sie zrobi ladniej
     private async Task stopInputToRobot()
     {
-        await Task.Delay(1000);
         _LeftEngineValue = 0;
         _RightEngineValue = 0;
-        // _didIStoppedRobot = true;
+        _didIStoppedRobot = true;
 
         if (_hubConnection is not null)
         {
@@ -259,6 +267,10 @@
             _didIStoppedRobot = true;
             await _hubConnection.SendAsync("SendMovementCommand", "API", 0, 0);
         }
+        await Task.Delay(1000);
+        _didIStoppedRobot = false;
+
+
     }
 
 
