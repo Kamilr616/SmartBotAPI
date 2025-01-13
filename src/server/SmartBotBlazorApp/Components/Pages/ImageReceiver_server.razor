@@ -5,101 +5,65 @@
 @attribute [Authorize]
 @using RobotMovementInput
 
-<PageTitle>Live View Image Server</PageTitle>
+<PageTitle>Live View Image</PageTitle>
 
 <div class="container">
-    <!-- Depth Image on the Left Side -->
-    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="stopInputToRobot" >
-        <div class="left-section">
-            @if (_imageSrc == null)
-            {
-                <p><em>Waiting for image</em></p>
-                <div class="spinner-wrapper">
-                    <div class="spinner-border" role="status"/>
-                </div>
-            }
-            else
-            {
-                <img src="@_imageSrc" alt="Depth Image" width="640" height="640" />
-            <thead>
-                <tr>
-                    <th>
-                        Pressed Key
-                    </th>
-                    <th>
-                        Counter
-                    </th>
-                    <th>
-                        <div class="joystick-container">
-                            <!-- Joystick Section -->
-                            <div id="joystickContainer" @onpointerdown="OnPointerDown" @onpointermove="OnPointerMove" @onpointerup="OnPointerUp" @onpointercancel="OnPointerUp">
-                                <div id="joystickKnob" style="left: @(_joystickHandler.KnobPosX - 25)px; top: @(_joystickHandler.KnobPosY - @joystickRadius)px;"></div>
-                            </div>
-                        </div>
-                    </th>
-                    <th>
-                        Joystick Counter
-                    </th>
-                    <th>
-                        StopRobot
-                    </th>
-                </tr>
-
-            </thead>
-
-            <tbody>
-                <tr>
-                    <td>
-                            @_keyobardInputHandler.pressedKey
-                    </td>
-                    <td>
-                            @_keyobardInputHandler.counter
-
-                    </td>
-                    <td>@_joystickHandler.joystickDirection</td>
-                    <td>@_joystickHandler.Counter</td>
-                    <td>@_didIStoppedRobot</td>
-
-                </tr>
-            </tbody>
-
-            }
-</div>
-    </table>
-
-<!-- Info Section on the Right Side -->
-<div class="right-section">
-    <!-- Connection Status Section -->
-    <div class="status-section">
-        <h5>SignalR Hub</h5>
-            @if (IsConnected)
-            {
-            <p style="color: green; font-weight: bold;">Connected</p>
-            }
-            else
-            {
-            <p style="color: red; font-weight: bold;">Disconnected</p>
-            }
-    </div>
-
-    <!-- Data Status Section -->
-        @if (_avgDistance == null || _measurements == null || _hubUser == null)
+    <div clss="left-section">
+        @if (_imageSrc == null)
         {
-        <p><em>Waiting for data</em></p>
-        <div class="spinner-border" role="status"/>
+            <p><em>Waiting for image</em></p>
+            <div class="spinner-wrapper">
+                <div class="spinner-border" role="status"/>
+            </div>
         }
         else
         {
-        <div>
+            <!-- Depth Image -->
+            <img src="@_imageSrc" alt="Depth Image" width="480" height="480"/>
+
+            <!-- Joystick Section -->
+            <table class="joystick-section" @ref="_keyboardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="stopInputToRobot">
+                <div class="joystick-container">
+                    <div id="joystickContainer" @onpointerdown="OnPointerDown" @onpointermove="OnPointerMove" @onpointerup="OnPointerUp" @onpointercancel="OnPointerUp">
+                        <div id="joystickKnob" style="left: @(_knobPositionX)px; top: @(_knobPositionY)px;" />
+                    </div>
+                </div>
+            </table>
+        }
+    </div>
+
+    <!-- Info Section on the Right Side -->
+    <div class="right-section">
+        <!-- Connection Status Section -->
+        <div class="status-section">
+            <h5>SignalR Hub</h5>
+            @if (IsConnected)
+            {
+                <p style="color: green; font-weight: bold;">Connected</p>
+            }
+            else
+            {
+                <p style="color: red; font-weight: bold;">Disconnected</p>
+            }
+        </div>
+
+        <!-- Data Status Section -->
+        @if (_avgDistance == null || _measurements == null || _hubUser == null)
+        {
+            <p><em>Waiting for data</em></p>
+            <div class="spinner-border" role="status"/>
+        }
+        else
+        {
             <!-- User and Average Distance Section -->
             <div class="status-section">
                 <div class="data-item">
                     <h5>User</h5>
-                    <p>@_hubUser</p>
+                    <p style="color: magenta;">@_hubUser</p>
                 </div>
                 <div class="data-item">
                     <h5>Average Distance</h5>
-                    <p>@_avgDistance mm</p>
+                    <p style ="color: magenta;">@_avgDistance mm</p>
                 </div>
             </div>
 
@@ -107,44 +71,78 @@
             <div class="data-section">
                 <div class="data-item">
                     <h5>Acceleration X</h5>
-                    <p>@_measurements[0]</p>
+                    <p style="color: forestgreen;">@_measurements[0]</p>
                 </div>
                 <div class="data-item">
                     <h5>Acceleration Y</h5>
-                    <p>@_measurements[1]</p>
+                    <p style="color: forestgreen;">@_measurements[1]</p>
                 </div>
                 <div class="data-item">
                     <h5>Acceleration Z</h5>
-                    <p>@_measurements[2]</p>
+                    <p style="color: forestgreen;">@_measurements[2]</p>
                 </div>
                 <div class="data-item">
                     <h5>Rotation X</h5>
-                    <p>@_measurements[3]</p>
+                    <p style="color: royalblue;">@_measurements[3]</p>
                 </div>
                 <div class="data-item">
                     <h5>Rotation Y</h5>
-                    <p>@_measurements[4]</p>
+                    <p style="color: royalblue;">@_measurements[4]</p>
                 </div>
                 <div class="data-item">
                     <h5>Rotation Z</h5>
-                    <p>@_measurements[5]</p>
+                    <p style="color: royalblue;">@_measurements[5]</p>
                 </div>
                 <div class="data-item">
                     <h5>Temperature</h5>
-                    <p>@_measurements[6] C</p>
+                    <p style="color: orangered;">@_measurements[6]  °C</p>
                 </div>
             </div>
-        </div>
+            <div class="data-section">
+                <div class="data-item">
+                    <h5>
+                        Key
+                    </h5>
+                    <p style="color: blueviolet;">
+                        @_keyboardInputHandler.pressedKey
+                    </p>
+                </div>
+                <div class="data-item">
+                    <h5>
+                        Joystick 
+                    </h5>
+                    <p style="color: blueviolet;">
+                        @_joystickHandler.joystickDirection
+                    </p>
+                    <p style="color: darkgreen;">
+                        X: @_knobPositionX | Y: @_knobPositionY
+                    </p>
+                </div>
+                <div class="data-item">
+                    <h5>
+                        Motor
+                    </h5>
+                    @if (!_didIStoppedRobot)
+                    {
+                        <p style="color: green;">@_engineAValue | @_engineBValue</p>
+                    }
+                    else
+                    { 
+                        <p style="color: red; font-weight: bold;">STOP</p>
+                    }
+                </div>
+            </div>
         }
-</div>
-</div>
 
+    </div>
+</div>
 
 
 @code {
-    private static int joystickCenterX = 50;
-    private static int joystickCenterY = 50;
-    private static int joystickRadius = 25;
+    private static int joystickCenterX = 275;
+    private static int joystickCenterY = 275;
+    private static int joystickRadius = 150;
+
     private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX, joystickCenterY, joystickRadius);
     private CancellationTokenSource? _joystickCancellationTokenSource;
 
@@ -154,20 +152,20 @@
     private double[]? _measurements;
     private string? _imageSrc;
 
-    private keyboardInputHandler _keyobardInputHandler = new keyboardInputHandler();
-    private ROBOT_DIRECITON previousDir = ROBOT_DIRECITON.STOP;
+    private keyboardInputHandler _keyboardInputHandler = new keyboardInputHandler();
+    private ROBOT_DIRECITON _previousDir = ROBOT_DIRECITON.STOP;
 
-    private int _LeftEngineValue = 0;
-    private int _RightEngineValue = 0;
+    private int _engineAValue = 0;
+    private int _engineBValue = 0;
+    private int _knobPositionX = joystickCenterX - joystickRadius;
+    private int _knobPositionY = joystickCenterY - joystickRadius;
 
 
     //Throttle
-
     private static DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
-    private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromSeconds(0.250f);
-    
+    private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromMilliseconds(250.0);
+
     //TODO, przerobic na stateMachine
-    //-----------------
     //szybkihack
     private bool _didIStoppedRobot = false;
 
@@ -183,8 +181,6 @@
             {
                 if (_joystickHandler.validInput)
                 {
-                    //DEPRECIATED
-                    // sendInputToRobot(new RobotCommand(_joystickHandler.robotDir).nextDirection.ToString());
                     sendInputToRobot(_joystickHandler.GetRobotEngineValues());
                     _joystickHandler.increaseCounter();
                 }
@@ -196,7 +192,6 @@
         catch (TaskCanceledException)
         {
             _joystickHandler.resetCounter();
-
         }
     }
 
@@ -209,8 +204,8 @@
     private void OnPointerDown(PointerEventArgs e)
     {
         _joystickHandler.OnPointerDown(e.ClientX, e.ClientY);
-        _LeftEngineValue = _joystickHandler.GetRobotEngineValues().Item1;
-        _RightEngineValue = _joystickHandler.GetRobotEngineValues().Item2;
+        _engineAValue = _joystickHandler.GetRobotEngineValues().Item1;
+        _engineBValue = _joystickHandler.GetRobotEngineValues().Item2;
 
         _ = StartJoystickMessageLoop();
     }
@@ -218,6 +213,8 @@
     private void OnPointerMove(PointerEventArgs e)
     {
         _joystickHandler.OnPointerMove(e.ClientX, e.ClientY);
+        _knobPositionX = (int)_joystickHandler.KnobPosX - joystickRadius;
+        _knobPositionY = (int)_joystickHandler.KnobPosY - joystickRadius;
     }
 
     private void OnPointerUp(PointerEventArgs e)
@@ -225,10 +222,8 @@
         _joystickHandler.OnPointerUp();
         // await stopInputToRobot();
         stopInputToRobot();
-
         StopJoystickMessageLoop();
     }
-
 
     private async void sendInputToRobot((int, int) engineValues)
     {
@@ -238,9 +233,8 @@
         // }
         // _didIStoppedRobot = false;
 
-        if (_hubConnection is not null)
+        if (IsConnected)
         {
-
             var currentTime = DateTime.Now;
 
             if ((currentTime - _lastSaveTimeRobotInput) <= ThrottleDurationSendRobotInput)
@@ -249,70 +243,65 @@
             }
             _didIStoppedRobot = false;
             _lastSaveTimeRobotInput = currentTime;
-            await _hubConnection.SendAsync("SendMovementCommand", "API", engineValues.Item1, engineValues.Item2);
+            _engineAValue = engineValues.Item1;
+            _engineBValue = engineValues.Item2;
+            await _hubConnection.SendAsync("SendMovementCommand", "WebClient", engineValues.Item1, engineValues.Item2);
         }
     }
 
-    //szybki hack, kiedys sie zrobi ladniej
+    // szybki hack, kiedys sie zrobi ladniej
     // private async Task stopInputToRobot()
     private async void stopInputToRobot()
     {
-        _LeftEngineValue = 0;
-        _RightEngineValue = 0;
+        _engineAValue = 0;
+        _engineBValue = 0;
         // _didIStoppedRobot = true;
 
-        if (_hubConnection is not null)
+        if (IsConnected)
         {
-            var currentTime = DateTime.Now;
-            _lastSaveTimeRobotInput = currentTime;
-
+            _lastSaveTimeRobotInput = DateTime.Now;
             _didIStoppedRobot = true;
-            await _hubConnection.SendAsync("SendMovementCommand", "API", 0, 0);
+
+            await _hubConnection.SendAsync("SendMovementCommand", "WebClient", 0, 0);
         }
         // await Task.Delay(1000);
         // _didIStoppedRobot = false;
-
-
     }
 
 
     private void HandleKeyDown(KeyboardEventArgs e)
     {
 
-        _keyobardInputHandler.onKeyDown(e);
-        _keyobardInputHandler.amIResetingCounter(previousDir != _keyobardInputHandler.robotDir);
-        previousDir = _keyobardInputHandler.robotDir;
+        _keyboardInputHandler.onKeyDown(e);
+        _keyboardInputHandler.amIResetingCounter(_previousDir != _keyboardInputHandler.robotDir);
+        _previousDir = _keyboardInputHandler.robotDir;
 
-        _LeftEngineValue = _keyobardInputHandler.GetRobotEngineValues().Item1;
-        _RightEngineValue = _keyobardInputHandler.GetRobotEngineValues().Item2;
+        _engineAValue = _keyboardInputHandler.GetRobotEngineValues().Item1;
+        _engineBValue = _keyboardInputHandler.GetRobotEngineValues().Item2;
 
-        if (_keyobardInputHandler.validInput)
+        if (_keyboardInputHandler.validInput)
         {
-            //Depreciated
-            // sendInputToRobot(new RobotCommand(_keyobardInputHandler.robotDir).nextDirection.ToString());
-            var currentTime = DateTime.Now;
-
-            if ((currentTime - _lastSaveTimeRobotInput) <= ThrottleDurationSendRobotInput)
+            if ((DateTime.Now - _lastSaveTimeRobotInput) <= ThrottleDurationSendRobotInput)
             {
                 return;
             }
-            
-            sendInputToRobot(_keyobardInputHandler.GetRobotEngineValues());
+
+            sendInputToRobot(_keyboardInputHandler.GetRobotEngineValues());
         }
     }
 
     // private void HandleKeyUP(KeyboardEventArgs e)
     // {
 
-    //     _keyobardInputHandler.onKeyUP(e);
-    //     _keyobardInputHandler.amIResetingCounter(true);
+    //     _keyboardInputHandler.onKeyUP(e);
+    //     _keyboardInputHandler.amIResetingCounter(true);
 
-    //     _LeftEngineValue = _keyobardInputHandler.GetRobotEngineValues().Item1;
-    //     _RightEngineValue = _keyobardInputHandler.GetRobotEngineValues().Item2;
+    //     _engineAValue = _keyboardInputHandler.GetRobotEngineValues().Item1;
+    //     _engineBValue = _keyboardInputHandler.GetRobotEngineValues().Item2;
 
-    //     if (_keyobardInputHandler.validInput)
+    //     if (_keyboardInputHandler.validInput)
     //     {
-    //         sendInputToRobot(_keyobardInputHandler.GetRobotEngineValues());
+    //         sendInputToRobot(_keyboardInputHandler.GetRobotEngineValues());
     //     }
     // }
 
@@ -320,22 +309,18 @@
     {
         if (firstRender)
         {
-            await _keyobardInputHandler.keyboardInputRef.FocusAsync();
+            await _keyboardInputHandler.keyboardInputRef.FocusAsync();
         }
     }
 
     protected override async Task OnInitializedAsync()
     {
-        
-        // DEBUG nie dziala
-//--------------------------------------------------------------------------------------------------------
-        // _measurements = debugFunctions.GenerateTestDataAscendDouble(32);
-        // _avgDistance = 10;
-        // _hubUser = "TEST_DATA";
-        // await Task.CompletedTask; 
-        
-//--------------------------------------------------------------------------------------------------------
-
+        //------------------------------------- DEBUG ---------------------------------------------------------------
+        // _measurements = debugFunctions.GenerateTestMeasurements(2);
+        // _avgDistance = 1530;
+        // _hubUser = "TEST_USER";
+        // _imageSrc = debugFunctions.GetExampleImage(); 
+        //--------------------------------------------------------------------------------------------------------
 
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
@@ -346,7 +331,6 @@
             _hubUser = user;
             _measurements = measurements;
             _avgDistance = avgDistance;
-
             _imageSrc = $"data:image/png;base64,{base64Image}";
 
             InvokeAsync(StateHasChanged);

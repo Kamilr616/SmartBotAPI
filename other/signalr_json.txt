@@ -7,3 +7,4 @@
 
 The message needs to have 0x1E characters at the end!
 
+[WS] Message from server: {"type":1,"target":"ReceiveRobotCommand","arguments":[-51,51]}
