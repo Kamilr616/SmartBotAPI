@@ -11,7 +11,7 @@
     <div clss="left-section">
         @if (_imageSrc == null)
         {
-            <p><em>Waiting for image</em></p>
+            <img src="@_testImage" alt="Test Image" width="512" height="512"/>
             <div class="spinner-wrapper">
                 <div class="spinner-border" role="status"/>
             </div>
@@ -19,7 +19,7 @@
         else
         {
             <!-- Depth Image -->
-            <img src="@_imageSrc" alt="Depth Image" width="480" height="480"/>
+            <img src="@_imageSrc" alt="Depth Image" width="512" height="512"/>
 
             <!-- Joystick Section -->
             <table class="joystick-section" @ref="_keyboardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="stopInputToRobot">
@@ -142,6 +142,7 @@
     private static readonly int joystickCenterX = 275;
     private static readonly int joystickCenterY = 275;
     private static readonly int joystickRadius = 150;
+    private readonly string _testImage = debugFunctions.GetExampleImage();
 
     private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX, joystickCenterY, joystickRadius);
     private CancellationTokenSource? _joystickCancellationTokenSource;
@@ -315,8 +316,8 @@
     {
         //------------------------------------- DEBUG ---------------------------------------------------------------
         _measurements = debugFunctions.GenerateTestMeasurements(2);
-        _avgDistance = 1530;
-        _hubUser = "TEST_USER";
+        _avgDistance = debugFunctions.TestDistance;
+        _hubUser = debugFunctions.TestUser;
         _imageSrc = debugFunctions.GetExampleImage(); 
         //--------------------------------------------------------------------------------------------------------
 
