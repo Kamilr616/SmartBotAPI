@@ -4,31 +4,47 @@
 @attribute [Authorize]
 @using System.Linq
 
-
 <PageTitle> Measurements Chart </PageTitle>
 
 <div class="cotainer">
     <div class="date-section">
-        <label>From date</label>
+        <label>From </label>
         <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="@fromDate"/>
 
-        <label>To date</label>
+        <label>To </label>
         <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="@toDate"/>
 
-        <button @onclick="LoadMeasurements">Load data</button>
+        <button @onclick="LoadMeasurements">Fetch data</button>
     </div>
 
     <div class="chart-section">
         @if (isDataLoaded)
         {
-            <MudChart class="chart-item" ChartType="ChartType.Line" ChartSeries="@_seriesT" XAxisLabels="@_chartLabels" Title="Temperatura"/>
-            <MudChart class="chart-item" ChartType="ChartType.Line" ChartSeries="@_seriesD" XAxisLabels="@_chartLabels" Title="Średnia odległość"/>
-            <MudChart class="chart-item" ChartType="ChartType.Line" ChartSeries="@_seriesA" XAxisLabels="@_chartLabels" Title="Przyspieszenie"/>
-            <MudChart class="chart-item" ChartType="ChartType.Line" ChartSeries="@_seriesR" XAxisLabels="@_chartLabels" Title="Rotacja"/>
-        }
+            <div class="chart-item">
+                Temperature
+                <MudChart ChartType="ChartType.Line" ChartSeries="@_seriesT" XAxisLabels="@_chartLabels" Title="Temperature"/>
+            </div>
+            <div class="chart-item">
+                Average distance
+            <MudChart ChartType="ChartType.Line" ChartSeries="@_seriesD" XAxisLabels="@_chartLabels" Title="Average distance"/>
+            </div>
+
+            <div class="chart-item">
+                Acceleration
+            <MudChart class="chart-item" ChartType="ChartType.Line" ChartSeries="@_seriesA" XAxisLabels="@_chartLabels" Title="Acceleration"/>
+            </div>
+
+            <div class="chart-item">
+                Rotation
+                <MudChart class="chart-item" ChartType="ChartType.Line" ChartSeries="@_seriesR" XAxisLabels="@_chartLabels" Title="Rotation"/>
+            </div>
+
+            }
         else
         {
-            <MudProgressCircular class="chart-item" Indeterminate="true" Color="Color.Primary" Size="Size.Large"/>
+            <div class="spinner-wrapper">
+                <div class="spinner-border" role="status"/>
+            </div>
         }
     </div>
 
@@ -47,7 +63,7 @@
 @code {
     private string[] _chartLabels;
     private DateTime? toDate = DateTime.Now;
-    private DateTime? fromDate = DateTime.Now.AddMinutes(-2);
+    private DateTime? fromDate = DateTime.Now.AddMinutes(-1);
 
     private readonly List<ChartSeries> _seriesA = new();
     private readonly List<ChartSeries> _seriesD = new();
@@ -58,9 +74,17 @@
     private static bool isDataLoaded = false;
     private string errorMessage = string.Empty;
 
-    // protected override async Task OnInitializedAsync()
-    // { 
+
+    // public async ValueTask DisposeAsync()
+    // {
     // }
+
+    protected override async Task OnInitializedAsync()
+    { 
+     isLoading = false; 
+     isDataLoaded = false;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
