@@ -6,14 +6,14 @@
 @using RobotMovementInput
 
 
-<PageTitle>Live View Server</PageTitle>
+<PageTitle>Live View Matrix</PageTitle>
 
 <div style="display: flex; justify-content: center; max-width: 1000px; margin: 0 auto; padding: 20px;">
     <!-- Depth Image on the Left Side -->
     <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup=stopInputToRobot>
         <div style="flex: 1; max-width: 700px; margin-right: 20px;">
             <div class="depth-image"
-                 style="width: 640px; height: 640px; display: grid; grid-template-columns: repeat(32, 1fr); gap: 0px;">
+                 style="width: 480px; height: 480px; display: grid; grid-template-columns: repeat(32, 1fr); gap: 0px;">
                 @if (_dataFrame == null)
                 {
                     <div class=" justify-content-center align-items-center">
@@ -191,7 +191,7 @@
     //Throttle
 
     private static DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
-    private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromSeconds(0.250f);
     //-----------------
 
     //debug
@@ -227,7 +227,6 @@
             _joystickHandler.resetCounter();
         }
     }
-
 
     private void StopJoystickMessageLoop()
     {
@@ -269,10 +268,6 @@
 
         if (_keyobardInputHandler.validInput)
         {
-            //Depreciated
-            // sendInputToRobot(new RobotCommand(_keyobardInputHandler.robotDir).nextDirection.ToString());
-
-
             sendInputToRobot(_keyobardInputHandler.GetRobotEngineValues());
         }
     }
@@ -297,7 +292,6 @@
 
         if (_hubConnection is not null)
         {
-
             var currentTime = DateTime.Now;
 
             if ((currentTime - _lastSaveTimeRobotInput) <= ThrottleDurationSendRobotInput)
@@ -344,16 +338,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-//       DEBUG        
-//--------------------------------------------------------------------------------------------------------
-
-        // _measurements = debugFunctions.GenerateTestDataAscendDouble(32);
+//---------------------------------------DEBUG------------------------------------------------------------
+        // _measurements = debugFunctions.GenerateTestMeasurements(2);
         // _dataFrame = debugFunctions.GenerateTestDataAscend(32);
-        // _avgDistance = 10;
+        // _avgDistance = 1000;
         // _hubUser = "TEST_DATA";
-
  //--------------------------------------------------------------------------------------------------------
-
 
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))

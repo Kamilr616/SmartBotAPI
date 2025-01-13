@@ -22,7 +22,7 @@
 
 #define MIN_DISTANCE 200 
 
-#define MAX_IDLE_TIME 1500
+#define MAX_IDLE_TIME 750
 
 #define I2C_FREQ 400000 //1000000
 
