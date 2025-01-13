@@ -166,11 +166,77 @@
         </div>
         }
 </div>
+
+<!-- Half-Circle Speedometer Section -->
+    @if (!IsConnected)
+    {
+    <p><em>Waiting for data</em></p>
+    <div class="spinner-border" role="status" />
+    }
+    else
+    {
+    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 20px; margin-left: 20px">
+        <h5>Speedometer</h5>
+        <div style="position: relative; width: 200px; height: 100px; border-top-left-radius: 200px; border-top-right-radius: 200px; background: #e0e0e0; border: 5px solid #333; overflow: hidden;">
+            <!-- Speedometer Needle -->
+            <div style="position: absolute; width: 4px; height: 90px; background: red; bottom: 0; left: 50%; transform-origin: bottom; transform: rotate(@_speedometerAngle); transition: transform 0.3s ease;">
+            </div>
+
+            <!-- Speed Labels -->
+            <div style="position: absolute; width: 100%; height: 100%; top: 0; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 10px;">
+                <span style="font-size: 12px; font-weight: bold;">0</span>
+                <span style="font-size: 12px; font-weight: bold;">90</span>
+                <span style="font-size: 12px; font-weight: bold;">180</span>
+            </div>
+        </div>
+        <div style="margin-top: 10px; font-size: 16px; font-weight: bold;">
+                @_currentSpeed km/h
+        </div>
+    </div>
+    }
+<!-- Half-Circle Speedometer Section -->
+
+
 </div>
 
 
 
 @code {
+    //--------------------------------------------
+    // Speedometer
+    //mMaxSpeed mozna zmienic, na makysymalna predkosc po jakiej chcemy zeby wskazowka sie odchylial w prawo
+    private static float mMaxSpeed = 180.0f;
+
+    private int _currentSpeed = 0;
+    private string _speedometerAngle = "-90deg"; // Needle angle (initial position)
+
+    private void UpdateSpeed(int speed)
+    {
+        _currentSpeed = speed;
+        double newAngle = -90 + (_currentSpeed / 180.0) * 180.0 ;
+        // Map speed (0-180) to angle (-90 to 90 degrees)
+        if (newAngle > 90)
+        {
+            newAngle = 90;
+        }
+        _speedometerAngle = $"{newAngle}deg";
+
+        StateHasChanged();
+    }
+
+//Debug Function
+    private async Task SimulateSpeedUpdate()
+    {
+        Random rand = new Random();
+        while (true)
+        {
+            int newSpeed = rand.Next(0, 181); 
+            UpdateSpeed(newSpeed);
+            await Task.Delay(1000); // Update every second
+        }
+    }
+
+    //--------------------------------------------------------------
     private static int joystickCenterX = 50;
     private static int joystickCenterY = 50;
     private static int joystickRadius = 25;
@@ -196,8 +262,6 @@
     private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromSeconds(0.250f);
     //-----------------
 
-    //debug
-    // private string stopInput = "";
 
     //sybkihack, kiedys sie to napisze ladniej
     private bool _didIStoppedRobot = false;
@@ -214,8 +278,6 @@
             {
                 if (_joystickHandler.validInput)
                 {
-                    //DEPRECIATED
-                    // sendInputToRobot(new RobotCommand(_joystickHandler.robotDir).nextDirection.ToString());
                     sendInputToRobot(_joystickHandler.GetRobotEngineValues());
                     _joystickHandler.increaseCounter();
                 }
@@ -249,7 +311,6 @@
         _RightEngineValue = _joystickHandler.GetRobotEngineValues().Item2;
     }
 
-    // private async void OnPointerUp(PointerEventArgs e)
     private void OnPointerUp(PointerEventArgs e)
     {
         _joystickHandler.OnPointerUp();
@@ -275,22 +336,10 @@
     }
 
 
-    //DEPRECIATED
-    // private async void sendInputToRobot(string message)
-    // {
-    //     if (_hubConnection is not null)
-    //     {
-    //         await _hubConnection.SendAsync("SendMovementCommand", "API", message);
-    //     }
-    // }
+
 
     private async void sendInputToRobot((int, int) engineValues)
     {
-        // if(_didIStoppedRobot)
-        // {
-        //     return;
-        // }
-        // _didIStoppedRobot = false;
 
         if (_hubConnection is not null)
         {
@@ -323,10 +372,6 @@
             _didIStoppedRobot = true;
             await _hubConnection.SendAsync("SendMovementCommand", "API", 0, 0);
         }
-        // await Task.Delay(1000);
-        // _didIStoppedRobot = false;
-
-
     }
 
 
@@ -340,13 +385,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-//---------------------------------------DEBUG------------------------------------------------------------
+        //------------------------------------------------------------------------------------------------
+        //Speedometer
+        await base.OnInitializedAsync();
+        _ = SimulateSpeedUpdate(); // Start simulating speed updates
+
+        //---------------------------------------DEBUG------------------------------------------------------------
         // _measurements = debugFunctions.GenerateTestMeasurements(2);
         // _dataFrame = debugFunctions.GenerateTestDataAscend(32);
         //_avgDistance = debugFunctions.TestDistance;
         // _hubUser = debugFunctions.TestUser;
 
- //--------------------------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------------------------------
 
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
