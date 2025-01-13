@@ -13,7 +13,7 @@
     <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup=stopInputToRobot>
         <div style="flex: 1; max-width: 700px; margin-right: 20px;">
             <div class="depth-image"
-                 style="width: 480px; height: 480px; display: grid; grid-template-columns: repeat(32, 1fr); gap: 0px;">
+                 style="width: 512px; height: 512px; display: grid; grid-template-columns: repeat(32, 1fr); gap: 0px;">
                 @if (_dataFrame == null)
                 {
                     <div class=" justify-content-center align-items-center">
@@ -341,8 +341,9 @@
 //---------------------------------------DEBUG------------------------------------------------------------
         // _measurements = debugFunctions.GenerateTestMeasurements(2);
         // _dataFrame = debugFunctions.GenerateTestDataAscend(32);
-        // _avgDistance = 1000;
-        // _hubUser = "TEST_DATA";
+        //_avgDistance = debugFunctions.TestDistance;
+        // _hubUser = debugFunctions.TestUser;
+
  //--------------------------------------------------------------------------------------------------------
 
         _hubConnection = new HubConnectionBuilder()
