@@ -139,9 +139,9 @@
 
 
 @code {
-    private static int joystickCenterX = 275;
-    private static int joystickCenterY = 275;
-    private static int joystickRadius = 150;
+    private static readonly int joystickCenterX = 275;
+    private static readonly int joystickCenterY = 275;
+    private static readonly int joystickRadius = 150;
 
     private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX, joystickCenterY, joystickRadius);
     private CancellationTokenSource? _joystickCancellationTokenSource;
@@ -292,34 +292,32 @@
 
     // private void HandleKeyUP(KeyboardEventArgs e)
     // {
-
     //     _keyboardInputHandler.onKeyUP(e);
     //     _keyboardInputHandler.amIResetingCounter(true);
-
     //     _engineAValue = _keyboardInputHandler.GetRobotEngineValues().Item1;
     //     _engineBValue = _keyboardInputHandler.GetRobotEngineValues().Item2;
-
     //     if (_keyboardInputHandler.validInput)
     //     {
     //         sendInputToRobot(_keyboardInputHandler.GetRobotEngineValues());
     //     }
     // }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await _keyboardInputHandler.keyboardInputRef.FocusAsync();
-        }
-    }
+    // Wychodzi Exception gdy nie ma sztywnych danych, a działa klawiatura bez tego
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         await _keyboardInputHandler.keyboardInputRef.FocusAsync();
+    //     }
+    // }
 
     protected override async Task OnInitializedAsync()
     {
         //------------------------------------- DEBUG ---------------------------------------------------------------
-        // _measurements = debugFunctions.GenerateTestMeasurements(2);
-        // _avgDistance = 1530;
-        // _hubUser = "TEST_USER";
-        // _imageSrc = debugFunctions.GetExampleImage(); 
+        _measurements = debugFunctions.GenerateTestMeasurements(2);
+        _avgDistance = 1530;
+        _hubUser = "TEST_USER";
+        _imageSrc = debugFunctions.GetExampleImage(); 
         //--------------------------------------------------------------------------------------------------------
 
         _hubConnection = new HubConnectionBuilder()
