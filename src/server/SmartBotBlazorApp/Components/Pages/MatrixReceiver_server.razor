@@ -17,11 +17,11 @@
                 @if (_dataFrame == null)
                 {
                     <div class=" justify-content-center align-items-center">
-                        <p><em>Waiting for image</em></p>
+                        <img src="@_testImage" alt="Test Image" width="512" height="512"/>
                         <div class="spinner-border" role="status"/>
                     </div>
                 }
-                else
+                else if (IsConnected)
                 {
                     int res = 32;
                     for (int i = 0; i < res; i++)
@@ -174,6 +174,8 @@
     private static int joystickCenterX = 50;
     private static int joystickCenterY = 50;
     private static int joystickRadius = 25;
+    private readonly string _testImage = debugFunctions.GetExampleImage();
+
     private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX, joystickCenterY, joystickRadius);
     private CancellationTokenSource? _joystickCancellationTokenSource;
 
