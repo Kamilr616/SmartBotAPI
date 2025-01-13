@@ -222,10 +222,8 @@
         _joystickHandler.OnPointerUp();
         // await stopInputToRobot();
         stopInputToRobot();
-
         StopJoystickMessageLoop();
     }
-
 
     private async void sendInputToRobot((int, int) engineValues)
     {
@@ -237,7 +235,6 @@
 
         if (IsConnected)
         {
-
             var currentTime = DateTime.Now;
 
             if ((currentTime - _lastSaveTimeRobotInput) <= ThrottleDurationSendRobotInput)
