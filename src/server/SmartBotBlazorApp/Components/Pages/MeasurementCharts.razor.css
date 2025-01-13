@@ -20,18 +20,26 @@
 }
 
 .chart-item {
-    flex:1;
     gap: 20px;
     padding: 10px;
     border-radius: 20px;
+    border: 2px solid black;
+    width: 100%;
+    font-weight: bold;
+    justify-content: center;
+    align-items: center;
 }
 
 .date-section {
-    flex:auto;
-    gap: 20px;
     padding: 10px;
     background-color: lightgray;
     border-radius: 20px;
     font-weight: bold;
     justify-content: center;
+}
+
+.spinner-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
