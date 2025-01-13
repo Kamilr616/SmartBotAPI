@@ -1,0 +1,40 @@
+﻿h1 {
+    font-size: 2.5em;
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+p {
+    text-align: center;
+    font-size: 1.2em;
+    color: #34495e;
+}
+
+table {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    background-color: #ecf0f1;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border: 1px solid #bdc3c7;
+}
+
+th {
+    background-color: #3498db;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #dfe6e9;
+}
