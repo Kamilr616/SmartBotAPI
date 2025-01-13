@@ -16,7 +16,7 @@
                 <div class="spinner-border" role="status"/>
             </div>
         }
-        else
+        else if (IsConnected)
         {
             <!-- Depth Image -->
             <img src="@_imageSrc" alt="Depth Image" width="512" height="512"/>
@@ -53,7 +53,7 @@
             <p><em>Waiting for data</em></p>
             <div class="spinner-border" role="status"/>
         }
-        else
+        else if (IsConnected)
         {
             <!-- User and Average Distance Section -->
             <div class="status-section">
