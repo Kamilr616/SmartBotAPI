@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.ResponseCompression;
 using SmartBotBlazorApp.Components;
 using SmartBotBlazorApp.Hubs;
 using SmartBotBlazorApp;
-
+using MudBlazor.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,6 +54,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddMudServices();
+
 builder.Services.AddSignalR();
 
 builder.Services.AddScoped<ImageProcessor>();
@@ -72,14 +74,7 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
-    
-    var context = services.GetRequiredService<ApplicationDbContext>();
-    if (context.Database.GetPendingMigrations().Any())
-    {
-        context.Database.Migrate();
-    }
-
+    scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
     //var seedUserPass = Environment.GetEnvironmentVariable("SeedAdminPass") ?? builder.Configuration.GetValue<string>("SeedUserPass");
     //var userManager = scope.ServiceProvider.GetService<UserManager<ApplicationUser>>();
     //await SeedData.Initialize(services, seedUserPass);

@@ -1,0 +1,37 @@
+﻿.container {
+    display: flex;
+    justify-content: center;
+    max-width: 1000px;
+    margin: 20px;
+    padding: 20px;
+    gap: 20px;
+}
+
+.chart-section {
+    justify-content: center;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: aliceblue;
+    border-radius: 20px;
+    width: 100%;
+    gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.chart-item {
+    flex:1;
+    gap: 20px;
+    padding: 10px;
+    border-radius: 20px;
+}
+
+.date-section {
+    flex:auto;
+    gap: 20px;
+    padding: 10px;
+    background-color: lightgray;
+    border-radius: 20px;
+    font-weight: bold;
+    justify-content: center;
+}

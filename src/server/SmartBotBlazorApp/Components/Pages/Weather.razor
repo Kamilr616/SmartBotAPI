@@ -74,7 +74,7 @@ else
                             _airData.Add(new AirSensorData
                             {
                                 Parameter = parameter,
-                                    Value = parts[1].Substring(0,5)
+                                    Value = parts[1].Substring(0,6)
                             });
 
                             if (parts[2].Length > 0)
@@ -82,7 +82,7 @@ else
                                 _airData.Add(new AirSensorData
                                 {
                                     Parameter = $"{parameter} *",
-                                        Value = parts[2].Substring(0, 5)
+                                        Value = parts[2].Substring(0, 6)
                                 });
                             }
                         }
