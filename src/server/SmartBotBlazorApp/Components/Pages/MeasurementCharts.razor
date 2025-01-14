@@ -98,8 +98,7 @@
     private readonly ChartOptions _options = new ChartOptions
     {
         LineStrokeWidth = 2,
-        //InterpolationOption = InterpolationOption.NaturalSpline,
-        // MaxNumYAxisTicks = 10
+        InterpolationOption = InterpolationOption.NaturalSpline
     };
 
     protected override async Task OnInitializedAsync()
@@ -128,7 +127,6 @@
             if (!_fromDate.HasValue || !_toDate.HasValue || _fromDate > _toDate)
             {
                 errorMessage = "Please select valid dates.";
-                _isDataLoaded = false;
                 throw new ArgumentException(errorMessage);
             }
 
@@ -177,7 +175,7 @@
         finally
         {
             _isLoading = false;
-            await InvokeAsync(StateHasChanged);
+            StateHasChanged();
         }
     }
 }
