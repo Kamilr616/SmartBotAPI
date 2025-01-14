@@ -20,9 +20,9 @@
 
 #define PIN_NEOPIXEL 10  // GPIO10
 
-#define MIN_DISTANCE 200 
+#define MIN_DISTANCE 400 
 
-#define MAX_IDLE_TIME 750
+#define MAX_IDLE_TIME 700
 
 #define I2C_FREQ 400000 //1000000
 
