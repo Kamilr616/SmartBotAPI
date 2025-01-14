@@ -2,45 +2,62 @@
 @rendermode InteractiveServer
 @inject MeasurementService MeasurementService
 @attribute [Authorize]
-@using System.Linq
+@* @using MudBlazor.Components.Chart.Models *@
+
+<link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+<MudThemeProvider />
+<MudPopoverProvider />
 
 <PageTitle> Measurements Chart </PageTitle>
 
 <div class="cotainer">
-    <div class="date-section">
-        <label>From </label>
-        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="@fromDate"/>
+    @* <div class="date-section">  *@
+    @*     <label>From </label> *@
+    @*     <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="@_fromDate"/> *@
 
-        <label>To </label>
-        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="@toDate"/>
+    @*     <label>To </label> *@
+    @*     <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="@_toDate"/> *@
 
-        <button @onclick="LoadMeasurements">Fetch data</button>
-    </div>
+    @*     <button @onclick="LoadMeasurements">Fetch data</button> *@
+    @*  </div> *@
+
+<div class="date-section">
+        <MudDatePicker Label="From date" Editable="true"  @bind-Date="_fromDate" Placeholder="Select Date" DateFormat="dd/MM/yyyy HH:mm:ss" />
+        <MudDatePicker Label="To date" Editable="true" @bind-Date="_toDate" Placeholder="Select Date" DateFormat="dd/MM/yyyy HH:mm:ss" />
+        <MudButton OnClick="LoadMeasurements" Variant="Variant.Filled" Size="Size.Large" Disabled="_isLoading" Color="Color.Primary">Load</MudButton>
+</div>
 
     <div class="chart-section">
-        @if (isDataLoaded)
+        @if (_isDataLoaded && !_isLoading)
         {
             <div class="chart-item">
                 Temperature
-                <MudChart ChartType="ChartType.Line" ChartSeries="@_seriesT" XAxisLabels="@_chartLabels" Title="Temperature"/>
+                <MudChart ChartType="ChartType.Line" ChartSeries="_seriesT" XAxisLabels="_chartLabels" Title="Temperature" ChartOptions="@_options" />
             </div>
             <div class="chart-item">
                 Average distance
-            <MudChart ChartType="ChartType.Line" ChartSeries="@_seriesD" XAxisLabels="@_chartLabels" Title="Average distance"/>
+                <MudChart ChartType="ChartType.Line" ChartSeries="_seriesD" XAxisLabels="_chartLabels" Title="Average distance" ChartOptions="@_options"/>
             </div>
 
             <div class="chart-item">
                 Acceleration
-            <MudChart class="chart-item" ChartType="ChartType.Line" ChartSeries="@_seriesA" XAxisLabels="@_chartLabels" Title="Acceleration"/>
+                <MudChart class="chart-item" ChartType="ChartType.Line" ChartSeries="_seriesA" XAxisLabels="_chartLabels" Title="Acceleration" ChartOptions="@_options"/>
             </div>
 
             <div class="chart-item">
                 Rotation
-                <MudChart class="chart-item" ChartType="ChartType.Line" ChartSeries="@_seriesR" XAxisLabels="@_chartLabels" Title="Rotation"/>
+                <MudChart class="chart-item" ChartType="ChartType.Line" ChartSeries="_seriesR" XAxisLabels="_chartLabels" Title="Rotation" ChartOptions="@_options" />
             </div>
 
-            }
+            @* <div class="chart-item"> *@
+            @*     <MudTimeSeriesChart ChartSeries="_tSeries1" Width="100%" Height="350px" ChartOptions="@_options" CanHideSeries TimeLabelSpacing="TimeSpan.FromMinutes(1)" /> *@
+            @* </div> *@
+        }
         else
+        {
+            <MudText>@errorMessage</MudText>
+        }
+        @if(_isLoading)
         {
             <div class="spinner-wrapper">
                 <div class="spinner-border" role="status"/>
@@ -52,37 +69,43 @@
 
 @* <div class="chart-item"> *@
 @*     <h5> Debug Values</h5> *@
-@*     <p>isLoading: @isLoading.ToString()</p> *@
-@*     <p>isDataLoaded: @isDataLoaded.ToString()</p> *@
-@*     <p>fromDate: @fromDate.ToString()</p> *@
-@*     <p>toDate: @toDate.ToString()</p> *@
+@*     <p>_isLoading: @_isLoading.ToString()</p> *@
+@*     <p>_isDataLoaded: @_isDataLoaded.ToString()</p> *@
+@*     <p>_fromDate: @_fromDate.ToString()</p> *@
+@*     <p>_toDate: @_toDate.ToString()</p> *@
 @*     <p>Error: @errorMessage</p> *@
 @* </div> *@
 
 
 @code {
-    private string[] _chartLabels;
-    private DateTime? toDate = DateTime.Now;
-    private DateTime? fromDate = DateTime.Now.AddMinutes(-1);
+    //private readonly List<TimeSeriesChartSeries> _tSeries1 = new();
+
+    private string[]? _chartLabels;
+    private DateTime? _toDate = DateTime.Now;
+    private DateTime? _fromDate = DateTime.Now.AddMinutes(-5);
 
     private readonly List<ChartSeries> _seriesA = new();
     private readonly List<ChartSeries> _seriesD = new();
     private readonly List<ChartSeries> _seriesR = new();
     private readonly List<ChartSeries> _seriesT = new();
 
-    private static bool isLoading = false;
-    private static bool isDataLoaded = false;
+    private static bool _isLoading = false;
+    private static bool _isDataLoaded = false;
     private string errorMessage = string.Empty;
 
-
-    // public async ValueTask DisposeAsync()
-    // {
-    // }
+    private readonly ChartOptions _options = new ChartOptions
+    {
+        LineStrokeWidth = 2,
+        InterpolationOption = InterpolationOption.NaturalSpline,
+        // MaxNumYAxisTicks = 10
+    };
 
     protected override async Task OnInitializedAsync()
     { 
-     isLoading = false; 
-     isDataLoaded = false;
+        _isLoading = false; 
+        _isDataLoaded = false;
+        // _toDate = DateTime.Now;
+        // _fromDate = DateTime.Now.AddMinutes(-5);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -97,14 +120,14 @@
     {
         try
         {
-            isLoading = true;
+            _isLoading = true;
             errorMessage = string.Empty;
 
-            if (!fromDate.HasValue || !toDate.HasValue || fromDate > toDate)
+            if (!_fromDate.HasValue || !_toDate.HasValue || _fromDate > _toDate)
             {
                 errorMessage = "Please select valid dates.";
-                isDataLoaded = false;
-                throw new ArgumentOutOfRangeException();
+                _isDataLoaded = false;
+                throw new ArgumentException(errorMessage);
             }
 
             _seriesA.Clear();
@@ -112,37 +135,47 @@
             _seriesT.Clear();
             _seriesR.Clear();
 
-            var measurements = await MeasurementService.GetMeasurementsFromDatabaseAsync(fromDate.Value, toDate.Value);
+            var measurements = await MeasurementService.GetMeasurementsFromDatabaseAsync(_fromDate.Value, _toDate.Value);
 
             if (measurements.Count > 0 && measurements.Any())
             {
-                _chartLabels = measurements.Select(m => m.Timestamp.ToShortTimeString()).ToArray();
+                // _chartLabels = measurements.Select(m => m.Timestamp.ToShortTimeString()).ToArray();
+                _chartLabels = new[] { "" };
 
-                _seriesT.Add(new ChartSeries { Name = "\u00b0C", Data = measurements.Select(m => m.TemperatureC).ToArray() });
-                _seriesD.Add(new ChartSeries { Name = "mm", Data = measurements.Select(m => (double)m.AvgDistance).ToArray() });
-                _seriesA.Add(new ChartSeries { Name = "X", Data = measurements.Select(m => m.AccelerationX).ToArray() });
-                _seriesA.Add(new ChartSeries { Name = "Y", Data = measurements.Select(m => m.AccelerationY).ToArray() });
-                _seriesA.Add(new ChartSeries { Name = "Z", Data = measurements.Select(m => m.AccelerationZ).ToArray() });
-                _seriesR.Add(new ChartSeries { Name = "X", Data = measurements.Select(m => m.RotationX).ToArray() });
-                _seriesR.Add(new ChartSeries { Name = "Y", Data = measurements.Select(m => m.RotationY).ToArray() });
-                _seriesR.Add(new ChartSeries { Name = "Z", Data = measurements.Select(m => m.RotationZ).ToArray() });
+                _seriesT.Add(new ChartSeries { Name = "Temperature [\u00b0C]", Data = measurements.Select(m => m.TemperatureC).ToArray() });
+                _seriesD.Add(new ChartSeries { Name = "Average distance [mm]", Data = measurements.Select(m => (double)m.AvgDistance).ToArray() });
+                _seriesA.Add(new ChartSeries { Name = "X [m/s\u00b2]", Data = measurements.Select(m => m.AccelerationX).ToArray() });
+                _seriesA.Add(new ChartSeries { Name = "Y  [m/s\u00b2]", Data = measurements.Select(m => m.AccelerationY).ToArray() });
+                _seriesA.Add(new ChartSeries { Name = "Z  [m/s\u00b2]", Data = measurements.Select(m => m.AccelerationZ).ToArray() });
+                _seriesR.Add(new ChartSeries { Name = "X [\u00b0/s]", Data = measurements.Select(m => m.RotationX).ToArray() });
+                _seriesR.Add(new ChartSeries { Name = "Y [\u00b0/s]", Data = measurements.Select(m => m.RotationY).ToArray() });
+                _seriesR.Add(new ChartSeries { Name = "Z [\u00b0/s]", Data = measurements.Select(m => m.RotationZ).ToArray() });
 
-                isDataLoaded = true;
+                // _tSeries1.Add(new TimeSeriesChartSeries
+                // {
+                //     Index = 0,
+                //     Name = "TSC 1",
+                //     Data = measurements.Select(m => new TimeSeriesChartSeries.TimeValue(m.Timestamp.ToUniversalTime(), m.AvgDistance)).ToList(),
+                //     IsVisible = true,
+                //     Type = TimeSeriesDiplayType.Line
+                // });
+
+                _isDataLoaded = true;
             }
             else
             {
                 errorMessage = "No data available for the selected period.";
-                isDataLoaded = false;
+                _isDataLoaded = false;
             }
         }
         catch (Exception ex)
         {
             errorMessage = $"An error occurred: {ex.Message}";
-            isDataLoaded = false;
+            _isDataLoaded = false;
         }
         finally
         {
-            isLoading = false;
+            _isLoading = false;
             await InvokeAsync(StateHasChanged);
         }
     }
