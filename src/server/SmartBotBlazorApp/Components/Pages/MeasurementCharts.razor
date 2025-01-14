@@ -5,6 +5,8 @@
 @* @using MudBlazor.Components.Chart.Models *@
 
 <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+<script src="_content/MudBlazor/MudBlazor.min.js"></script>
+
 <MudThemeProvider />
 <MudPopoverProvider />
 
@@ -80,7 +82,7 @@
 @code {
     //private readonly List<TimeSeriesChartSeries> _tSeries1 = new();
 
-    private string[]? _chartLabels;
+    private string[] _chartLabels = new string[1]; //new string[] { "" };
     private DateTime? _toDate = DateTime.Now;
     private DateTime? _fromDate = DateTime.Now.AddMinutes(-5);
 
@@ -140,7 +142,6 @@
             if (measurements.Count > 0 && measurements.Any())
             {
                 // _chartLabels = measurements.Select(m => m.Timestamp.ToShortTimeString()).ToArray();
-                _chartLabels = new[] { "" };
 
                 _seriesT.Add(new ChartSeries { Name = "Temperature [\u00b0C]", Data = measurements.Select(m => m.TemperatureC).ToArray() });
                 _seriesD.Add(new ChartSeries { Name = "Average distance [mm]", Data = measurements.Select(m => (double)m.AvgDistance).ToArray() });
