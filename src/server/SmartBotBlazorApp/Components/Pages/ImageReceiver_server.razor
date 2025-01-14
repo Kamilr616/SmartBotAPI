@@ -50,8 +50,9 @@
         <!-- Data Status Section -->
         @if (_avgDistance == null || _measurements == null || _hubUser == null)
         {
-            <p><em>Waiting for data</em></p>
-            <div class="spinner-border" role="status"/>
+            <div class="spinner-wrapper">
+                <div class="spinner-border" role="status" />
+            </div>
         }
         else if (IsConnected)
         {
@@ -137,10 +138,11 @@
     </div>
 
     <!-- Half-Circle Speedometer Section -->
-    @if (!IsConnected)
+    @if (IsConnected)
     {
-        <p><em>Waiting for data</em></p>
-        <div class="spinner-border" role="status" />
+        <div class="spinner-wrapper">
+            <div class="spinner-border" role="status"/>
+        </div>
     }
     else
     {
@@ -376,8 +378,9 @@
     {
         //------------------------------------------------------------------------------------------------
         //Speedometer generate Debug Data(changes randomly needle)
-        await base.OnInitializedAsync();
-        _ = SimulateSpeedUpdate(); // Start simulating speed updates
+        // await base.OnInitializedAsync();
+        // _ = SimulateSpeedUpdate();
+        // Start simulating speed updates
 
 
         //------------------------------------- DEBUG ---------------------------------------------------------------
