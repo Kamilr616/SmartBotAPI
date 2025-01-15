@@ -26,16 +26,15 @@
     border: 2px solid black;
     width: 100%;
     font-weight: bold;
-    justify-content: center;
-    align-items: center;
 }
 
 .date-section {
-    padding: 10px;
+    padding: 20px;
     background-color: lightgray;
-    border-radius: 20px;
+    border-radius: 30px;
     font-weight: bold;
-    justify-content: center;
+    display: flex;
+    gap: 30px;
 }
 
 .spinner-wrapper {
