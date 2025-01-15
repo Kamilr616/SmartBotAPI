@@ -146,24 +146,46 @@
     }
     else
     {
-    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 20px; margin-left: 20px">
-        <h5>Speedometer</h5>
-        <div style="position: relative; width: 200px; height: 100px; border-top-left-radius: 200px; border-top-right-radius: 200px; background: #e0e0e0; border: 5px solid #333; overflow: hidden;">
-            <!-- Speedometer Needle -->
-            <div style="position: absolute; width: 4px; height: 90px; background: red; bottom: 0; left: 50%; transform-origin: bottom; transform: rotate(@_speedometerAngle); transition: transform 0.3s ease;">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-left: 20px; gap: 1px; width: 400px; height: 400px">
+            <!-- First Speedometer -->
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <h5>LE Power</h5>
+                <div style="height: 185px; transform: rotate(-90deg);">
+                    <div style="position: relative; width: 200px; height: 100px; border-top-left-radius: 200px; border-top-right-radius: 200px; background: #e0e0e0; border: 5px solid #333; overflow: hidden; ">
+                        <!-- Speedometer Needle -->
+                        <div style="position: absolute; width: 4px; height: 90px; background: red; bottom: 0; left: 50%; transform-origin: bottom; transform: rotate(@_reverseSpeedometerAngle); transition: transform 0.3s ease;"></div>
+
+                        <!-- Speed Labels -->
+                        <div style="position: absolute; width: 100%; height: 100%; top: 0; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 10px;">
+                            <span style="font-size: 12px; font-weight: bold; transform: rotate(90deg);">255</span>
+                            <span style="font-size: 12px; font-weight: bold; transform: rotate(90deg);">0</span>
+                            <span style="font-size: 12px; font-weight: bold; transform: rotate(90deg);">-255</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Speed Labels -->
-            <div style="position: absolute; width: 100%; height: 100%; top: 0; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 10px;">
-                <span style="font-size: 12px; font-weight: bold;">0</span>
-                <span style="font-size: 12px; font-weight: bold;">90</span>
-                <span style="font-size: 12px; font-weight: bold;">180</span>
+            <!-- Second Mirrored Speedometer -->
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <h5>RE Power</h5>
+                <div style="height: 185px; transform: rotate(90deg);">
+                    <div style="position: relative; width: 200px; height: 100px; border-top-left-radius: 200px; border-top-right-radius: 200px; background: #e0e0e0; border: 5px solid #333; overflow: hidden;">
+                        <!-- Speedometer Needle -->
+                        <div style="position: absolute; width: 4px; height: 90px; background: red; bottom: 0; left: 50%; transform-origin: bottom; transform: rotate(@_speedometerAngle); transition: transform 0.3s ease;"></div>
+
+                        <!-- Speed Labels -->
+                        <div style="position: absolute; width: 100%; height: 100%; top: 0; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 10px;">
+                            <span style="font-size: 12px; font-weight: bold; transform: rotate(-90deg);">-255</span>
+                            <span style="font-size: 12px; font-weight: bold; transform: rotate(-90deg);">0</span>
+                            <span style="font-size: 12px; font-weight: bold; transform: rotate(-90deg);">255</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div style="margin-top: 10px; font-size: 16px; font-weight: bold;">
-            @_currentSpeed km/h
-        </div>
-    </div>
+
+
     }
     <!-- Half-Circle Speedometer Section -->
 
@@ -174,38 +196,39 @@
     //--------------------------------------------
     // Speedometer
     //maksymalna prędkość(po osiągnięciu jakiej wskazówka będzie na maksa przechylona w prawo)
-    private static float mMaxSpeed = 180.0f;
+    private float mMaxSpeed = 255;
+    private float mMinSpeed = -255;
 
-    private int _currentSpeed = 0;
     private string _speedometerAngle = "-90deg"; // Needle angle (initial position)
+    private string _reverseSpeedometerAngle = "90deg";
 
-    private void UpdateSpeed(int speed)
+    private void UpdateSpeed(int powerLE, int powerRE)
     {
-        _currentSpeed = speed;
-        double newAngle = -90 + (_currentSpeed / 180.0) * 180.0;
-        // Map speed (0-180) to angle (-90 to 90 degrees)
-        if (newAngle > 90)
-        {
-            newAngle = 90;
-        }
-        _speedometerAngle = $"{newAngle}deg";
+        float percentL = (powerLE - mMinSpeed) / (mMaxSpeed - mMinSpeed);
+        float percentR = (powerRE - mMinSpeed) / (mMaxSpeed - mMinSpeed);
+        // Scale the power from 0-255 to an angle between -90 and 90 degrees
+        int newAngleL = (int)(-90 + percentL * 180f);
+        int newAngleR = (int)(-90 + percentR * 180f);
 
+        _reverseSpeedometerAngle = $"{(-1) * newAngleL}deg";
+        _speedometerAngle = $"{newAngleR}deg";
         StateHasChanged();
+
     }
 
-
-    //Debug Function
+    // Debug Function
     private async Task SimulateSpeedUpdate()
     {
         Random rand = new Random();
         while (true)
         {
-            int newSpeed = rand.Next(0, 181);
-            UpdateSpeed(newSpeed);
-            await Task.Delay(1000); // Update every second
+            int newSpeed = rand.Next((int)mMinSpeed, (int)mMaxSpeed+1);
+            UpdateSpeed(newSpeed, newSpeed);
+
+            await Task.Delay(1000);
         }
     }
-//-----------------------------------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------------------------------
 
 
     private static readonly int joystickCenterX = 275;
@@ -297,7 +320,7 @@
 
     private async void sendInputToRobot((int, int) engineValues)
     {
-
+        // UpdateSpeed(engineValues.Item1, engineValues.Item2);
         if (IsConnected)
         {
             var currentTime = DateTime.Now;
@@ -310,6 +333,8 @@
             _lastSaveTimeRobotInput = currentTime;
             _engineAValue = engineValues.Item1;
             _engineBValue = engineValues.Item2;
+            UpdateSpeed(_engineAValue, _engineBValue);
+
             await _hubConnection.SendAsync("SendMovementCommand", "WebClient", engineValues.Item1, engineValues.Item2);
         }
     }
@@ -320,7 +345,7 @@
     {
         _engineAValue = 0;
         _engineBValue = 0;
-        // _didIStoppedRobot = true;
+        UpdateSpeed(_engineAValue, _engineBValue);
 
         if (IsConnected)
         {
@@ -384,10 +409,10 @@
 
 
         //------------------------------------- DEBUG ---------------------------------------------------------------
-        // _measurements = debugFunctions.GenerateTestMeasurements(2);
-        // _avgDistance = debugFunctions.TestDistance;
-        // _hubUser = debugFunctions.TestUser;
-        // _imageSrc = debugFunctions.GetExampleImage(); 
+        _measurements = debugFunctions.GenerateTestMeasurements(2);
+        _avgDistance = debugFunctions.TestDistance;
+        _hubUser = debugFunctions.TestUser;
+        _imageSrc = debugFunctions.GetExampleImage(); 
         //--------------------------------------------------------------------------------------------------------
 
         _hubConnection = new HubConnectionBuilder()
