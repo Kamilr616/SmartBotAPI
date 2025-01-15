@@ -210,8 +210,8 @@
         int newAngleL = (int)(-90 + percentL * 180f);
         int newAngleR = (int)(-90 + percentR * 180f);
 
-        _reverseSpeedometerAngle = $"{newAngleL}deg";
-        _speedometerAngle = $"{(-1) * newAngleR}deg";
+        _reverseSpeedometerAngle = $"{(-1) * newAngleL}deg";
+        _speedometerAngle = $"{newAngleR}deg";
         StateHasChanged();
 
     }
