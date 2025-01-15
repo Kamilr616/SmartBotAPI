@@ -2,6 +2,8 @@
 @rendermode InteractiveServer
 @inject MeasurementService MeasurementService
 @attribute [Authorize]
+@using MudBlazor
+@* @using MudBlazor.Services *@
 @* @using MudBlazor.Components.Chart.Models *@
 
 <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
@@ -16,10 +18,8 @@
     @* <div class="date-section">  *@
     @*     <label>From </label> *@
     @*     <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="@_fromDate"/> *@
-
     @*     <label>To </label> *@
     @*     <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="@_toDate"/> *@
-
     @*     <button @onclick="LoadMeasurements">Fetch data</button> *@
     @*  </div> *@
 
@@ -82,7 +82,7 @@
 @code {
     //private readonly List<TimeSeriesChartSeries> _tSeries1 = new();
 
-    private string[] _chartLabels = new string[1]; //new string[] { "" };
+    private string[] _chartLabels = new string[1];
     private DateTime? _toDate = DateTime.Now;
     private DateTime? _fromDate = DateTime.Now.AddMinutes(-5);
 
@@ -143,12 +143,12 @@
 
                 _seriesT.Add(new ChartSeries { Name = "Temperature [\u00b0C]", Data = measurements.Select(m => m.TemperatureC).ToArray() });
                 _seriesD.Add(new ChartSeries { Name = "Average distance [mm]", Data = measurements.Select(m => (double)m.AvgDistance).ToArray() });
-                _seriesA.Add(new ChartSeries { Name = "X [m/s\u00b2]", Data = measurements.Select(m => m.AccelerationX).ToArray() });
-                _seriesA.Add(new ChartSeries { Name = "Y  [m/s\u00b2]", Data = measurements.Select(m => m.AccelerationY).ToArray() });
-                _seriesA.Add(new ChartSeries { Name = "Z  [m/s\u00b2]", Data = measurements.Select(m => m.AccelerationZ).ToArray() });
-                _seriesR.Add(new ChartSeries { Name = "X [\u00b0/s]", Data = measurements.Select(m => m.RotationX).ToArray() });
-                _seriesR.Add(new ChartSeries { Name = "Y [\u00b0/s]", Data = measurements.Select(m => m.RotationY).ToArray() });
-                _seriesR.Add(new ChartSeries { Name = "Z [\u00b0/s]", Data = measurements.Select(m => m.RotationZ).ToArray() });
+                _seriesA.Add(new ChartSeries { Name = "Surge [m/s\u00b2]", Data = measurements.Select(m => m.AccelerationX).ToArray() });
+                _seriesA.Add(new ChartSeries { Name = "Sway  [m/s\u00b2]", Data = measurements.Select(m => m.AccelerationY).ToArray() });
+                _seriesA.Add(new ChartSeries { Name = "Heave  [m/s\u00b2]", Data = measurements.Select(m => m.AccelerationZ).ToArray() });
+                _seriesR.Add(new ChartSeries { Name = "Roll [\u00b0/s]", Data = measurements.Select(m => m.RotationX).ToArray() });
+                _seriesR.Add(new ChartSeries { Name = "Pitch [\u00b0/s]", Data = measurements.Select(m => m.RotationY).ToArray() });
+                _seriesR.Add(new ChartSeries { Name = "Yaw [\u00b0/s]", Data = measurements.Select(m => m.RotationZ).ToArray() });
 
                 // _tSeries1.Add(new TimeSeriesChartSeries
                 // {
