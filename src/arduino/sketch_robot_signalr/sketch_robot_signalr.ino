@@ -1,10 +1,11 @@
-/*
-  SmartBotDevice
-  By: Kamil Rataj,
-      Mateusz Ciszek,
-      Izabela Panek.
-*/
-
+/**
+ * @file sketch_robot_signalr
+ * @author Kamil Rataj
+ *
+ * Arduino main sketch.
+ *
+ * Copyright (c) 2024 Kamil Rataj. All rights reserved.
+**/
 
 #include <WiFi.h>  // "WiFi" by Arduino
 #include <WiFiMulti.h>
@@ -26,8 +27,6 @@ const char ssid2[] = SECRET_SSID2;      // WiFi SSID2
 const char password2[] = SECRET_PASS2;  // WiFi Password2
 const char ssid3[] = SECRET_SSID3;      // WiFi SSID3
 const char password3[] = SECRET_PASS3;  // WiFi Password3
-const char ssid4[] = SECRET_SSID4;      // WiFi SSID4
-const char password4[] = SECRET_PASS4;  // WiFi Password4
 
 const char websocketServer[] = SERVER_IP;  // API URL
 const int websocketPort = SERVER_PORT;     // API PORT
@@ -45,16 +44,15 @@ WiFiMulti wifiMulti;
 WiFiClientSecure secureClient;
 
 static unsigned long lastTime = 0;
-unsigned long currentMillis;
+static unsigned long currentMillis = 0;
+static bool stopMotor = true;
 
 
 void setLEDColor(uint8_t r = 0, uint8_t g = 0, uint8_t b = 0) {
   rgbLedWrite(PIN_NEOPIXEL, g, r, b);
 }
 
-void controlMotors(int valA = 0, int valB = 0, int stop = 1) {
-  static bool stopMotor;
-
+void controlMotors(int valA = 0, int valB = 0) {
   bool output3 = 0;
   bool output4 = 0;
   int pwmOutput5 = 0;
@@ -62,14 +60,10 @@ void controlMotors(int valA = 0, int valB = 0, int stop = 1) {
   bool output1 = 0;
   int pwmOutput0 = 0;
 
-  if (stop == 0) {
-    stopMotor = false;
-    return;
-  } else if (stop > 0) {
-    stopMotor = true;
-    setLEDColor(255, 0, 0);  // Red
-    return;
-  }
+  if (valA > 255) valA = 255;
+  if (valA < -255) valA = -255;
+  if (valB > 255) valB = 255;
+  if (valB < -255) valB = -255;
 
   if (valA > 0 && stopMotor == false) {
     output3 = 1;
@@ -112,21 +106,19 @@ void handleIncomingMessage(uint8_t *payload, size_t payloadLength) {
   DeserializationError error = deserializeJson(doc, jsonString);
 
   if (error) {
-    USE_SERIAL.print(F("Błąd parsowania JSON: "));
-    USE_SERIAL.println(error.f_str());
+    USE_SERIAL.printf("[WS] JSON Error: %s\n", error.c_str());
     return;
   }
 
-  const char *target = doc["target"];
   int arg1 = 0;
   int arg2 = 0;
 
-  if (strcmp(target, "ReceiveRobotCommand") == 0) {
+  if (strcmp(doc["target"], "ReceiveRobotCommand") == 0) {
     JsonArray arguments = doc["arguments"];
     arg1 = arguments[0];
     arg2 = arguments[1];
   }
-  controlMotors(arg1, arg2, -1);
+  controlMotors(arg1, arg2);
 }
 
 void webSocketEvent(WStype_t type, uint8_t *payload, size_t length) {
@@ -187,18 +179,18 @@ String createDataString(const VL53L5CX_ResultsData &measurementData, sensors_eve
 
   doc["type"] = 1;
   doc["target"] = "ReceiveRobotData";  //method
-  doc["arguments"][0] = "Robot_01";    //user
+  doc["arguments"][0] = "Robot_KI";    //user
 
   JsonArray measurements = doc["arguments"][1].to<JsonArray>();
   JsonArray distances = doc["arguments"][2].to<JsonArray>();
 
-  measurements[0] = (float_t)a.acceleration.x;
-  measurements[1] = (float_t)a.acceleration.y;
-  measurements[2] = (float_t)a.acceleration.z;
-  measurements[3] = (float_t)g.gyro.x;
-  measurements[4] = (float_t)g.gyro.y;
-  measurements[5] = (float_t)g.gyro.z;
-  measurements[6] = (float_t)temp.temperature;
+  measurements[0] = (double_t)-a.acceleration.z;
+  measurements[1] = (double_t)-a.acceleration.y;
+  measurements[2] = (double_t)-a.acceleration.x;
+  measurements[3] = (double_t)-g.gyro.z;
+  measurements[4] = (double_t)-g.gyro.y;
+  measurements[5] = (double_t)-g.gyro.x;
+  measurements[6] = (double_t)temp.temperature;
 
   for (int y = (width * (width - 1)); y >= 0; y -= width) {
     for (int x = 0; x < width; x++) {
@@ -214,15 +206,16 @@ String createDataString(const VL53L5CX_ResultsData &measurementData, sensors_eve
   }
 
   avgDistance = (centerCount > 0) ? (totalCenterDistance / centerCount) : 0;
-  doc["arguments"][3] = avgDistance;  //avgDistance
 
-  static bool noRepeat;
   if (avgDistance < MIN_DISTANCE) {
-    controlMotors(0, 0, 1);
+    stopMotor = true;
+    setLEDColor(255, 0, 0);
   } else {
-    controlMotors(0, 0, 0);
+    stopMotor = false;
+    setLEDColor(0, 255, 0);
   }
 
+  doc["arguments"][3] = avgDistance;
   String jsonString;
   serializeJson(doc, jsonString);
   jsonString += "";
@@ -290,16 +283,15 @@ void setup() {
   wifiMulti.addAP(ssid, password);
   wifiMulti.addAP(ssid2, password2);
   wifiMulti.addAP(ssid3, password3);
-  wifiMulti.addAP(ssid4, password4);
-  waitForWiFiConnectOrReboot(USE_SERIAL, 50);
-
-  //secureClient.setCACert(root_ca);
+  waitForWiFiConnectOrReboot(USE_SERIAL, 40);
 
   if (!myImager.begin()) {
     USE_SERIAL.println("Failed to initialize VL53L5CX sensor. Restarting ...");
+    setLEDColor(255, 0, 32);
     ESP.restart();
   } else if (!mpu.begin()) {
     Serial.println("Failed to initialize MPU6050 chip. Restarting ...");
+    setLEDColor(255, 0, 32);
     ESP.restart();
   } else {
     setLEDColor(0, 255, 255);  // Cyan
@@ -328,20 +320,20 @@ void setup() {
 }
 
 void loop() {
-  currentMillis = millis();                                                                      // Get the current time
   webSocket.loop();  // Handle WebSocket events and communication
 
-  if (myImager.isDataReady() && webSocket.isConnected()) {  // Poll the VL53L5CX sensor for new data  TODO: Attach the interrupt
-    setLEDColor(64, 0, 64);
+  currentMillis = millis();  // Get the current time
 
+  if (myImager.isDataReady() && webSocket.isConnected()) {  // Poll the VL53L5CX sensor for new data
+    setLEDColor(1, 1, 1);
     if (myImager.getRangingData(&measurementData) && mpu.getEvent(&a, &g, &temp))  // Read data
     {
       String data = createDataString(measurementData, a, g, temp, imageWidth, imageResolution);
       webSocket.sendTXT(data);
     }
-    if(currentMillis - lastTime  >= MAX_IDLE_TIME){
-          controlMotors(0, 0, -2); // force stop
-    }
-    setLEDColor(0, 128, 0);  // Green
+  }
+  if (currentMillis - lastTime >= MAX_IDLE_TIME) {
+    stopMotor = true;
+    controlMotors(0, 0);  // force stop
   }
 }
