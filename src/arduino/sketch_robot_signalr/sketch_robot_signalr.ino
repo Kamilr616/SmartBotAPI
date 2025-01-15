@@ -1,10 +1,11 @@
-/*
-  SmartBotDevice
-  By: Kamil Rataj,
-      Mateusz Ciszek,
-      Izabela Panek.
-*/
-
+/**
+ * @file sketch_robot_signalr
+ * @author Kamil Rataj
+ *
+ * Arduino main sketch.
+ *
+ * Copyright (c) 2024 Kamil Rataj. All rights reserved.
+**/
 
 #include <WiFi.h>  // "WiFi" by Arduino
 #include <WiFiMulti.h>
@@ -24,8 +25,8 @@ const char ssid[] = SECRET_SSID;        // WiFi SSID
 const char password[] = SECRET_PASS;    // WiFi Password
 const char ssid2[] = SECRET_SSID2;      // WiFi SSID2
 const char password2[] = SECRET_PASS2;  // WiFi Password2
-// const char ssid3[] = SECRET_SSID3;      // WiFi SSID3
-// const char password3[] = SECRET_PASS3;  // WiFi Password3
+const char ssid3[] = SECRET_SSID3;      // WiFi SSID3
+const char password3[] = SECRET_PASS3;  // WiFi Password3
 
 const char websocketServer[] = SERVER_IP;  // API URL
 const int websocketPort = SERVER_PORT;     // API PORT
@@ -105,7 +106,7 @@ void handleIncomingMessage(uint8_t *payload, size_t payloadLength) {
   DeserializationError error = deserializeJson(doc, jsonString);
 
   if (error) {
-    USE_SERIAL.printf("[WS] JSON Error: %s\n", error.f_str());
+    USE_SERIAL.printf("[WS] JSON Error: %s\n", error.c_str());
     return;
   }
 
@@ -281,16 +282,16 @@ void setup() {
   WiFi.mode(WIFI_STA);
   wifiMulti.addAP(ssid, password);
   wifiMulti.addAP(ssid2, password2);
-  //wifiMulti.addAP(ssid3, password3);
-  waitForWiFiConnectOrReboot(USE_SERIAL, 50);
-
-  //secureClient.setCACert(root_ca);
+  wifiMulti.addAP(ssid3, password3);
+  waitForWiFiConnectOrReboot(USE_SERIAL, 40);
 
   if (!myImager.begin()) {
     USE_SERIAL.println("Failed to initialize VL53L5CX sensor. Restarting ...");
+    setLEDColor(255, 0, 32);
     ESP.restart();
   } else if (!mpu.begin()) {
     Serial.println("Failed to initialize MPU6050 chip. Restarting ...");
+    setLEDColor(255, 0, 32);
     ESP.restart();
   } else {
     setLEDColor(0, 255, 255);  // Cyan
@@ -323,7 +324,7 @@ void loop() {
 
   currentMillis = millis();  // Get the current time
 
-  if (myImager.isDataReady() && webSocket.isConnected()) {  // Poll the VL53L5CX sensor for new data  TODO: Attach the interrupt
+  if (myImager.isDataReady() && webSocket.isConnected()) {  // Poll the VL53L5CX sensor for new data
     setLEDColor(1, 1, 1);
     if (myImager.getRangingData(&measurementData) && mpu.getEvent(&a, &g, &temp))  // Read data
     {

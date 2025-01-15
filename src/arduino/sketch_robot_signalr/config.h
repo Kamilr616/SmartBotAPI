@@ -1,6 +1,5 @@
 /**
  * @file config.h
- * @date 20.10.2024
  * @author Kamil Rataj
  *
  * Compile time configuration file.
@@ -18,13 +17,11 @@
 #define SERVER_IP "smartbotweb.azurewebsites.net"
 #define SERVER_PORT 443
 
-#define PIN_NEOPIXEL 10  // GPIO10
-
 #define MIN_DISTANCE 400 
 
 #define MAX_IDLE_TIME 700
 
-#define I2C_FREQ 400000 //1000000
+#define I2C_FREQ 400000 
 
 #define WS_RECONNECT_INTERVAL 5000
 
@@ -39,6 +36,8 @@
 #define MPU_HZ_BAND MPU6050_BAND_21_HZ
 #define MPU_HZ_CYCLE MPU6050_CYCLE_20_HZ
 
+#define PIN_NEOPIXEL 10 
+
 #define MOTOR_A_IN1 3
 #define MOTOR_A_IN2 4
 #define MOTOR_A_PWM 5
@@ -47,8 +46,6 @@
 #define MOTOR_B_PWM 0
 
 #define TOF_PIN 9
-
-//#define RGB_BRIGHTNESS 10
 
 
 #endif  // CONFIG_H
