@@ -320,7 +320,7 @@
 
     private async void sendInputToRobot((int, int) engineValues)
     {
-        UpdateSpeed(engineValues.Item1, engineValues.Item2);
+        // UpdateSpeed(engineValues.Item1, engineValues.Item2);
         if (IsConnected)
         {
             var currentTime = DateTime.Now;
@@ -333,6 +333,8 @@
             _lastSaveTimeRobotInput = currentTime;
             _engineAValue = engineValues.Item1;
             _engineBValue = engineValues.Item2;
+            UpdateSpeed(_engineAValue, _engineBValue);
+
             await _hubConnection.SendAsync("SendMovementCommand", "WebClient", engineValues.Item1, engineValues.Item2);
         }
     }
@@ -343,6 +345,7 @@
     {
         _engineAValue = 0;
         _engineBValue = 0;
+        UpdateSpeed(_engineAValue, _engineBValue);
 
         if (IsConnected)
         {
