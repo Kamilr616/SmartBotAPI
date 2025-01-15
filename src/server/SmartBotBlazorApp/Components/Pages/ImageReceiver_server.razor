@@ -291,8 +291,6 @@
     private static DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
     private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromMilliseconds(250.0);
 
-    //TODO, przerobic na stateMachine
-    //szybkihack
     private bool _didIStoppedRobot = false;
 
     private async Task StartJoystickMessageLoop()
@@ -326,7 +324,7 @@
         _joystickCancellationTokenSource?.Cancel();
     }
 
-    // TODO: refactor, passthorugh, for implemeneting inner logic
+
     private void OnPointerDown(PointerEventArgs e)
     {
         _joystickHandler.OnPointerDown(e.ClientX, e.ClientY);
@@ -372,8 +370,6 @@
         }
     }
 
-    // szybki hack, kiedys sie zrobi ladniej
-    // private async Task stopInputToRobot()
     private async void stopInputToRobot()
     {
         _engineAValue = 0;

@@ -8,23 +8,23 @@
 
 <PageTitle>Live View Matrix</PageTitle>
 
-<div style="display: flex; justify-content: center; max-width: 1000px; margin: 0 auto; padding: 20px;">
-    <!-- Depth Image on the Left Side -->
-    <table @ref="_keyobardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup=stopInputToRobot>
-        <div style="flex: 1; max-width: 700px; margin-right: 20px;">
-            <div class="depth-image"
+<div class="container">
+    <div clss="left-section">
+        @if (_dataFrame == null)
+        {
+            <img src="@_testImage" alt="Test Image" width="512" height="512" />
+            <div class="spinner-wrapper">
+                <div class="spinner-border" role="status" />
+            </div>
+        }
+        else if (IsConnected)
+        {
+            <!-- Depth Image -->
+            int res = 32;
+              <div class="depth-image"
                  style="width: 512px; height: 512px; display: grid; grid-template-columns: repeat(32, 1fr); gap: 0px;">
-                @if (_dataFrame == null)
-                {
-                    <div class=" justify-content-center align-items-center">
-                        <img src="@_testImage" alt="Test Image" width="512" height="512"/>
-                        <div class="spinner-border" role="status"/>
-                    </div>
-                }
-                else if (IsConnected)
-                {
-                    int res = 32;
-                    for (int i = 0; i < res; i++)
+
+                    @for (int i = 0; i < res; i++)
                     {
                         for (int j = 0; j < res; j++)
                         {
@@ -35,235 +35,251 @@
                         }
                     }
 
-                }
+                
             </div>
-            <!-- TODO: układ strony sie rozwala?-->
-            @if (_dataFrame != null)
-            {
-                <thead>
-                <tr>
-                    <th>
-                        Pressed Key
-                    </th>
-                    <th>
-                        Counter
-                    </th>
-                    <th>
-                        <div class="joystick-container">
-                            <!-- Joystick Section -->
-                            <div id="joystickContainer" @onpointerdown="OnPointerDown" @onpointermove="OnPointerMove" @onpointerup="OnPointerUp" @onpointercancel="OnPointerUp">
-                                <div id="joystickKnob" style="left: @(_joystickHandler.KnobPosX - 25)px; top: @(_joystickHandler.KnobPosY - @joystickRadius)px;"></div>
-                            </div>
-                        </div>
-                    </th>
-                    <th>
-                        Joystick Counter
-                    </th>
-                    <th>
-                        LE Value
-                    </th>
-                    <th>
-                        RE Value
-                    </th>
-                    <th>
-                        StopRobot
-                    </th>
-                </tr>
 
-                </thead>
+            <!-- Joystick Section -->
+            <table class="joystick-section" @ref="_keyboardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="stopInputToRobot">
+                <div class="joystick-container">
+                    <div id="joystickContainer" @onpointerdown="OnPointerDown" @onpointermove="OnPointerMove" @onpointerup="OnPointerUp" @onpointercancel="OnPointerUp">
+                        <div id="joystickKnob" style="left: @(_knobPositionX)px; top: @(_knobPositionY)px;" />
+                    </div>
+                </div>
+            </table>
+        }
+    </div>
 
-                <tbody>
-                <tr>
-                    <td>
-                        @_keyobardInputHandler.pressedKey
-                    </td>
-                    <td>
-                        @_keyobardInputHandler.counter
-
-                    </td>
-                    <td>@_joystickHandler.joystickDirection</td>
-                    <td>@_joystickHandler.Counter</td>
-                    <td>@_LeftEngineValue</td>
-                    <td>@_RightEngineValue</td>
-                    <td>@_didIStoppedRobot</td>
-                </tr>
-                </tbody>
-            }
-
-            </div>
-        </table>
-
-
-<!-- Info Section on the Right Side -->
-<div style="flex: 1; display: flex; flex-direction: column; gap: 20px;min-width: 500px;">
-    <!-- Connection Status Section -->
-    <div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 10px; background-color: #f5f5f5; border-radius: 8px;">
-        <h5>Hub Connection Status</h5>
+    <!-- Info Section on the Right Side -->
+    <div class="right-section">
+        <!-- Connection Status Section -->
+        <div class="status-section">
+            <h5>SignalR Hub</h5>
             @if (IsConnected)
             {
-            <p style="color: green; font-weight: bold;">Connected</p>
+                <p style="color: green; font-weight: bold;">Connected</p>
             }
             else
             {
-            <p style="color: red; font-weight: bold;">Disconnected</p>
+                <p style="color: red; font-weight: bold;">Disconnected</p>
             }
-    </div>
+        </div>
 
-    <!-- Data Status Section -->
+        <!-- Data Status Section -->
         @if (_avgDistance == null || _measurements == null || _hubUser == null)
         {
-        <p><em>Waiting for data</em></p>
-        <div class="d-flex justify-content-center">
-            <div class="spinner-border" role="status"/>
-        </div>
+            <div class="spinner-wrapper">
+                <div class="spinner-border" role="status" />
+            </div>
         }
-        else
+        else if (IsConnected)
         {
-        <div style="display: flex; flex-direction: column; gap: 10px;">
             <!-- User and Average Distance Section -->
-            <div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 10px; background-color: #f5f5f5; border-radius: 8px;">
-                <div style="flex: 1; min-width: 100px;">
+            <div class="status-section">
+                <div class="data-item">
                     <h5>User</h5>
-                    <p>@_hubUser</p>
+                    <p style="color: magenta;">@_hubUser</p>
                 </div>
-                <div style="flex: 1; min-width: 100px;">
+                <div class="data-item">
                     <h5>Average Distance</h5>
-                    <p>@_avgDistance mm</p>
+                    <p style="color: magenta;">@_avgDistance mm</p>
                 </div>
             </div>
 
-            <!-- Acceleration and Rotation Section -->
-            <div style="display: flex; flex-wrap: wrap; gap: 20px; padding: 10px; background-color: #e9e9e9; border-radius: 8px;">
-                <div style="flex: 1; min-width: 100px;">
+            <!-- Data Section -->
+            <div class="data-section">
+                <div class="data-item">
                     <h5>Acceleration X</h5>
-                    <p>@_measurements[0]</p>
+                    <p style="color: forestgreen;">@_measurements[0]</p>
                 </div>
-                <div style="flex: 1; min-width: 100px;">
+                <div class="data-item">
                     <h5>Acceleration Y</h5>
-                    <p>@_measurements[1]</p>
+                    <p style="color: forestgreen;">@_measurements[1]</p>
                 </div>
-                <div style="flex: 1; min-width: 100px;">
+                <div class="data-item">
                     <h5>Acceleration Z</h5>
-                    <p>@_measurements[2]</p>
+                    <p style="color: forestgreen;">@_measurements[2]</p>
                 </div>
-                <div style="flex: 1; min-width: 100px;">
+                <div class="data-item">
                     <h5>Rotation X</h5>
-                    <p>@_measurements[3]</p>
+                    <p style="color: royalblue;">@_measurements[3]</p>
                 </div>
-                <div style="flex: 1; min-width: 100px;">
+                <div class="data-item">
                     <h5>Rotation Y</h5>
-                    <p>@_measurements[4]</p>
+                    <p style="color: royalblue;">@_measurements[4]</p>
                 </div>
-                <div style="flex: 1; min-width: 100px;">
+                <div class="data-item">
                     <h5>Rotation Z</h5>
-                    <p>@_measurements[5]</p>
+                    <p style="color: royalblue;">@_measurements[5]</p>
                 </div>
-                <div style="flex: 1; min-width: 100px;">
+                <div class="data-item">
                     <h5>Temperature</h5>
-                    <p>@_measurements[6] C</p>
+                    <p style="color: orangered;">@_measurements[6]  °C</p>
                 </div>
             </div>
-        </div>
+            <div class="data-section">
+                <div class="data-item">
+                    <h5>
+                        Key
+                    </h5>
+                    <p style="color: blueviolet;">
+                        @_keyboardInputHandler.pressedKey
+                    </p>
+                </div>
+                <div class="data-item">
+                    <h5>
+                        Joystick
+                    </h5>
+                    <p style="color: blueviolet;">
+                        @_joystickHandler.joystickDirection
+                    </p>
+                    <p style="color: darkgreen;">
+                        X: @_knobPositionX | Y: @_knobPositionY
+                    </p>
+                </div>
+                <div class="data-item">
+                    <h5>
+                        Motor
+                    </h5>
+                    @if (!_didIStoppedRobot)
+                    {
+                        <p style="color: green;">@_engineAValue | @_engineBValue</p>
+                    }
+                    else
+                    {
+                        <p style="color: red; font-weight: bold;">STOP</p>
+                    }
+                </div>
+            </div>
         }
-</div>
 
-<!-- Half-Circle Speedometer Section -->
+    </div>
+
+    <!-- Half-Circle Speedometer Section -->
     @if (!IsConnected)
     {
-    <p><em>Waiting for data</em></p>
-    <div class="spinner-border" role="status" />
+        <div class="spinner-wrapper">
+            <div class="spinner-border" role="status" />
+        </div>
     }
     else
     {
-    <div style="display: flex; flex-direction: column; align-items: center; margin-top: 20px; margin-left: 20px">
-        <h5>Speedometer</h5>
-        <div style="position: relative; width: 200px; height: 100px; border-top-left-radius: 200px; border-top-right-radius: 200px; background: #e0e0e0; border: 5px solid #333; overflow: hidden;">
-            <!-- Speedometer Needle -->
-            <div style="position: absolute; width: 4px; height: 90px; background: red; bottom: 0; left: 50%; transform-origin: bottom; transform: rotate(@_speedometerAngle); transition: transform 0.3s ease;">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-left: 20px; gap: 1px; width: 400px; height: 400px">
+            <!-- First Speedometer -->
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <h5>LE Power</h5>
+                <div style="height: 185px; transform: rotate(-90deg);">
+                    <div style="position: relative; width: 200px; height: 100px; border-top-left-radius: 200px; border-top-right-radius: 200px; background: #e0e0e0; border: 5px solid #333; overflow: hidden; ">
+                        <!-- Speedometer Needle -->
+                        <div style="position: absolute; width: 4px; height: 90px; background: red; bottom: 0; left: 50%; transform-origin: bottom; transform: rotate(@_reverseSpeedometerAngle); transition: transform 0.3s ease;"></div>
+
+                        <!-- Speed Labels -->
+                        <div style="position: absolute; width: 100%; height: 100%; top: 0; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 10px;">
+                            <span style="font-size: 12px; font-weight: bold; transform: rotate(90deg);">255</span>
+                            <span style="font-size: 12px; font-weight: bold; transform: rotate(90deg);">0</span>
+                            <span style="font-size: 12px; font-weight: bold; transform: rotate(90deg);">-255</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Speed Labels -->
-            <div style="position: absolute; width: 100%; height: 100%; top: 0; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 10px;">
-                <span style="font-size: 12px; font-weight: bold;">0</span>
-                <span style="font-size: 12px; font-weight: bold;">90</span>
-                <span style="font-size: 12px; font-weight: bold;">180</span>
+            <!-- Second Mirrored Speedometer -->
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <h5>RE Power</h5>
+                <div style="height: 185px; transform: rotate(90deg);">
+                    <div style="position: relative; width: 200px; height: 100px; border-top-left-radius: 200px; border-top-right-radius: 200px; background: #e0e0e0; border: 5px solid #333; overflow: hidden;">
+                        <!-- Speedometer Needle -->
+                        <div style="position: absolute; width: 4px; height: 90px; background: red; bottom: 0; left: 50%; transform-origin: bottom; transform: rotate(@_speedometerAngle); transition: transform 0.3s ease;"></div>
+
+                        <!-- Speed Labels -->
+                        <div style="position: absolute; width: 100%; height: 100%; top: 0; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 10px;">
+                            <span style="font-size: 12px; font-weight: bold; transform: rotate(-90deg);">-255</span>
+                            <span style="font-size: 12px; font-weight: bold; transform: rotate(-90deg);">0</span>
+                            <span style="font-size: 12px; font-weight: bold; transform: rotate(-90deg);">255</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div style="margin-top: 10px; font-size: 16px; font-weight: bold;">
-                @_currentSpeed km/h
-        </div>
-    </div>
+
+
     }
-<!-- Half-Circle Speedometer Section -->
-
+    <!-- Half-Circle Speedometer Section -->
 
 </div>
+
+
+
 
 
 
 @code {
-    //--------------------------------------------
     // Speedometer
-    //mMaxSpeed mozna zmienic, na makysymalna predkosc po jakiej chcemy zeby wskazowka sie odchylial w prawo
-    private static float mMaxSpeed = 180.0f;
+    //maksymalna prędkość(po osiągnięciu jakiej wskazówka będzie na maksa przechylona w prawo)
+    private float mMaxSpeed = 255;
+    private float mMinSpeed = -255;
 
-    private int _currentSpeed = 0;
     private string _speedometerAngle = "-90deg"; // Needle angle (initial position)
+    private string _reverseSpeedometerAngle = "90deg";
 
-    private void UpdateSpeed(int speed)
+    private void UpdateSpeed(int powerLE, int powerRE)
     {
-        _currentSpeed = speed;
-        double newAngle = -90 + (_currentSpeed / 180.0) * 180.0 ;
-        // Map speed (0-180) to angle (-90 to 90 degrees)
-        if (newAngle > 90)
-        {
-            newAngle = 90;
-        }
-        _speedometerAngle = $"{newAngle}deg";
+        float percentL = (powerLE - mMinSpeed) / (mMaxSpeed - mMinSpeed);
+        float percentR = (powerRE - mMinSpeed) / (mMaxSpeed - mMinSpeed);
+        // Scale the power from 0-255 to an angle between -90 and 90 degrees
+        int newAngleL = (int)(-90 + percentL * 180f);
+        int newAngleR = (int)(-90 + percentR * 180f);
 
+        _reverseSpeedometerAngle = $"{(-1) * newAngleL}deg";
+        _speedometerAngle = $"{newAngleR}deg";
         StateHasChanged();
+
     }
 
-//Debug Function
+    // Debug Function
     private async Task SimulateSpeedUpdate()
     {
         Random rand = new Random();
         while (true)
         {
-            int newSpeed = rand.Next(0, 181); 
-            UpdateSpeed(newSpeed);
-            await Task.Delay(1000); // Update every second
+            int newSpeed = rand.Next((int)mMinSpeed, (int)mMaxSpeed + 1);
+            UpdateSpeed(newSpeed, newSpeed);
+
+            await Task.Delay(1000);
         }
     }
+    //-----------------------------------------------------------------------------------------------------------------------
+
 
     //--------------------------------------------------------------
-    private static int joystickCenterX = 50;
-    private static int joystickCenterY = 50;
-    private static int joystickRadius = 25;
+    private static readonly int joystickCenterX = 275;
+    private static readonly int joystickCenterY = 275;
+    private static readonly int joystickRadius = 150;
     private readonly string _testImage = debugFunctions.GetExampleImage();
 
     private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX, joystickCenterY, joystickRadius);
     private CancellationTokenSource? _joystickCancellationTokenSource;
 
+
     private HubConnection? _hubConnection;
-    private ushort[]? _dataFrame;
     private ushort? _avgDistance;
     private string? _hubUser;
     private double[]? _measurements;
-    private int _LeftEngineValue = 0;
-    private int _RightEngineValue = 0;
+    private string? _imageSrc;
+    private ushort[]? _dataFrame;
 
-    private keyboardInputHandler _keyobardInputHandler = new keyboardInputHandler();
-    private ROBOT_DIRECITON previousDir = ROBOT_DIRECITON.STOP;
+    private keyboardInputHandler _keyboardInputHandler = new keyboardInputHandler();
+    private ROBOT_DIRECITON _previousDir = ROBOT_DIRECITON.STOP;
+
+    private int _engineAValue = 0;
+    private int _engineBValue = 0;
+    private int _knobPositionX = joystickCenterX - joystickRadius;
+    private int _knobPositionY = joystickCenterY - joystickRadius;
 
     //Throttle
-
     private static DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
-    private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromSeconds(0.250f);
-    //-----------------
+    private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromMilliseconds(250.0);
 
-
-    //sybkihack, kiedys sie to napisze ladniej
     private bool _didIStoppedRobot = false;
 
     private async Task StartJoystickMessageLoop()
@@ -297,9 +313,12 @@
         _joystickCancellationTokenSource?.Cancel();
     }
 
+
     private void OnPointerDown(PointerEventArgs e)
     {
         _joystickHandler.OnPointerDown(e.ClientX, e.ClientY);
+        _engineAValue = _joystickHandler.GetRobotEngineValues().Item1;
+        _engineBValue = _joystickHandler.GetRobotEngineValues().Item2;
 
         _ = StartJoystickMessageLoop();
     }
@@ -307,41 +326,22 @@
     private void OnPointerMove(PointerEventArgs e)
     {
         _joystickHandler.OnPointerMove(e.ClientX, e.ClientY);
-        _LeftEngineValue = _joystickHandler.GetRobotEngineValues().Item1;
-        _RightEngineValue = _joystickHandler.GetRobotEngineValues().Item2;
+        _knobPositionX = (int)_joystickHandler.KnobPosX - joystickRadius;
+        _knobPositionY = (int)_joystickHandler.KnobPosY - joystickRadius;
     }
 
     private void OnPointerUp(PointerEventArgs e)
     {
         _joystickHandler.OnPointerUp();
-        // await stopInputToRobot();
+
         stopInputToRobot();
         StopJoystickMessageLoop();
     }
 
-    private void HandleKeyDown(KeyboardEventArgs e)
-    {
-
-        _keyobardInputHandler.onKeyDown(e);
-        _keyobardInputHandler.amIResetingCounter(previousDir != _keyobardInputHandler.robotDir);
-        previousDir = _keyobardInputHandler.robotDir;
-
-        _LeftEngineValue = _keyobardInputHandler.GetRobotEngineValues().Item1;
-        _RightEngineValue = _keyobardInputHandler.GetRobotEngineValues().Item2;
-
-        if (_keyobardInputHandler.validInput)
-        {
-            sendInputToRobot(_keyobardInputHandler.GetRobotEngineValues());
-        }
-    }
-
-
-
-
     private async void sendInputToRobot((int, int) engineValues)
     {
-
-        if (_hubConnection is not null)
+        // UpdateSpeed(engineValues.Item1, engineValues.Item2);
+        if (IsConnected)
         {
             var currentTime = DateTime.Now;
 
@@ -351,63 +351,101 @@
             }
             _didIStoppedRobot = false;
             _lastSaveTimeRobotInput = currentTime;
-            await _hubConnection.SendAsync("SendMovementCommand", "API", engineValues.Item1, engineValues.Item2);
+            _engineAValue = engineValues.Item1;
+            _engineBValue = engineValues.Item2;
+            UpdateSpeed(_engineAValue, _engineBValue);
+
+            await _hubConnection.SendAsync("SendMovementCommand", "WebClient", engineValues.Item1, engineValues.Item2);
         }
     }
 
-
-    //szybki hack, kiedys sie zrobi ladniej
-    // private async Task stopInputToRobot()
     private async void stopInputToRobot()
     {
-        _LeftEngineValue = 0;
-        _RightEngineValue = 0;
-        // _didIStoppedRobot = true;
+        _engineAValue = 0;
+        _engineBValue = 0;
+        UpdateSpeed(_engineAValue, _engineBValue);
 
-        if (_hubConnection is not null)
+        if (IsConnected)
         {
-            var currentTime = DateTime.Now;
-            _lastSaveTimeRobotInput = currentTime;
-
+            _lastSaveTimeRobotInput = DateTime.Now;
             _didIStoppedRobot = true;
-            await _hubConnection.SendAsync("SendMovementCommand", "API", 0, 0);
+
+            await _hubConnection.SendAsync("SendMovementCommand", "WebClient", 0, 0);
         }
     }
 
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private void HandleKeyDown(KeyboardEventArgs e)
     {
-        if (firstRender)
+
+        _keyboardInputHandler.onKeyDown(e);
+        _keyboardInputHandler.amIResetingCounter(_previousDir != _keyboardInputHandler.robotDir);
+        _previousDir = _keyboardInputHandler.robotDir;
+
+        _engineAValue = _keyboardInputHandler.GetRobotEngineValues().Item1;
+        _engineBValue = _keyboardInputHandler.GetRobotEngineValues().Item2;
+
+        if (_keyboardInputHandler.validInput)
         {
-            await _keyobardInputHandler.keyboardInputRef.FocusAsync();
+            if ((DateTime.Now - _lastSaveTimeRobotInput) <= ThrottleDurationSendRobotInput)
+            {
+                return;
+            }
+
+            sendInputToRobot(_keyboardInputHandler.GetRobotEngineValues());
         }
     }
+
+    // private void HandleKeyUP(KeyboardEventArgs e)
+    // {
+    //     _keyboardInputHandler.onKeyUP(e);
+    //     _keyboardInputHandler.amIResetingCounter(true);
+    //     _engineAValue = _keyboardInputHandler.GetRobotEngineValues().Item1;
+    //     _engineBValue = _keyboardInputHandler.GetRobotEngineValues().Item2;
+    //     if (_keyboardInputHandler.validInput)
+    //     {
+    //         sendInputToRobot(_keyboardInputHandler.GetRobotEngineValues());
+    //     }
+    // }
+
+    // Wychodzi Exception gdy nie ma sztywnych danych, a działa klawiatura bez tego
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         await _keyboardInputHandler.keyboardInputRef.FocusAsync();
+    //     }
+    // }
+
 
     protected override async Task OnInitializedAsync()
     {
         //------------------------------------------------------------------------------------------------
         //Speedometer
         await base.OnInitializedAsync();
-        _ = SimulateSpeedUpdate(); // Start simulating speed updates
+        // _ = SimulateSpeedUpdate(); Start simulating speed updates
 
         //---------------------------------------DEBUG------------------------------------------------------------
         _measurements = debugFunctions.GenerateTestMeasurements(2);
-        _dataFrame = debugFunctions.GenerateTestDataAscend(32);
         _avgDistance = debugFunctions.TestDistance;
         _hubUser = debugFunctions.TestUser;
+        _imageSrc = debugFunctions.GetExampleImage();
+        
+        _dataFrame = debugFunctions.GenerateTestDataAscend(32);
+
 
         //--------------------------------------------------------------------------------------------------------
 
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
-            .Build();
+             .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
+             .Build();
 
         _hubConnection.On<string, double[], ushort[], ushort>("ReceiveMatrix", (user, measurements, interpolatedMatrix, avgDistance) =>
         {
             _hubUser = user;
             _measurements = measurements;
-            _dataFrame = interpolatedMatrix;
             _avgDistance = avgDistance;
+            _dataFrame = interpolatedMatrix;
 
             InvokeAsync(StateHasChanged);
         });
