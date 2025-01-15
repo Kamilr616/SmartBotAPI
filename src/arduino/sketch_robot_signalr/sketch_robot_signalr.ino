@@ -324,7 +324,7 @@ void loop() {
   currentMillis = millis();  // Get the current time
 
   if (myImager.isDataReady() && webSocket.isConnected()) {  // Poll the VL53L5CX sensor for new data  TODO: Attach the interrupt
-    setLEDColor(0, 0, 32);
+    setLEDColor(1, 1, 1);
     if (myImager.getRangingData(&measurementData) && mpu.getEvent(&a, &g, &temp))  // Read data
     {
       String data = createDataString(measurementData, a, g, temp, imageWidth, imageResolution);
