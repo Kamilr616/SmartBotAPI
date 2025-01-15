@@ -1,10 +1,11 @@
-/*
-  SmartBotDevice
-  By: Kamil Rataj,
-      Mateusz Ciszek,
-      Izabela Panek.
-*/
-
+/**
+ * @file sketch_robot_signalr
+ * @author Kamil Rataj
+ *
+ * Arduino main sketch.
+ *
+ * Copyright (c) 2024 Kamil Rataj. All rights reserved.
+**/
 
 #include <WiFi.h>  // "WiFi" by Arduino
 #include <WiFiMulti.h>
@@ -282,15 +283,15 @@ void setup() {
   wifiMulti.addAP(ssid, password);
   wifiMulti.addAP(ssid2, password2);
   //wifiMulti.addAP(ssid3, password3);
-  waitForWiFiConnectOrReboot(USE_SERIAL, 50);
-
-  //secureClient.setCACert(root_ca);
+  waitForWiFiConnectOrReboot(USE_SERIAL, 40);
 
   if (!myImager.begin()) {
     USE_SERIAL.println("Failed to initialize VL53L5CX sensor. Restarting ...");
+    setLEDColor(255, 0, 32);
     ESP.restart();
   } else if (!mpu.begin()) {
     Serial.println("Failed to initialize MPU6050 chip. Restarting ...");
+    setLEDColor(255, 0, 32);
     ESP.restart();
   } else {
     setLEDColor(0, 255, 255);  // Cyan
@@ -323,7 +324,7 @@ void loop() {
 
   currentMillis = millis();  // Get the current time
 
-  if (myImager.isDataReady() && webSocket.isConnected()) {  // Poll the VL53L5CX sensor for new data  TODO: Attach the interrupt
+  if (myImager.isDataReady() && webSocket.isConnected()) {  // Poll the VL53L5CX sensor for new data
     setLEDColor(1, 1, 1);
     if (myImager.getRangingData(&measurementData) && mpu.getEvent(&a, &g, &temp))  // Read data
     {
