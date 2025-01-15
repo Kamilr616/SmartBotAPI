@@ -147,12 +147,12 @@
     else
     {
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1px; margin-left: 20px; gap: 5px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-left: 20px; gap: 1px; width: 400px; height: 400 px">
             <!-- First Speedometer -->
-            <div style="display: flex; flex-direction: column; align-items: center;">
+            <div style="display: flex; flex-direction: column; align-items: center;position: center">
                 <h5>LE Power</h5>
                 <div style="height: 185px; transform: rotate(-90deg);">
-                    <div style="position: relative; width: 200px; height: 100px; border-top-left-radius: 200px; border-top-right-radius: 200px; background: #e0e0e0; border: 5px solid #333; overflow: hidden;">
+                    <div style="position: relative; width: 200px; height: 100px; border-top-left-radius: 200px; border-top-right-radius: 200px; background: #e0e0e0; border: 5px solid #333; overflow: hidden; ">
                         <!-- Speedometer Needle -->
                         <div style="position: absolute; width: 4px; height: 90px; background: red; bottom: 0; left: 50%; transform-origin: bottom; transform: rotate(@_reverseSpeedometerAngle); transition: transform 0.3s ease;"></div>
 
@@ -167,7 +167,7 @@
             </div>
 
             <!-- Second Mirrored Speedometer -->
-            <div style="display: flex; flex-direction: column; align-items: center;">
+            <div style="display: flex; flex-direction: column; align-items: center; position: center">
                 <h5>RE Power</h5>
                 <div style="height: 185px; transform: rotate(90deg);">
                     <div style="position: relative; width: 200px; height: 100px; border-top-left-radius: 200px; border-top-right-radius: 200px; background: #e0e0e0; border: 5px solid #333; overflow: hidden;">
@@ -210,8 +210,8 @@
         int newAngleL = (int)(-90 + percentL * 180f);
         int newAngleR = (int)(-90 + percentR * 180f);
 
-        _reverseSpeedometerAngle = $"{(-1) * newAngleL}deg";
-        _speedometerAngle = $"{newAngleR}deg";
+        _reverseSpeedometerAngle = $"{newAngleL}deg";
+        _speedometerAngle = $"{(-1) * newAngleR}deg";
         StateHasChanged();
 
     }
