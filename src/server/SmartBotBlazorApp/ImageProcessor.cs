@@ -32,8 +32,6 @@ namespace SmartBotBlazorApp
                 }
             }
 
-            //image.Mutate(ctx => ctx.Rotate(RotateMode.Rotate90));
-
             // Skalowanie
             image.Mutate(ctx => ctx.Resize(scaledWidth, scaledWidth));
 
@@ -70,7 +68,6 @@ namespace SmartBotBlazorApp
                 return new Rgba32((byte)(t * 255), 0, 255);
             }
         }
-
 
         internal ushort[] InterpolateData(ushort[] data, int targetSize = 32)
         {

@@ -3,8 +3,7 @@
 @inject MeasurementService MeasurementService
 @attribute [Authorize]
 @using MudBlazor
-@* @using MudBlazor.Services *@
-@* @using MudBlazor.Components.Chart.Models *@
+
 
 <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
 <script src="_content/MudBlazor/MudBlazor.min.js"></script>
@@ -15,13 +14,6 @@
 <PageTitle> Measurements Chart </PageTitle>
 
 <div class="cotainer">
-    @* <div class="date-section">  *@
-    @*     <label>From </label> *@
-    @*     <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="@_fromDate"/> *@
-    @*     <label>To </label> *@
-    @*     <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="@_toDate"/> *@
-    @*     <button @onclick="LoadMeasurements">Fetch data</button> *@
-    @*  </div> *@
 
 <div class="date-section">
         <MudDatePicker Label="From date" Editable="true"  @bind-Date="_fromDate" Placeholder="Select Date" DateFormat="dd/MM/yyyy HH:mm:ss" />
@@ -50,10 +42,6 @@
                 Rotation
                 <MudChart class="chart-item" ChartType="ChartType.Line" ChartSeries="_seriesR" XAxisLabels="_chartLabels" Title="Rotation" ChartOptions="@_options" />
             </div>
-
-            @* <div class="chart-item"> *@
-            @*     <MudTimeSeriesChart ChartSeries="_tSeries1" Width="100%" Height="350px" ChartOptions="@_options" CanHideSeries TimeLabelSpacing="TimeSpan.FromMinutes(1)" /> *@
-            @* </div> *@
         }
         else
         {
@@ -69,18 +57,8 @@
 
 </div>
 
-@* <div class="chart-item"> *@
-@*     <h5> Debug Values</h5> *@
-@*     <p>_isLoading: @_isLoading.ToString()</p> *@
-@*     <p>_isDataLoaded: @_isDataLoaded.ToString()</p> *@
-@*     <p>_fromDate: @_fromDate.ToString()</p> *@
-@*     <p>_toDate: @_toDate.ToString()</p> *@
-@*     <p>Error: @errorMessage</p> *@
-@* </div> *@
-
 
 @code {
-    //private readonly List<TimeSeriesChartSeries> _tSeries1 = new();
 
     private string[] _chartLabels = new string[1];
     private DateTime? _toDate = DateTime.Now;
@@ -105,8 +83,6 @@
     { 
         _isLoading = false; 
         _isDataLoaded = false;
-        // _toDate = DateTime.Now;
-        // _fromDate = DateTime.Now.AddMinutes(-5);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -149,15 +125,6 @@
                 _seriesR.Add(new ChartSeries { Name = "Roll [\u00b0/s]", Data = measurements.Select(m => m.RotationX).ToArray() });
                 _seriesR.Add(new ChartSeries { Name = "Pitch [\u00b0/s]", Data = measurements.Select(m => m.RotationY).ToArray() });
                 _seriesR.Add(new ChartSeries { Name = "Yaw [\u00b0/s]", Data = measurements.Select(m => m.RotationZ).ToArray() });
-
-                // _tSeries1.Add(new TimeSeriesChartSeries
-                // {
-                //     Index = 0,
-                //     Name = "TSC 1",
-                //     Data = measurements.Select(m => new TimeSeriesChartSeries.TimeValue(m.Timestamp.ToUniversalTime(), m.AvgDistance)).ToList(),
-                //     IsVisible = true,
-                //     Type = TimeSeriesDiplayType.Line
-                // });
 
                 _isDataLoaded = true;
             }

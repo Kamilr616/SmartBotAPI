@@ -34,12 +34,10 @@
                             <div class="pixel" style="background-color: @color; width: 100%; height: 100%; margin 0; padding: 0;"></div>
                         }
                     }
-
-        
             </div>
 
             <!-- Joystick Section -->
-            <table class="joystick-section" @ref="_keyboardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="stopInputToRobot">
+            <table class="joystick-section" @ref="_keyboardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="StopInputToRobot">
                 <div class="joystick-container">
                     <div id="joystickContainer" @onpointerdown="OnPointerDown" @onpointermove="OnPointerMove" @onpointerup="OnPointerUp" @onpointercancel="OnPointerUp">
                         <div id="joystickKnob" style="left: @(_knobPositionX)px; top: @(_knobPositionY)px;" />
@@ -47,6 +45,7 @@
                 </div>
             </table>
         }
+
     </div>
 
     <!-- Info Section on the Right Side -->
@@ -189,22 +188,44 @@
 
         }
 
+    </div>
+
 </div>
-</div>
-
-
-
-
-
 
 @code {
+    private HubConnection? _hubConnection;
+    private ushort? _avgDistance;
+    private string? _hubUser;
+    private double[]? _measurements;
+    private ushort[]? _dataFrame;
+
     // Speedometer
-    //maksymalna prędkość(po osiągnięciu jakiej wskazówka będzie na maksa przechylona w prawo)
     private float mMaxSpeed = 255;
     private float mMinSpeed = -255;
-
     private string _speedometerAngle = "-90deg"; // Needle angle (initial position)
     private string _reverseSpeedometerAngle = "90deg";
+
+    private static readonly int joystickCenterX = 275;
+    private static readonly int joystickCenterY = 275;
+    private static readonly int joystickRadius = 150;
+    private readonly string _testImage = debugFunctions.GetExampleImage();
+
+    private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX, joystickCenterY, joystickRadius);
+    private CancellationTokenSource? _joystickCancellationTokenSource;
+
+    private keyboardInputHandler _keyboardInputHandler = new keyboardInputHandler();
+    private RobotDirectionEnum _previousDir = RobotDirectionEnum.STOP;
+
+    private int _engineAValue = 0;
+    private int _engineBValue = 0;
+    private int _knobPositionX = joystickCenterX - joystickRadius;
+    private int _knobPositionY = joystickCenterY - joystickRadius;
+
+    //Throttle
+    private static DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
+    private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromMilliseconds(250.0);
+
+    private bool _didIStoppedRobot = false;
 
     private void UpdateSpeed(int powerLE, int powerRE)
     {
@@ -220,52 +241,6 @@
 
     }
 
-    // Debug Function
-    private async Task SimulateSpeedUpdate()
-    {
-        Random rand = new Random();
-        while (true)
-        {
-            int newSpeed = rand.Next((int)mMinSpeed, (int)mMaxSpeed + 1);
-            UpdateSpeed(newSpeed, newSpeed);
-
-            await Task.Delay(1000);
-        }
-    }
-    //-----------------------------------------------------------------------------------------------------------------------
-
-
-    //--------------------------------------------------------------
-    private static readonly int joystickCenterX = 275;
-    private static readonly int joystickCenterY = 275;
-    private static readonly int joystickRadius = 150;
-    private readonly string _testImage = debugFunctions.GetExampleImage();
-
-    private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX, joystickCenterY, joystickRadius);
-    private CancellationTokenSource? _joystickCancellationTokenSource;
-
-
-    private HubConnection? _hubConnection;
-    private ushort? _avgDistance;
-    private string? _hubUser;
-    private double[]? _measurements;
-    private string? _imageSrc;
-    private ushort[]? _dataFrame;
-
-    private keyboardInputHandler _keyboardInputHandler = new keyboardInputHandler();
-    private ROBOT_DIRECITON _previousDir = ROBOT_DIRECITON.STOP;
-
-    private int _engineAValue = 0;
-    private int _engineBValue = 0;
-    private int _knobPositionX = joystickCenterX - joystickRadius;
-    private int _knobPositionY = joystickCenterY - joystickRadius;
-
-    //Throttle
-    private static DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
-    private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromMilliseconds(250.0);
-
-    private bool _didIStoppedRobot = false;
-
     private async Task StartJoystickMessageLoop()
     {
         _joystickCancellationTokenSource?.Cancel();
@@ -278,7 +253,7 @@
             {
                 if (_joystickHandler.validInput)
                 {
-                    sendInputToRobot(_joystickHandler.GetRobotEngineValues());
+                    SendInputToRobot(_joystickHandler.GetRobotEngineValues());
                     _joystickHandler.increaseCounter();
                 }
 
@@ -296,7 +271,6 @@
     {
         _joystickCancellationTokenSource?.Cancel();
     }
-
 
     private void OnPointerDown(PointerEventArgs e)
     {
@@ -318,13 +292,12 @@
     {
         _joystickHandler.OnPointerUp();
 
-        stopInputToRobot();
+        StopInputToRobot();
         StopJoystickMessageLoop();
     }
 
-    private async void sendInputToRobot((int, int) engineValues)
+    private async void SendInputToRobot((int, int) engineValues)
     {
-        // UpdateSpeed(engineValues.Item1, engineValues.Item2);
         if (IsConnected)
         {
             var currentTime = DateTime.Now;
@@ -343,7 +316,7 @@
         }
     }
 
-    private async void stopInputToRobot()
+    private async void StopInputToRobot()
     {
         _engineAValue = 0;
         _engineBValue = 0;
@@ -358,10 +331,8 @@
         }
     }
 
-
     private void HandleKeyDown(KeyboardEventArgs e)
     {
-
         _keyboardInputHandler.onKeyDown(e);
         _keyboardInputHandler.amIResetingCounter(_previousDir != _keyboardInputHandler.robotDir);
         _previousDir = _keyboardInputHandler.robotDir;
@@ -376,48 +347,20 @@
                 return;
             }
 
-            sendInputToRobot(_keyboardInputHandler.GetRobotEngineValues());
+            SendInputToRobot(_keyboardInputHandler.GetRobotEngineValues());
         }
     }
 
-    // private void HandleKeyUP(KeyboardEventArgs e)
-    // {
-    //     _keyboardInputHandler.onKeyUP(e);
-    //     _keyboardInputHandler.amIResetingCounter(true);
-    //     _engineAValue = _keyboardInputHandler.GetRobotEngineValues().Item1;
-    //     _engineBValue = _keyboardInputHandler.GetRobotEngineValues().Item2;
-    //     if (_keyboardInputHandler.validInput)
-    //     {
-    //         sendInputToRobot(_keyboardInputHandler.GetRobotEngineValues());
-    //     }
-    // }
-
-    // Wychodzi Exception gdy nie ma sztywnych danych, a działa klawiatura bez tego
-    // protected override async Task OnAfterRenderAsync(bool firstRender)
-    // {
-    //     if (firstRender)
-    //     {
-    //         await _keyboardInputHandler.keyboardInputRef.FocusAsync();
-    //     }
-    // }
-
-
     protected override async Task OnInitializedAsync()
     {
-        //------------------------------------------------------------------------------------------------
-        //Speedometer
-        await base.OnInitializedAsync();
-        // _ = SimulateSpeedUpdate(); Start simulating speed updates
+        await base.OnInitializedAsync();   //Speedometer?
 
         //---------------------------------------DEBUG------------------------------------------------------------
         // _measurements = debugFunctions.GenerateTestMeasurements(2);
         // _avgDistance = debugFunctions.TestDistance;
         // _hubUser = debugFunctions.TestUser;
         // _imageSrc = debugFunctions.GetExampleImage();
-        
         // _dataFrame = debugFunctions.GenerateTestDataAscend(32);
-
-
         //--------------------------------------------------------------------------------------------------------
 
         _hubConnection = new HubConnectionBuilder()
@@ -435,7 +378,6 @@
         });
 
         await _hubConnection.StartAsync();
-
     }
 
     public bool IsConnected =>
@@ -449,10 +391,10 @@
         }
     }
 
-    private string GetColorFromValue(ushort value)
+    private static string GetColorFromValue(ushort value)
     {
-        double ratio = Math.Clamp(value / (double)4000, 0, 1);
-        int scaledRatio = (int)(ratio * 255);
+        var ratio = Math.Clamp(value / (double)4000, 0, 1);
+        var scaledRatio = (int)(ratio * 255);
 
         int r, g, b;
 

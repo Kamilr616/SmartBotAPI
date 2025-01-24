@@ -30,7 +30,6 @@ namespace SmartBotBlazorApp.Hubs
         [HubMethodName("SendMovementCommand")]
         public async Task SendMovementCommand(string user, int motorA,int motorB)
         {
-            // TODO: throttle the command sending
             await Clients.Others.SendAsync("ReceiveRobotCommand", motorB, motorA);
         }
 
