@@ -8,7 +8,6 @@ namespace SmartBotBlazorApp.Data
         private static DateTime _lastSaveTime = DateTime.MinValue;
         private static readonly TimeSpan SaveThrottleDuration = TimeSpan.FromSeconds(1);
 
-
         public MeasurementService(ApplicationDbContext context)
         {
             _context = context;

@@ -9,9 +9,8 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
         public string? pressedKey { get; private set; }
         public int counter { get; private set; }
 
-   
         public string keyName { get; private set; }
-        public ROBOT_DIRECITON robotDir { get; private set; }
+        public RobotDirectionEnum robotDir { get; private set; }
         public bool validInput { get; private set; }
 
         public int leftEngine { get; private set; }
@@ -21,7 +20,7 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
         {
             counter = 0;
             keyName = "";
-            robotDir = ROBOT_DIRECITON.STOP;
+            robotDir = RobotDirectionEnum.STOP;
             validInput = false;
         }
 
@@ -29,7 +28,7 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
         public void onKeyUP(KeyboardEventArgs e)
         {
             keyName = "";
-            robotDir = ROBOT_DIRECITON.STOP;
+            robotDir = RobotDirectionEnum.STOP;
             validInput = false;
         }
         public void onKeyDown(KeyboardEventArgs e)
@@ -41,31 +40,31 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
             {
                 case "ArrowUp":
                     keyName = "Up Arrow";
-                    robotDir = ROBOT_DIRECITON.UP;
+                    robotDir = RobotDirectionEnum.UP;
                     validInput = true;
                     break;
 
                 case "ArrowDown":
                     keyName = "Down Arrow";
-                    robotDir = ROBOT_DIRECITON.DOWN;
+                    robotDir = RobotDirectionEnum.DOWN;
                     validInput = true;
                     break;
 
                 case "ArrowLeft":
                     keyName = "Left Arrow";
-                    robotDir = ROBOT_DIRECITON.LEFT;
+                    robotDir = RobotDirectionEnum.LEFT;
                     validInput = true;
                     break;
 
                 case "ArrowRight":
                     keyName = "Right Arrow";
-                    robotDir = ROBOT_DIRECITON.RIGHT;
+                    robotDir = RobotDirectionEnum.RIGHT;
                     validInput = true;
                     break;
 
                 default:
                     keyName = "Wrong Button";
-                    robotDir = ROBOT_DIRECITON.STOP;
+                    robotDir = RobotDirectionEnum.STOP;
                     validInput = false;
                     break;
             }
@@ -80,29 +79,27 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
             counter = 0;
         }
 
-
-        //TODO zamienic to na slownik;
-        private void translateKeysToEngineValues()
+       private void translateKeysToEngineValues()
         {
             switch (robotDir)
             {
-                case ROBOT_DIRECITON.UP:
+                case RobotDirectionEnum.UP:
                     leftEngine = 255;
                     rightEngine = 255;
                     break;
-                case ROBOT_DIRECITON.DOWN:
+                case RobotDirectionEnum.DOWN:
                     leftEngine = -255;
                     rightEngine = -255;
                     break;
-                case ROBOT_DIRECITON.LEFT:
+                case RobotDirectionEnum.LEFT:
                     leftEngine = 255;
                     rightEngine = -255;
                     break;
-                case ROBOT_DIRECITON.RIGHT:
+                case RobotDirectionEnum.RIGHT:
                     leftEngine = -255;
                     rightEngine = 255;
                     break;
-                case ROBOT_DIRECITON.STOP:
+                case RobotDirectionEnum.STOP:
                     leftEngine = 0;
                     rightEngine = 0;
                     break;
