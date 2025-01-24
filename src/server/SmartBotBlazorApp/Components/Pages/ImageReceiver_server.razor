@@ -5,6 +5,7 @@
 @attribute [Authorize]
 @using RobotMovementInput
 
+
 <PageTitle>Live View Image</PageTitle>
 
 <div class="container">
@@ -22,7 +23,7 @@
             <img src="@_imageSrc" alt="Depth Image" width="512" height="512"/>
 
             <!-- Joystick Section -->
-            <table class="joystick-section" @ref="_keyboardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="stopInputToRobot">
+            <table class="joystick-section" @ref="_keyboardInputHandler.keyboardInputRef" tabindex="0" @onkeydown="HandleKeyDown" @onkeyup="StopInputToRobot">
                 <div class="joystick-container">
                     <div id="joystickContainer" @onpointerdown="OnPointerDown" @onpointermove="OnPointerMove" @onpointerup="OnPointerUp" @onpointercancel="OnPointerUp">
                         <div id="joystickKnob" style="left: @(_knobPositionX)px; top: @(_knobPositionY)px;" />
@@ -145,7 +146,7 @@
                 </div>
                 <div class="data-item">
                     <h5>
-                        Joystick 
+                        Control 
                     </h5>
                     <p style="color: blueviolet;">
                         @_joystickHandler.joystickDirection
@@ -174,95 +175,22 @@
 
     </div>
 
-    @* <!-- Half-Circle Speedometer Section --> *@
-    @* @if (!IsConnected) *@
-    @* { *@
-    @*     <div class="spinner-wrapper"> *@
-    @*         <div class="spinner-border" role="status"/> *@
-    @*     </div> *@
-    @* } *@
-    @* else *@
-    @* { *@
-
-    @*     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-left: 20px; gap: 1px; width: 400px; height: 400px"> *@
-    @*         <!-- First Speedometer --> *@
-    @*         <div style="display: flex; flex-direction: column; align-items: center;"> *@
-    @*             <h5>LE Power</h5> *@
-    @*             <div style="height: 185px; transform: rotate(-90deg);"> *@
-    @*                 <div style="position: relative; width: 200px; height: 100px; border-top-left-radius: 200px; border-top-right-radius: 200px; background: #e0e0e0; border: 5px solid #333; overflow: hidden; "> *@
-    @*                     <!-- Speedometer Needle --> *@
-    @*                     <div style="position: absolute; width: 4px; height: 90px; background: red; bottom: 0; left: 50%; transform-origin: bottom; transform: rotate(@_reverseSpeedometerAngle); transition: transform 0.3s ease;"></div> *@
-
-    @*                     <!-- Speed Labels --> *@
-    @*                     <div style="position: absolute; width: 100%; height: 100%; top: 0; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 10px;"> *@
-    @*                         <span style="font-size: 12px; font-weight: bold; transform: rotate(90deg);">255</span> *@
-    @*                         <span style="font-size: 12px; font-weight: bold; transform: rotate(90deg);">0</span> *@
-    @*                         <span style="font-size: 12px; font-weight: bold; transform: rotate(90deg);">-255</span> *@
-    @*                     </div> *@
-    @*                 </div> *@
-    @*             </div> *@
-    @*         </div> *@
-
-    @*         <!-- Second Mirrored Speedometer --> *@
-    @*         <div style="display: flex; flex-direction: column; align-items: center;"> *@
-    @*             <h5>RE Power</h5> *@
-    @*             <div style="height: 185px; transform: rotate(90deg);"> *@
-    @*                 <div style="position: relative; width: 200px; height: 100px; border-top-left-radius: 200px; border-top-right-radius: 200px; background: #e0e0e0; border: 5px solid #333; overflow: hidden;"> *@
-    @*                     <!-- Speedometer Needle --> *@
-    @*                     <div style="position: absolute; width: 4px; height: 90px; background: red; bottom: 0; left: 50%; transform-origin: bottom; transform: rotate(@_speedometerAngle); transition: transform 0.3s ease;"></div> *@
-
-    @*                     <!-- Speed Labels --> *@
-    @*                     <div style="position: absolute; width: 100%; height: 100%; top: 0; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 10px;"> *@
-    @*                         <span style="font-size: 12px; font-weight: bold; transform: rotate(-90deg);">-255</span> *@
-    @*                         <span style="font-size: 12px; font-weight: bold; transform: rotate(-90deg);">0</span> *@
-    @*                         <span style="font-size: 12px; font-weight: bold; transform: rotate(-90deg);">255</span> *@
-    @*                     </div> *@
-    @*                 </div> *@
-    @*             </div> *@
-    @*         </div> *@
-    @*     </div> *@
-
-
-    @* } *@
-    @* <!-- Half-Circle Speedometer Section --> *@
-
 </div>
 
 
 @code {
+    //SignalR Hub
+    private HubConnection? _hubConnection;
+    private ushort? _avgDistance;
+    private string? _hubUser;
+    private double[]? _measurements;
+    private string? _imageSrc;
+
     // Speedometer
     private float mMaxSpeed = 255;
     private float mMinSpeed = -255;
-
     private string _speedometerAngle = "-90deg"; // Needle angle (initial position)
     private string _reverseSpeedometerAngle = "90deg";
-
-    private void UpdateSpeed(int powerLE, int powerRE)
-    {
-        float percentL = (powerLE - mMinSpeed) / (mMaxSpeed - mMinSpeed);
-        float percentR = (powerRE - mMinSpeed) / (mMaxSpeed - mMinSpeed);
-        // Scale the power from 0-255 to an angle between -90 and 90 degrees
-        int newAngleL = (int)(-90 + percentL * 180f);
-        int newAngleR = (int)(-90 + percentR * 180f);
-
-        _reverseSpeedometerAngle = $"{(-1) * newAngleL}deg";
-        _speedometerAngle = $"{newAngleR}deg";
-        StateHasChanged();
-    }
-
-    // Debug Function
-    // private async Task SimulateSpeedUpdate()
-    // {
-    //     Random rand = new Random();
-    //     while (true)
-    //     {
-    //         int newSpeed = rand.Next((int)mMinSpeed, (int)mMaxSpeed+1);
-    //         UpdateSpeed(newSpeed, newSpeed);
-
-    //         await Task.Delay(1000);
-    //     }
-    // }
-
 
     private static readonly int joystickCenterX = 275;
     private static readonly int joystickCenterY = 275;
@@ -272,26 +200,32 @@
     private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX, joystickCenterY, joystickRadius);
     private CancellationTokenSource? _joystickCancellationTokenSource;
 
-    private HubConnection? _hubConnection;
-    private ushort? _avgDistance;
-    private string? _hubUser;
-    private double[]? _measurements;
-    private string? _imageSrc;
-
     private keyboardInputHandler _keyboardInputHandler = new keyboardInputHandler();
-    private ROBOT_DIRECITON _previousDir = ROBOT_DIRECITON.STOP;
+    private RobotDirectionEnum _previousDir = RobotDirectionEnum.STOP;
 
     private int _engineAValue = 0;
     private int _engineBValue = 0;
     private int _knobPositionX = joystickCenterX - joystickRadius;
     private int _knobPositionY = joystickCenterY - joystickRadius;
 
-
     //Throttle
     private static DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
     private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromMilliseconds(250.0);
 
     private bool _didIStoppedRobot = false;
+
+    private void UpdateSpeed(int powerA, int powerB)
+    {
+        float percentL = (powerA - mMinSpeed) / (mMaxSpeed - mMinSpeed);
+        float percentR = (powerB - mMinSpeed) / (mMaxSpeed - mMinSpeed);
+        // Scale the power from 0-255 to an angle between -90 and 90 degrees
+        int newAngleL = (int)(-90 + percentL * 180f);
+        int newAngleR = (int)(-90 + percentR * 180f);
+
+        _reverseSpeedometerAngle = $"{(-1) * newAngleL}deg";
+        _speedometerAngle = $"{newAngleR}deg";
+        StateHasChanged();
+    }
 
     private async Task StartJoystickMessageLoop()
     {
@@ -305,7 +239,7 @@
             {
                 if (_joystickHandler.validInput)
                 {
-                    sendInputToRobot(_joystickHandler.GetRobotEngineValues());
+                    SendInputToRobot(_joystickHandler.GetRobotEngineValues());
                     _joystickHandler.increaseCounter();
                 }
 
@@ -345,13 +279,12 @@
     {
         _joystickHandler.OnPointerUp();
 
-        stopInputToRobot();
+        StopInputToRobot();
         StopJoystickMessageLoop();
     }
 
-    private async void sendInputToRobot((int, int) engineValues)
+    private async void SendInputToRobot((int, int) engineValues)
     {
-        // UpdateSpeed(engineValues.Item1, engineValues.Item2);
         if (IsConnected)
         {
             var currentTime = DateTime.Now;
@@ -370,7 +303,7 @@
         }
     }
 
-    private async void stopInputToRobot()
+    private async void StopInputToRobot()
     {
         _engineAValue = 0;
         _engineBValue = 0;
@@ -385,10 +318,8 @@
         }
     }
 
-
     private void HandleKeyDown(KeyboardEventArgs e)
     {
-
         _keyboardInputHandler.onKeyDown(e);
         _keyboardInputHandler.amIResetingCounter(_previousDir != _keyboardInputHandler.robotDir);
         _previousDir = _keyboardInputHandler.robotDir;
@@ -403,39 +334,12 @@
                 return;
             }
 
-            sendInputToRobot(_keyboardInputHandler.GetRobotEngineValues());
+            SendInputToRobot(_keyboardInputHandler.GetRobotEngineValues());
         }
     }
 
-    // private void HandleKeyUP(KeyboardEventArgs e)
-    // {
-    //     _keyboardInputHandler.onKeyUP(e);
-    //     _keyboardInputHandler.amIResetingCounter(true);
-    //     _engineAValue = _keyboardInputHandler.GetRobotEngineValues().Item1;
-    //     _engineBValue = _keyboardInputHandler.GetRobotEngineValues().Item2;
-    //     if (_keyboardInputHandler.validInput)
-    //     {
-    //         sendInputToRobot(_keyboardInputHandler.GetRobotEngineValues());
-    //     }
-    // }
-
-    // Wychodzi Exception gdy nie ma sztywnych danych, a działa klawiatura bez tego
-    // protected override async Task OnAfterRenderAsync(bool firstRender)
-    // {
-    //     if (firstRender)
-    //     {
-    //         await _keyboardInputHandler.keyboardInputRef.FocusAsync();
-    //     }
-    // }
-
     protected override async Task OnInitializedAsync()
     {
-        //------------------------------------------------------------------------------------------------
-        //Speedometer generate Debug Data(changes randomly needle)
-        // await base.OnInitializedAsync();
-        // _ = SimulateSpeedUpdate();
-        // Start simulating speed updates
-
         //------------------------------------- DEBUG ---------------------------------------------------------------
         // _measurements = debugFunctions.GenerateTestMeasurements(2);
         // _avgDistance = debugFunctions.TestDistance;

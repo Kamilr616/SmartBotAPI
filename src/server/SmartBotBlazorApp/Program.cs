@@ -21,7 +21,7 @@ builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, PersistingRevalidatingAuthenticationStateProvider>();
 
-//builder.Services.AddDefaultIdentity<IdentityUser>() //TODO: check if nessesary
+//builder.Services.AddDefaultIdentity<IdentityUser>() 
 //    .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddAuthentication(options =>
@@ -47,7 +47,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
     {
-        builder.WithOrigins("*") // TODO: add actual origin and allow credentials
+        builder.WithOrigins("*")
             .AllowAnyHeader()
             .AllowAnyMethod();
         //.AllowCredentials();

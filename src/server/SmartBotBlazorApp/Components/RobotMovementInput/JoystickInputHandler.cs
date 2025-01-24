@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SmartBotBlazorApp.Client.Pages;
-
-namespace SmartBotBlazorApp.Components.RobotMovementInput
+﻿namespace SmartBotBlazorApp.Components.RobotMovementInput
 {
     public class JoystickInputHandler
     {
@@ -14,9 +11,8 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
         private double _touchStartY;
 
         public string? joystickDirection { get; private set; }
-        public ROBOT_DIRECITON robotDir { get; private set; }
+        public RobotDirectionEnum robotDir { get; private set; }
         public bool validInput { get; private set; }
-
         public int Counter { get; private set; }
         public bool IsTouching { get; private set; }
 
@@ -25,7 +21,6 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
 
         public int LeftEngine { get; private set; } = 0 ;
         public int RightEngine { get; private set; } = 0;
-
 
         public JoystickInputHandler(double centerX, double centerY, double radius)
         {
@@ -91,20 +86,21 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
             double deltaX = knobPosX - _centerX;
             double deltaY = knobPosY - _centerY;
             double threshold = 5;
-            ROBOT_DIRECITON prevDir = robotDir;
+            RobotDirectionEnum prevDir = robotDir;
+
             if (Math.Abs(deltaX) > Math.Abs(deltaY)) // Horizontal
             {
                 if (deltaX > threshold)
                 {
                     validInput = true;
-                    robotDir = ROBOT_DIRECITON.RIGHT;
+                    robotDir = RobotDirectionEnum.RIGHT;
                     joystickDirection = "Right";
 
                 }
                 else if (deltaX < -threshold)
                 {
                     validInput = true;
-                    robotDir = ROBOT_DIRECITON.LEFT;
+                    robotDir = RobotDirectionEnum.LEFT;
                     joystickDirection = "Left";
                     
                 }
@@ -114,102 +110,35 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
                 if (deltaY > threshold)
                 {
                     validInput = true;
-                    robotDir = ROBOT_DIRECITON.DOWN;
+                    robotDir = RobotDirectionEnum.DOWN;
                     joystickDirection = "Down";
                 }
                 else if (deltaY < -threshold)
                 {
                     validInput = true;
-                    robotDir = ROBOT_DIRECITON.UP;
+                    robotDir = RobotDirectionEnum.UP;
                     joystickDirection = "Up";
                 }
                 else
                 {
 
                     validInput = true;
-                    robotDir = ROBOT_DIRECITON.STOP;
+                    robotDir = RobotDirectionEnum.STOP;
                     joystickDirection = "Center";
                     Counter = 0;
                 }
-
             }
             if (prevDir != robotDir)
             {
                 Counter = 0;
-
             }
-            
         }
 
         public (int, int) GetRobotEngineValues()
         {
             return (LeftEngine, RightEngine);
-
-
-            //return ((int)_knobPosX, (int)_knobPosY);
-
-            //float tmpX = 0;
-            //float tmpY = 0;
-            //tmpX = (float)_knobPosX - 50;
-            //tmpY = (float)_knobPosY - 50;
-            //tmpX *= 10;
-            //tmpY *= -10;
-
-
-            //return ((int)tmpX, (int)tmpY);
         }
 
-
-        /* 
-
-                private void translateJoystickToRobotEngineValues()
-                {
-                    //tlumaczenie na zasieg -255 : 255
-                    float tmpX = 0;
-                    float tmpY = 0;
-                    tmpX = (float)_knobPosX - 50;
-                    tmpY = (float)_knobPosY - 50;
-                    tmpX *= 10;
-                    tmpY *= -10;
-                    //obliczenia/no nie do konca dzialaja
-                    //prawdopodobnie sa zwalone przypisania do wartosci
-
-                    float Z = (tmpX * tmpX) + (tmpY * tmpY);
-                    Z = MathF.Sqrt(Z);
-
-                    if(tmpX<0)
-                    {
-                        if(tmpY<0)
-                        {
-                            LeftEngine = (int)tmpX;
-                            RightEngine = (-1) * (int)Z ;
-                        }
-                        else
-                        {
-                            LeftEngine = (int)Z;
-                            RightEngine = (int)tmpY;
-                        }
-                    }
-                    else
-                    {
-                        if(tmpY<0)
-                        {
-                            LeftEngine = (-1) * (int)Z;
-                            RightEngine = (int)tmpY;
-                        }
-                        else
-                        {
-                            LeftEngine = (int)tmpX;
-                            RightEngine = (int)Z;
-                        }
-
-                    }
-                }
-        */
-
-
-        //KISS
-        //XDD
         private void translateJoystickToRobotEngineValues()
         {
             float deadzone = 0.35f;
@@ -251,8 +180,6 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
         public void resetCounter()
         {
             Counter = 0;
-            //LeftEngine = 0;
-            //RightEngine = 0;
         }
         public void increaseCounter()
         {
