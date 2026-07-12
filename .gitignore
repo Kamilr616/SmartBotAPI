@@ -399,3 +399,5 @@ FodyWeavers.xsd
 
 .idea/
 arduino_secrets.h
+# Playwright MCP session artifacts
+.playwright-mcp/
