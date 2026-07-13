@@ -4,7 +4,8 @@
  *
  * Arduino main sketch.
  *
- * Copyright (c) 2024 Kamil Rataj. All rights reserved.
+ * Copyright (c) 2024 Kamil Rataj
+ * SPDX-License-Identifier: GPL-3.0-only
 **/
 
 #include <WiFi.h>  // "WiFi" by Arduino
@@ -30,6 +31,7 @@ const char password3[] = SECRET_PASS3;  // WiFi Password3
 
 const char websocketServer[] = SERVER_IP;  // API URL
 const int websocketPort = SERVER_PORT;     // API PORT
+const String websocketPath = String("/signalhub?access_token=") + SECRET_API_KEY;
 
 sensors_event_t a, g, temp;
 
@@ -312,7 +314,7 @@ void setup() {
 
   webSocket.setReconnectInterval(WS_RECONNECT_INTERVAL);
   webSocket.onEvent(webSocketEvent);                                 // Set event handler
-  webSocket.beginSSL(websocketServer, websocketPort, "/signalhub");  // Initialize WebSocket client
+  webSocket.beginSSL(websocketServer, websocketPort, websocketPath.c_str());  // Initialize authenticated WebSocket client
 
   myImager.startRanging();  // Start ranging
   //mpu.enableCycle(true);

@@ -23,7 +23,7 @@ namespace SmartBotBlazorApp.Data
             IServiceProvider serviceProvider,
             string userName, string initPw)
         {
-            var _userManager = serviceProvider.GetService<UserManager<ApplicationUser>>();
+            var _userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
             var user = await _userManager.FindByNameAsync(userName);
 
@@ -37,7 +37,10 @@ namespace SmartBotBlazorApp.Data
                 };
 
                 var result = await _userManager.CreateAsync(user, initPw);
-
+                if (!result.Succeeded)
+                {
+                    throw new InvalidOperationException(string.Join("; ", result.Errors.Select(error => error.Description)));
+                }
             }
 
             if (user == null)

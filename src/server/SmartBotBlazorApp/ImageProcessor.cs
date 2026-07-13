@@ -75,10 +75,14 @@ namespace SmartBotBlazorApp
             {
                 throw new ArgumentException("Data length must be 64 for an 8x8 image.");
             }
+            if (targetSize < 2)
+            {
+                throw new ArgumentOutOfRangeException(nameof(targetSize), "Target size must be at least 2.");
+            }
 
             ushort[] interpolated = new ushort[targetSize * targetSize];
             int inputSize = 8;
-            double scale = (double)(inputSize - 1) / targetSize;
+            double scale = (double)(inputSize - 1) / (targetSize - 1);
 
             for (int i = 0; i < targetSize; i++)
             {

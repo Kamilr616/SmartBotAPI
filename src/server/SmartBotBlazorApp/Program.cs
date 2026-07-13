@@ -42,12 +42,13 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
     {
-        builder.WithOrigins("*")
+        builder.AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod();
         //.AllowCredentials();
@@ -71,6 +72,12 @@ builder.Services.AddResponseCompression(opts =>
 });
 
 var app = builder.Build();
+
+if (string.IsNullOrEmpty(app.Configuration["RobotApiKey"]) ||
+    app.Configuration["RobotApiKey"]!.Length < SignalHubAccess.MinimumApiKeyLength)
+{
+    app.Logger.LogWarning("RobotApiKey is missing or shorter than {MinimumLength} characters; anonymous robot connections will be denied.", SignalHubAccess.MinimumApiKeyLength);
+}
 
 using (var scope = app.Services.CreateScope())
 {
@@ -98,6 +105,25 @@ app.UseCors("CorsPolicy");
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/signalhub") &&
+        !SignalHubAccess.IsAllowed(
+            context.User,
+            app.Configuration["RobotApiKey"],
+            context.Request.Query["access_token"].ToString()))
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        await context.Response.WriteAsync("SignalR authentication required.");
+        return;
+    }
+
+    await next();
+});
+
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()

@@ -222,7 +222,7 @@
     private int _knobPositionY = joystickCenterY - joystickRadius;
 
     //Throttle
-    private static DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
+    private DateTime _lastSaveTimeRobotInput = DateTime.MinValue;
     private static readonly TimeSpan ThrottleDurationSendRobotInput = TimeSpan.FromMilliseconds(250.0);
 
     private bool _didIStoppedRobot = false;
@@ -253,7 +253,7 @@
             {
                 if (_joystickHandler.validInput)
                 {
-                    SendInputToRobot(_joystickHandler.GetRobotEngineValues());
+                    await SendInputToRobot(_joystickHandler.GetRobotEngineValues());
                     _joystickHandler.increaseCounter();
                 }
 
@@ -288,17 +288,17 @@
         _knobPositionY = (int)_joystickHandler.KnobPosY - joystickRadius;
     }
 
-    private void OnPointerUp(PointerEventArgs e)
+    private async Task OnPointerUp(PointerEventArgs e)
     {
         _joystickHandler.OnPointerUp();
 
-        StopInputToRobot();
         StopJoystickMessageLoop();
+        await StopInputToRobot();
     }
 
-    private async void SendInputToRobot((int, int) engineValues)
+    private async Task SendInputToRobot((int, int) engineValues)
     {
-        if (IsConnected)
+        if (_hubConnection is { State: HubConnectionState.Connected } hubConnection)
         {
             var currentTime = DateTime.Now;
 
@@ -312,26 +312,26 @@
             _engineBValue = engineValues.Item2;
             UpdateSpeed(_engineAValue, _engineBValue);
 
-            await _hubConnection.SendAsync("SendMovementCommand", "WebClient", engineValues.Item1, engineValues.Item2);
+            await hubConnection.SendAsync("SendMovementCommand", "WebClient", engineValues.Item1, engineValues.Item2);
         }
     }
 
-    private async void StopInputToRobot()
+    private async Task StopInputToRobot()
     {
         _engineAValue = 0;
         _engineBValue = 0;
         UpdateSpeed(_engineAValue, _engineBValue);
 
-        if (IsConnected)
+        if (_hubConnection is { State: HubConnectionState.Connected } hubConnection)
         {
             _lastSaveTimeRobotInput = DateTime.Now;
             _didIStoppedRobot = true;
 
-            await _hubConnection.SendAsync("SendMovementCommand", "WebClient", 0, 0);
+            await hubConnection.SendAsync("SendMovementCommand", "WebClient", 0, 0);
         }
     }
 
-    private void HandleKeyDown(KeyboardEventArgs e)
+    private async Task HandleKeyDown(KeyboardEventArgs e)
     {
         _keyboardInputHandler.onKeyDown(e);
         _keyboardInputHandler.amIResetingCounter(_previousDir != _keyboardInputHandler.robotDir);
@@ -347,7 +347,7 @@
                 return;
             }
 
-            SendInputToRobot(_keyboardInputHandler.GetRobotEngineValues());
+            await SendInputToRobot(_keyboardInputHandler.GetRobotEngineValues());
         }
     }
 

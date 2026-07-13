@@ -30,12 +30,14 @@ namespace SmartBotBlazorApp.Hubs
         [HubMethodName("SendMovementCommand")]
         public async Task SendMovementCommand(string user, int motorA,int motorB)
         {
+            RobotMessageValidator.ValidateMovementCommand(motorA, motorB);
             await Clients.Others.SendAsync("ReceiveRobotCommand", motorB, motorA);
         }
 
         [HubMethodName("ReceiveRobotData")]
         public async Task ReceiveRobotData(string user, double[] measurements, ushort[] rawMatrix, ushort avgDistance)
         {
+            RobotMessageValidator.ValidateTelemetry(user, measurements, rawMatrix);
             var roundedMeasurements = _measurementService.RoundMeasurements(measurements, 2);
 
             await Task.WhenAll(

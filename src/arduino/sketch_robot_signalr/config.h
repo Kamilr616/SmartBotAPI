@@ -4,7 +4,8 @@
  *
  * Compile time configuration file.
  *
- * Copyright (c) 2024 Kamil Rataj. All rights reserved.
+ * Copyright (c) 2024 Kamil Rataj
+ * SPDX-License-Identifier: GPL-3.0-only
 **/
 
 #ifndef CONFIG_H
@@ -14,7 +15,7 @@
 #define USE_SERIAL Serial
 #define SERIAL_BAUDRATE 115200
 
-#define SERVER_IP "smartbotweb.azurewebsites.net"
+#define SERVER_IP "your-server.example.com"
 #define SERVER_PORT 443
 
 #define MIN_DISTANCE 400 
