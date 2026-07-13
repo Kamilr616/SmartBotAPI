@@ -5,17 +5,17 @@ The web application lives in `src/server/` and consists of two projects:
 | Project | Type | Purpose |
 |---|---|---|
 | `SmartBotBlazorApp` | ASP.NET Core 8.0 (Blazor Web App host) | SignalR hub, EF Core persistence, Identity, image processing, server-rendered pages |
-| `SmartBotBlazorApp.Client` | Blazor WebAssembly 8.0 | Browser-side interactive pages (robot control) |
+| `SmartBotBlazorApp.Client` | Blazor WebAssembly 8.0 | Browser-side diagnostic/auth pages; `/chat` connects to SignalR from WASM |
 
 ## Pages
 
 | Route | Component | Render mode | Description |
 |---|---|---|---|
 | `/` | `Home.razor` | Server | Landing page and project overview |
-| `/chat` | `Client/Pages/Chat.razor` | WebAssembly | Robot control: virtual joystick, keyboard input (arrow keys, throttled to one command per 250 ms), dual speedometer gauges, live telemetry readout |
-| `/image-receiver-server` | `ImageReceiver_server.razor` | Server | Live 512×512 depth heatmap streamed as base64 PNG |
-| `/matrix-receiver-server` | `MatrixReceiver_server.razor` | Server | Live 32×32 interpolated depth grid with per-cell coloring (supports `[Authorize]`) |
-| `/measurement-charts` | `MeasurementCharts.razor` | Server | Historical MudBlazor line charts: temperature, average distance, acceleration (X/Y/Z), rotation (X/Y/Z); date-range picker, defaults to the last 5 minutes |
+| `/chat` | `Client/Pages/Chat.razor` | WebAssembly | Text-message diagnostics for the SignalR connection |
+| `/image-receiver-server` | `ImageReceiver_server.razor` | Server | Authorized live 512×512 depth heatmap plus joystick/keyboard robot control and speed gauges |
+| `/matrix-receiver-server` | `MatrixReceiver_server.razor` | Server | Authorized live 32×32 interpolated depth grid with per-cell coloring and robot control |
+| `/measurement-charts` | `MeasurementCharts.razor` | Server | Authorized historical MudBlazor charts: temperature, average distance, acceleration (X/Y/Z), rotation (X/Y/Z); date-range picker, defaults to the last 5 minutes |
 | `/weather` | `Weather.razor` | Server (stream rendering) | Air-quality data pulled from an external GreenCity/InPost sensor API |
 | `/Account/*` | Identity pages | Server | Registration, login, 2FA, password reset, account management |
 
@@ -36,7 +36,7 @@ The single real-time endpoint shared by robots and dashboards. See [architecture
 
 ### `Data/MeasurementService.cs`
 
-- `SaveMeasurementsToDatabase(user, measurements, avgDistance)` — inserts a `Measurement` row, throttled to at most one write per second.
+- `SaveMeasurementsToDatabase(user, measurements, avgDistance)` — inserts a `Measurement` row behind an approximately one-write-per-second, process-wide static timestamp check. It is shared across robot IDs and is not a strict synchronized rate limiter.
 - `RoundMeasurements(measurements, digits)` — display rounding (2 decimal places).
 - Date-range query used by the charts page.
 
@@ -74,6 +74,7 @@ EF Core context combining ASP.NET Core Identity tables with the `Measurement` te
 | Variable | Purpose |
 |---|---|
 | `SmartBotDBConnectionString` | Overrides the connection string (used in Docker/Azure) |
+| `RobotApiKey` | URL-safe key (minimum 32 characters) accepted from robot connections to `/signalhub` |
 | `ASPNETCORE_ENVIRONMENT` | `Development` / `Production` |
 | `ASPNETCORE_HTTP_PORTS` / `ASPNETCORE_HTTPS_PORTS` | Container port bindings (8080/8081 in Docker) |
 
@@ -87,15 +88,14 @@ EF Core context combining ASP.NET Core Identity tables with the `Measurement` te
 
 ## Middleware Pipeline (from `Program.cs`)
 
-Response compression (including `application/octet-stream` for SignalR payloads) → CORS (`CorsPolicy`, currently allow-all origins) → HTTPS redirection → static files → antiforgery → Razor components (Server + WASM render modes) → SignalR hub at `/signalhub` → Identity endpoints.
+Response compression (including `application/octet-stream` for SignalR payloads) → CORS → HTTPS redirection → static files → Identity authentication/authorization → SignalR access guard → antiforgery → Razor components (Server + WASM render modes) → SignalR hub at `/signalhub` → Identity endpoints.
 
 Notes for hardening before production use:
 
-- CORS is configured with `WithOrigins("*")` — restrict to known origins.
+- CORS currently allows any origin — restrict it to the deployed dashboard origins in production.
 - `IEmailSender` is a no-op stub (`IdentityNoOpEmailSender`) — plug in a real sender for account confirmation emails.
-- Authorization on the receiver pages is partially commented out — enable `@attribute [Authorize]` where access should be restricted.
 
 ## Deployment
 
 - **Docker:** `src/server/SmartBotBlazorApp/Dockerfile` (multi-stage: SDK build → publish → `mcr.microsoft.com/dotnet/aspnet:8.0` runtime, exposing 8080/8081). The project also defines .NET SDK container metadata (`kamilr616/smartbotblazorapp:latest`).
-- **CI/CD:** `.github/workflows/smartbotweb.yml` builds, tests, publishes, and deploys to the `smartbotweb` Azure App Service on every push to `main`, authenticated with a publish-profile secret.
+- **CI:** `.github/workflows/smartbotweb.yml` builds and tests the solution and publishes a deployable artifact for pushes and pull requests targeting `main`. External deployment is intentionally manual; the Azure App Service used for the project presentation is no longer hosted.

@@ -3,8 +3,8 @@
 [![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![Blazor](https://img.shields.io/badge/Blazor-Server%20%2B%20WASM-512BD4?logo=blazor&logoColor=white)](https://learn.microsoft.com/aspnet/core/blazor/)
 [![ESP32-C3](https://img.shields.io/badge/ESP32--C3-Firmware-E7352C?logo=espressif&logoColor=white)](https://www.espressif.com/en/products/socs/esp32-c3)
-[![Azure](https://img.shields.io/badge/Deploy-Azure%20App%20Service-0078D4?logo=microsoftazure&logoColor=white)](https://azure.microsoft.com/)
-[![Licencja: MIT](https://img.shields.io/badge/Licencja-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/Kamilr616/SmartBotAPI/actions/workflows/smartbotweb.yml/badge.svg)](https://github.com/Kamilr616/SmartBotAPI/actions/workflows/smartbotweb.yml)
+[![Licencja: GPL v3](https://img.shields.io/badge/Licencja-GPL_v3-blue.svg)](LICENSE)
 
 > 🇬🇧 [English version](README.md)
 
@@ -19,13 +19,19 @@
 ## Spis treści
 
 - [Przegląd systemu](#przegląd-systemu)
+- [Zrzuty ekranu](#zrzuty-ekranu)
+- [Demo](#demo)
 - [Funkcje](#funkcje)
 - [Stack technologiczny](#stack-technologiczny)
 - [Struktura repozytorium](#struktura-repozytorium)
 - [Szybki start](#szybki-start)
+  - [Serwer webowy](#serwer-webowy)
+  - [Firmware robota](#firmware-robota)
 - [Dokumentacja](#dokumentacja)
 - [Wdrożenie](#wdrożenie)
+- [Współpraca i bezpieczeństwo](#współpraca-i-bezpieczeństwo)
 - [Licencja](#licencja)
+- [Autorzy](#autorzy)
 
 ---
 
@@ -34,46 +40,59 @@
 ```mermaid
 flowchart LR
     subgraph Robot["🤖 SmartBot (ESP32-C3)"]
-        TOF["VL53L5CX<br/>czujnik głębi ToF 8×8"]
-        IMU["MPU6050<br/>IMU 6-osiowe + temp."]
-        MOT["TB6612FNG<br/>podwójny sterownik silników"]
-        MCU["ESP32-C3<br/>firmware"]
-        TOF -- I2C --> MCU
-        IMU -- I2C --> MCU
-        MCU -- PWM --> MOT
+        SENS["VL53L5CX ToF 8×8<br/>MPU6050 IMU"] -->|"I2C"| MCU["ESP32-C3"]
+        MCU -->|"PWM"| MOT["TB6612FNG<br/>silniki"]
     end
 
-    subgraph Server["☁️ ASP.NET Core 8 (Azure App Service)"]
+    subgraph Server["☁️ ASP.NET Core 8"]
         HUB["Hub SignalR<br/>/signalhub"]
-        IMG["ImageProcessor<br/>mapa ciepła + interpolacja"]
-        SVC["MeasurementService"]
-        DB[("SQL Server<br/>EF Core")]
-        HUB --> IMG
-        HUB --> SVC --> DB
+        HUB --> VIEW["Mapa ciepła + macierz 32×32"]
+        HUB --> DATA["Serwis telemetrii"] --> DB[("SQL Server")]
     end
 
-    subgraph Client["🖥️ Panel Blazor"]
-        CHAT["/chat — sterowanie joystickiem i klawiaturą"]
-        HEAT["/image-receiver-server — mapa ciepła na żywo"]
-        MTRX["/matrix-receiver-server — macierz głębi"]
-        CHRT["/measurement-charts — historia"]
-    end
-
-    MCU <-- "WSS (TLS) + SignalR JSON" --> HUB
-    HUB <-- "SignalR" --> Client
+    UI["🖥️ Uwierzytelniony panel Blazor<br/>sterowanie • głębia • historia"]
+    MCU <-->|"WSS / SignalR"| HUB
+    HUB <-->|"dane na żywo + sterowanie"| UI
 ```
 
 **Przepływ danych w jednym zdaniu:** robot próbkuje czujniki z częstotliwością 15 Hz, wysyła wywołania `ReceiveRobotData` do huba, który zapisuje pomiary, renderuje surową klatkę głębi 8×8 do mapy ciepła oraz interpolowanej macierzy 32×32 i rozsyła wszystko do podłączonych paneli — a komendy ruchu wędrują w drugą stronę jako `ReceiveRobotCommand` z wartościami PWM dla obu silników.
 
 ## Zrzuty ekranu
 
-![Strona główna](docs/img/home.png)
+<p align="center">
+  <img src="docs/img/home.png" alt="Strona główna SmartBotAPI" width="49%"/>
+  <img src="docs/img/live-image.png" alt="Panel obrazu, telemetrii i sterowania robotem" width="49%"/>
+</p>
+
+<p align="center">
+  <img src="docs/img/live-matrix.png" alt="Symulowana mapa głębi ToF i panel sterowania robotem" width="49%"/>
+  <img src="docs/img/measurements.png" alt="Wykresy pomiarów telemetrycznych robota" width="49%"/>
+</p>
+
+Na zrzutach panelu sterowania użyto reprezentatywnej telemetrii testowej i symulowanej klatki ToF; podczas pracy te same widoki są aktualizowane danymi przesyłanymi na żywo z robota przez SignalR.
+
+Fizyczny robot gąsienicowy używany podczas prac i testów jazdy na korytarzu:
+
+<p align="center">
+  <img src="docs/media/smartbot-field-test.jpg" alt="SmartBot podczas testu jazdy na korytarzu" width="49%"/>
+  <img src="docs/media/smartbot-hardware.jpg" alt="Elektronika i podwozie gąsienicowe SmartBota" width="49%"/>
+</p>
+
+### Dedykowana płytka PCB robota
+
+Robot korzysta z dedykowanej płytki bazowej PCB dla kontrolera, modułu sterownika silników, złączy czujników, wyłącznika zasilania i połączenia akumulatora. Oryginalny schemat z KiCada jest dostępny w pliku [`docs/schemat.pdf`](docs/schemat.pdf).
+
+<p align="center">
+  <img src="docs/media/robot-pcb.jpg" alt="Dedykowana płytka bazowa SmartBota zamontowana na podwoziu gąsienicowym" width="49%"/>
+  <img src="docs/img/robot-pcb-schematic.png" alt="Schemat elektryczny płytki bazowej SmartBota" width="49%"/>
+</p>
 
 ## 🎥 Demo
 
-Nagranie prezentacji systemu na żywo, sterującego fizycznym robotem (Katedra Informatyki, Akademia Tarnowska):
+Krótki montaż z lokalnych testów jazdy oraz nagranie prezentacji kompletnego systemu (Katedra Informatyki, Akademia Tarnowska):
 
-**[▶ Obejrzyj demo na Facebooku](https://www.facebook.com/reel/1991337048036257)**
+- **[▶ Obejrzyj montaż z testów jazdy](docs/media/smartbot-driving-demo.mp4)** *(78 s, bez dźwięku)*
+- **[▶ Obejrzyj pełną prezentację na Facebooku](https://www.facebook.com/reel/1991337048036257)**
 
 ## Funkcje
 
@@ -82,8 +101,8 @@ Nagranie prezentacji systemu na żywo, sterującego fizycznym robotem (Katedra I
 - **Panel telemetrii** — historyczne wykresy liniowe (temperatura, średnia odległość, przyspieszenie 3-osiowe, obrót 3-osiowy) z wyborem zakresu dat, oparte o SQL Server.
 - **Bezpieczeństwo w firmware** — automatyczny stop silników po 700 ms bez komendy, zabezpieczenie minimalnej odległości (400 mm) i automatyczne ponowne łączenie WebSocket co 5 s.
 - **Firmware wielosieciowe** — robot próbuje połączyć się z maks. trzema skonfigurowanymi sieciami Wi-Fi i łączy się przez TLS z hubem w chmurze.
-- **Gotowe uwierzytelnianie** — ASP.NET Core Identity (rejestracja, logowanie, 2FA, zarządzanie kontem); autoryzację per-strona włącza się jednym atrybutem.
-- **Cloud-native** — Dockerfile, obraz kontenera (`kamilr616/smartbotblazorapp`) i pipeline GitHub Actions wdrażający na Azure App Service przy każdym pushu do `main`.
+- **Uwierzytelniony panel sterowania** — strony panelu i połączenia przeglądarki z hubem wymagają ASP.NET Core Identity, a robot uwierzytelnia się w tym samym hubie oddzielnym kluczem API.
+- **Gotowość do wdrożenia w chmurze** — Dockerfile i metadane kontenera .NET (`kamilr616/smartbotblazorapp`) oraz pipeline GitHub Actions budujący, testujący i publikujący artefakt gotowy do wdrożenia.
 
 ## Stack technologiczny
 
@@ -95,10 +114,10 @@ Nagranie prezentacji systemu na żywo, sterującego fizycznym robotem (Katedra I
 | Dane | Entity Framework Core 9, SQL Server (LocalDB w dev) |
 | Przetwarzanie obrazu | SixLabors.ImageSharp (mapa ciepła, interpolacja dwuliniowa) |
 | Tożsamość | ASP.NET Core Identity |
-| Firmware | Arduino na ESP32-C3 (Arduino IDE lub PlatformIO) |
+| Firmware | Arduino na ESP32-C3 (Arduino IDE 2.x) |
 | Biblioteki firmware | ArduinoJson, SparkFun VL53L5CX, Adafruit MPU6050, WebSockets (Markus Sattler) |
 | Sprzęt | ESP32-C3 DevKitM-1, czujnik ToF VL53L5CX, IMU MPU6050, sterownik silników TB6612FNG, dioda statusu NeoPixel |
-| DevOps | Docker, GitHub Actions, Azure App Service |
+| DevOps | Docker, GitHub Actions, Azure App Service (wdrożenie prezentacyjne) |
 
 ## Struktura repozytorium
 
@@ -112,13 +131,14 @@ SmartBotAPI/
 │   │   │   ├── Data/                   # DbContext, encja Measurement, MeasurementService, migracje
 │   │   │   └── Components/Pages/        # Strony: mapa ciepła, macierz, wykresy, pogoda
 │   │   └── SmartBotBlazorApp.Client/    # Klient Blazor WebAssembly
-│   │       └── Pages/Chat.razor         # Strona sterowania robotem (joystick, klawiatura, wskaźniki)
+│   │       └── Pages/Chat.razor         # Diagnostyka tekstowa SignalR
 │   └── arduino/
 │       └── sketch_robot_signalr/        # Firmware ESP32-C3 (główny szkic + config.h)
 ├── docs/                                # Dokumentacja, schematy i datasheety
 ├── other/                               # Starsze szkice, projekt PlatformIO, szablony Azure
-├── LICENSE                              # MIT
-└── SECURITY.md                          # Polityka zgłaszania podatności
+├── LICENSE                              # GNU GPL v3.0
+├── SECURITY.md                          # Polityka zgłaszania podatności
+└── THIRD_PARTY_NOTICES.md               # Materiały na odrębnych licencjach
 ```
 
 ## Szybki start
@@ -127,8 +147,9 @@ SmartBotAPI/
 
 **Wymagania:** [.NET SDK 8.0](https://dotnet.microsoft.com/download/dotnet/8.0), SQL Server LocalDB (z Visual Studio) lub dowolna instancja SQL Server.
 
-```bash
+```powershell
 cd src/server/SmartBotBlazorApp
+$env:RobotApiKey = "zastap-losowym-kluczem-url-safe-o-dlugosci-minimum-32-znakow"
 dotnet restore
 dotnet run --launch-profile https
 ```
@@ -147,16 +168,19 @@ cd src/server
 docker build -t smartbotblazorapp -f SmartBotBlazorApp/Dockerfile .
 docker run -p 8080:8080 \
   -e SmartBotDBConnectionString="<twój-connection-string>" \
+  -e RobotApiKey="<ten-sam-dlugi-losowy-klucz-co-w-firmware>" \
   smartbotblazorapp
 ```
 
 ### Firmware robota
 
-**Wymagania:** Arduino IDE 2.x (z pakietem płytek ESP32) lub PlatformIO; ESP32-C3 DevKitM-1 połączone wg schematu w [`docs/schemat.pdf`](docs/schemat.pdf).
+**Wymagania:** Arduino IDE 2.x z pakietem płytek ESP32; ESP32-C3 DevKitM-1 połączone wg schematu w [`docs/schemat.pdf`](docs/schemat.pdf).
 
-1. Utwórz `src/arduino/sketch_robot_signalr/arduino_secrets.h` z danymi Wi-Fi:
+1. Skopiuj `arduino_secrets.example.h` jako `arduino_secrets.h` i ustaw klucz API robota oraz dane Wi-Fi:
 
    ```cpp
+   #define SECRET_API_KEY "ten-sam-losowy-klucz-co-na-serwerze"
+
    #define SECRET_SSID  "twoje-wifi"
    #define SECRET_PASS  "twoje-haslo"
    #define SECRET_SSID2 "zapasowe-wifi"
@@ -166,9 +190,9 @@ docker run -p 8080:8080 \
    ```
 
 2. Wskaż adres serwera w `config.h` (`SERVER_IP`, `SERVER_PORT`).
-3. Zainstaluj biblioteki wymienione w [Stacku technologicznym](#stack-technologiczny), wybierz płytkę **ESP32-C3 DevKitM-1** i wgraj `sketch_robot_signalr.ino`.
+3. Zainstaluj biblioteki wymienione w [Stacku technologicznym](#stack-technologiczny), wybierz płytkę **ESP32-C3 DevKitM-1**, ustaw **Narzędzia → Partition Scheme → Huge APP (3MB No OTA/1MB SPIFFS)** i wgraj `sketch_robot_signalr.ino`.
 
-Po połączeniu robot pojawia się na stronie **Chat** panelu i zaczyna strumieniować telemetrię.
+Po połączeniu robot pojawia się na stronie **Image Receiver** zalogowanego panelu i zaczyna strumieniować telemetrię.
 
 ## Dokumentacja
 
@@ -183,13 +207,19 @@ Materiały sprzętowe (datasheety i schematy VL53L5CX, TB6612FNG oraz układu ro
 
 ## Wdrożenie
 
-Push do `main` uruchamia workflow GitHub Actions (`.github/workflows/smartbotweb.yml`), który buduje, testuje, publikuje i wdraża aplikację na Azure App Service **smartbotweb** z użyciem sekretu publish-profile. Domyślny endpoint firmware (`smartbotweb.azurewebsites.net:443`) odpowiada temu wdrożeniu.
+Push do `main` lub otwarcie pull requesta do tej gałęzi uruchamia workflow GitHub Actions (`.github/workflows/smartbotweb.yml`), który buduje i testuje rozwiązanie oraz publikuje artefakt aplikacji webowej gotowy do wdrożenia. Workflow nie wdraża automatycznie do środowiska zewnętrznego.
+
+Na potrzeby prezentacji projektu aplikacja była wdrożona na Azure App Service **smartbotweb**, a firmware łączył się z `smartbotweb.azurewebsites.net:443`. Usługa nie jest już hostowana; aktualna konfiguracja firmware zawiera jawny placeholder, który przed użyciem trzeba zastąpić adresem bieżącego serwera.
+
+## Współpraca i bezpieczeństwo
+
+Zgłoszenia błędów i pull requesty są mile widziane. Podatności bezpieczeństwa należy zgłaszać zgodnie z procedurą opisaną w [SECURITY.md](SECURITY.md), zamiast otwierać publiczne zgłoszenie.
 
 ## Licencja
 
-Projekt na licencji [MIT](LICENSE) — © 2024 Kamil Rataj.
+Projekt jest udostępniany na licencji [GNU General Public License v3.0](LICENSE) — © 2024 Kamil Rataj. Materiały podlegające odrębnym licencjom wymieniono w pliku [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## 👥 Autorzy
 
 - **Kamil Rataj** — autor i opiekun — [GitHub](https://github.com/Kamilr616) · [LinkedIn](https://www.linkedin.com/in/kamil-r-153ab7121/)
-- **Mateusz** ([@Matix351](https://github.com/Matix351)) — współtwórca
+- **Mateusz Ciszek** ([@Matix351](https://github.com/Matix351)) — współtwórca

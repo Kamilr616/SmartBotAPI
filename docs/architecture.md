@@ -31,7 +31,7 @@ sequenceDiagram
 ## Transport
 
 - **Protocol:** SignalR JSON hub protocol over WebSocket. The browser uses the official SignalR client; the ESP32 speaks the protocol directly — it performs the JSON handshake (`{"protocol":"json","version":1}`), then exchanges invocation messages (type `1`), each terminated by the SignalR record separator `0x1E`.
-- **Security:** in production the robot connects via TLS (`wss://`) to `smartbotweb.azurewebsites.net:443`.
+- **Security:** dashboards authenticate with the ASP.NET Core Identity cookie. The robot supplies `SECRET_API_KEY` as the SignalR `access_token` query value; the server compares it in constant time with `RobotApiKey` (minimum 32 characters). Production transport uses TLS (`wss://`).
 - **Hub endpoint:** `/signalhub` (mapped in `Program.cs`).
 - **Reconnection:** the firmware retries the WebSocket every 5 s (`WS_RECONNECT_INTERVAL`); response compression is enabled server-side for `application/octet-stream`.
 
@@ -76,7 +76,7 @@ Both transformations live in `ImageProcessor.cs` and run per incoming frame:
 1. **Heatmap generation** — the 8×8 depth frame is normalized to the 10–3500 mm range and mapped onto a red → yellow → green → blue → purple gradient, rendered with ImageSharp and returned as a base64-encoded PNG (displayed at 512×512 in the browser).
 2. **Bilinear interpolation** — the same frame is upsampled to 32×32 (`ushort[1024]`) for the interactive matrix view, where each cell is colored client-side.
 
-`MeasurementService.cs` rounds measurements to 2 decimal places for display and writes them to the database, throttled to at most one insert per second per stream to avoid flooding the table at the 15 Hz sensor rate.
+`MeasurementService.cs` rounds measurements to 2 decimal places for display and uses one static timestamp to throttle database writes to approximately one insert per second for the whole server process. The throttle is shared by all robots and service instances; it is not maintained per stream. The timestamp check is not protected by a concurrency lock, so it is a load-reduction mechanism rather than a strict rate-limit guarantee.
 
 ## Persistence
 
@@ -88,7 +88,7 @@ Both transformations live in `ImageProcessor.cs` and run per incoming frame:
 
 The web application uses Blazor's hybrid rendering:
 
-- **Interactive Server** pages (`SmartBotBlazorApp/Components/Pages/`) — live visualization pages that hold a SignalR connection server-side.
-- **Interactive WebAssembly** pages (`SmartBotBlazorApp.Client/Pages/`) — the `/chat` control page runs in the browser for minimal input latency, connecting to the hub directly from WASM.
+- **Interactive Server** pages (`SmartBotBlazorApp/Components/Pages/`) — live visualization and robot-control pages that hold a SignalR connection server-side.
+- **Interactive WebAssembly** pages (`SmartBotBlazorApp.Client/Pages/`) — the `/chat` text-diagnostics page connects to the hub directly from WASM.
 
-ASP.NET Core Identity provides the account system (registration, login, 2FA, management pages under `/Account/*`). Authorization attributes exist on the receiver pages and can be enabled per page (`@attribute [Authorize]`).
+ASP.NET Core Identity provides the account system (registration, login, 2FA, management pages under `/Account/*`). Receiver and diagnostics pages require authorization.

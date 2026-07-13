@@ -28,24 +28,24 @@ The full circuit schematic is in [`schemat.pdf`](schemat.pdf); [`adafruit_tb6612
 
 | Constant | Default | Meaning |
 |---|---|---|
-| `SERVER_IP` / `SERVER_PORT` | `smartbotweb.azurewebsites.net` / `443` | SignalR hub endpoint (443 ⇒ TLS) |
+| `SERVER_IP` / `SERVER_PORT` | `your-server.example.com` / `443` | SignalR hub address; replace the placeholder with the current server hostname or LAN IP |
 | `SERIAL_BAUDRATE` | 115200 | Debug serial speed |
 | `WS_RECONNECT_INTERVAL` | 5000 ms | WebSocket reconnect period |
 | `MAX_IDLE_TIME` | 700 ms | Motors auto-stop if no command arrives within this window |
 | `MIN_DISTANCE` | 400 mm | Obstacle threshold used by the safety logic |
 | `TOF_RANGING_FREQ` | 15 Hz | Depth frame rate |
-| `TOF_INTEGRATION_TIME` | 5 ms | ToF integration time |
+| `TOF_INTEGRATION_TIME` | 5 ms | Defined for ToF integration, but the corresponding `setIntegrationTime` call is currently commented out; the sensor library default remains active |
 | `TOF_SHARPENER_PERCENT` | 18 % | On-chip sharpening |
 | `TOF_TARGET_ORDER` | `CLOSEST` | Multi-target priority |
 | `MPU_G_RANGE` | ±2 g | Accelerometer full scale |
 | `MPU_DEG_RANGE` | ±250 °/s | Gyroscope full scale |
 | `I2C_FREQ` | 400 kHz | Sensor bus clock |
 
-Wi-Fi credentials come from `arduino_secrets.h` (git-ignored, three SSID/password pairs; `WiFiMulti` picks whichever network is reachable). See [getting-started.md](getting-started.md) for the template.
+The robot API key and Wi-Fi credentials come from `arduino_secrets.h` (git-ignored). `WiFiMulti` picks whichever configured network is reachable, and the API key authenticates the WebSocket connection. See [getting-started.md](getting-started.md) or `arduino_secrets.example.h` for the template.
 
 ## Control Loop
 
-1. **Connect** — join Wi-Fi (multi-network), open a WebSocket to `SERVER_IP:SERVER_PORT` (TLS on 443), perform the SignalR JSON handshake, and set the status LED.
+1. **Connect** — join Wi-Fi (multi-network), open an API-key-authenticated WebSocket to `SERVER_IP:SERVER_PORT` (TLS on 443), perform the SignalR JSON handshake, and set the status LED.
 2. **Sense** — read the 8×8 VL53L5CX frame at 15 Hz and the MPU6050 (acceleration, rotation, temperature). The average distance is computed over the central 4×4 zone of the frame.
 3. **Publish** — invoke `ReceiveRobotData(user, measurements[7], rawMatrix[64], avgDistance)` on the hub.
 4. **Actuate** — on each `ReceiveRobotCommand(motorB, motorA)` message, clamp values to `-255…+255`, set direction pins and PWM duty on the TB6612FNG, and reset the idle timer.
@@ -69,16 +69,11 @@ Wi-Fi credentials come from `arduino_secrets.h` (git-ignored, three SSID/passwor
 
 ## Building
 
-**Arduino IDE 2.x** — install the ESP32 board package, select *ESP32C3 Dev Module* (DevKitM-1), install the libraries below, open `sketch_robot_signalr.ino`, upload.
+**Arduino IDE 2.x** — install the ESP32 board package, select *ESP32C3 Dev Module* (DevKitM-1), set *Tools → Partition Scheme → Huge APP (3MB No OTA/1MB SPIFFS)*, install the libraries below, open `sketch_robot_signalr.ino`, and upload. The default 1.2 MB application partition is too small for the current firmware and libraries.
 
-**PlatformIO** — a ready environment exists in `other/241111-183051-esp32-c3-devkitm-1/`:
+The PlatformIO project in `other/241111-183051-esp32-c3-devkitm-1/` is an archived development snapshot and does not contain the current robot authentication flow. Do not use it as a build source for the production firmware.
 
-```bash
-pio run -t upload -e esp32-c3-devkitm-1
-pio device monitor -b 115200
-```
-
-**Library versions** (pinned in `platformio.ini`):
+**Reference library versions** (recorded in the archived PlatformIO project):
 
 - `ArduinoJson` 7.2.0
 - `SparkFun VL53L5CX Arduino Library` 1.0.3

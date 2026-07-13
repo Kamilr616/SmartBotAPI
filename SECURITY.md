@@ -2,25 +2,14 @@
 
 ## Supported Versions
 
-The following versions of the project are actively supported with security updates:
-
-| Version | Supported          |
-| ------- | ------------------ |
-| < 1.0   | :x:                |
+Security fixes apply to the latest commit on the repository's default branch. Historical branches, releases, and educational snapshots are not actively supported.
 
 ## Reporting a Vulnerability
 
-To report a vulnerability, please follow these steps:
+Do not disclose a suspected vulnerability in a public issue. Use GitHub's **Report a vulnerability** form on the repository's **Security** tab when it is available. Otherwise, contact the repository owner through GitHub without including sensitive technical details in a public message.
 
-1. **Email us**: Send details of the vulnerability to [kamilr616@gmail.com]. Ensure to include:
-   - A clear description of the issue.
-   - Steps to reproduce the vulnerability.
-   - Any potential impact or exploit scenarios.
+Include the affected commit and path, reproduction steps, the expected impact, and any suggested remediation. Reports will normally be acknowledged within seven days. Disclosure should be coordinated until a fix or mitigation is available.
 
-2. **Response time**: We aim to acknowledge receipt of your report within 7 days and provide updates on the status of the issue within 30 days.
+## Scope
 
-3. **Evaluation**: The vulnerability will be reviewed, and if confirmed, we will work on a fix. We will notify you once the issue is resolved or provide an explanation if the report is not accepted.
-
-4. **Disclosure**: We will coordinate with you on the responsible disclosure of the vulnerability, which typically happens once a fix is available.
-
-We appreciate your help in maintaining the security of our project!
+Relevant reports include exposed credentials, authentication or authorization flaws, unsafe input handling, and exploitable dependency vulnerabilities. This is an educational or portfolio project and is not maintained as a production service.
