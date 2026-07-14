@@ -5,7 +5,7 @@ namespace SmartBotBlazorApp.Data
 {
     public class Measurement
     {
-        [Key] 
+        [Key]
         public int Id { get; set; }
 
         [Required]
@@ -15,28 +15,28 @@ namespace SmartBotBlazorApp.Data
         [Required]
         public double TemperatureC { get; set; }
 
-        [Required] 
+        [Required]
         public double AccelerationX { get; set; }
 
         [Required]
         public double AccelerationY { get; set; }
 
-        [Required] 
+        [Required]
         public double AccelerationZ { get; set; }
 
-        [Required] 
+        [Required]
         public double RotationX { get; set; }
 
         [Required]
         public double RotationY { get; set; }
 
-        [Required] 
+        [Required]
         public double RotationZ { get; set; }
 
-        [Required] 
+        [Required]
         public DateTime Timestamp { get; set; } = DateTime.Now;
 
-        [Required] 
+        [Required]
         public ushort AvgDistance { get; set; } = 0;
     }
 

@@ -40,4 +40,11 @@ public class RobotMessageValidatorTests
         measurements[0] = double.NaN;
         Assert.Throws<HubException>(() => RobotMessageValidator.ValidateTelemetry("Robot_KI", measurements, new ushort[64]));
     }
+
+    [Fact]
+    public void RobotIdentifierLongerThanDatabaseColumnIsRejected()
+    {
+        Assert.Throws<HubException>(() =>
+            RobotMessageValidator.ValidateTelemetry(new string('r', 51), new double[7], new ushort[64]));
+    }
 }
