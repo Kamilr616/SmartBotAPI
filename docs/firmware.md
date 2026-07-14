@@ -7,9 +7,9 @@ The production firmware lives in `src/arduino/sketch_robot_signalr/` and targets
 | Part | Role | Interface | Datasheet |
 |---|---|---|---|
 | ESP32-C3 DevKitM-1 | MCU, Wi-Fi, control loop | — | — |
-| ST VL53L5CX | 8×8 multizone time-of-flight depth sensor | I²C (400 kHz) | [`vl53l5cx.pdf`](vl53l5cx.pdf), [`um2884`](um2884-a-guide-to-using-the-vl53l5cx.pdf), [`um2887`](um2887-software-integration-guide.pdf) |
+| ST VL53L5CX | 8×8 multizone time-of-flight depth sensor | I²C (400 kHz) | [Datasheet](https://www.st.com/resource/en/datasheet/vl53l5cx.pdf), [UM2884](https://www.st.com/resource/en/user_manual/um2884-a-guide-to-using-the-vl53l5cx-multizone-timeofflight-ranging-sensor-with-wide-field-of-view-ultra-lite-driver-uld-stmicroelectronics.pdf), [UM2887](https://www.st.com/resource/en/user_manual/um2887-a-software-integration-guide-to-implement-the-ultra-light-driver-of-the-vl53l5cx-timeofflight-8-x-8-multizone-ranging-sensor-with-wide-field-of-view-stmicroelectronics.pdf) |
 | InvenSense MPU6050 | 6-axis IMU (accelerometer + gyroscope) + die temperature | I²C | — |
-| Toshiba TB6612FNG | Dual H-bridge motor driver (2 DC motors) | GPIO + PWM | [`TB6612FNG_datasheet_en_20121101.pdf`](TB6612FNG_datasheet_en_20121101.pdf) |
+| Toshiba TB6612FNG | Dual H-bridge motor driver (2 DC motors) | GPIO + PWM | [Official product page and datasheet](https://toshiba.semicon-storage.com/us/semiconductor/product/motor-driver-ics/brushed-dc-motor-driver-ics/detail.TB6612FNG.html) |
 | NeoPixel RGB LED | Connection status indicator | Single-wire (GPIO 10) | — |
 
 The full circuit schematic is in [`schemat.pdf`](schemat.pdf); [`adafruit_tb6612_schem.png`](adafruit_tb6612_schem.png) shows the motor-driver breakout reference.

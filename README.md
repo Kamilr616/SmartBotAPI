@@ -6,7 +6,7 @@
 [![CI](https://github.com/Kamilr616/SmartBotAPI/actions/workflows/smartbotweb.yml/badge.svg)](https://github.com/Kamilr616/SmartBotAPI/actions/workflows/smartbotweb.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL_v3-blue.svg)](LICENSE)
 
-> 🇵🇱 [Wersja polska](README.pl.md)
+> 🇵🇱 [Polish version](README.pl.md)
 
 **🗓️ Project period:** 2024–2025
 
@@ -60,39 +60,41 @@ flowchart LR
 ## Screenshots
 
 <p align="center">
-  <img src="docs/img/home.png" alt="SmartBotAPI home page" width="49%"/>
-  <img src="docs/img/live-image.png" alt="Robot telemetry and image control panel" width="49%"/>
+  <img src="other/media/live-image.png" alt="Robot telemetry and image control panel" width="49%"/>
+  <img src="other/media/live-matrix.png" alt="Live 32×32 ToF depth matrix and robot control panel" width="49%"/>
 </p>
 
 <p align="center">
-  <img src="docs/img/live-matrix.png" alt="Simulated ToF depth map and robot control panel" width="49%"/>
-  <img src="docs/img/measurements.png" alt="Robot telemetry measurement charts" width="49%"/>
+  <img src="other/media/login.png" alt="SmartBotAPI login page" width="49%"/>
+  <img src="other/media/measurements.png" alt="Robot telemetry measurement charts" width="49%"/>
 </p>
 
-The control-panel screenshots use representative test telemetry and a simulated ToF frame; during operation the same views are updated with live SignalR data from the robot.
+The depth visualizations in both live-view screenshots are based on a ToF frame captured during a real system test; **Live View Matrix** presents the frame in the application's 32×32 grid. During operation, both views are updated with live SignalR data from the robot.
 
 The physical tracked robot used during development and corridor driving tests:
 
 <p align="center">
-  <img src="docs/media/smartbot-field-test.jpg" alt="SmartBot during a corridor driving test" width="49%"/>
-  <img src="docs/media/smartbot-hardware.jpg" alt="SmartBot electronics and tracked chassis" width="49%"/>
+  <img src="other/media/smartbot-field-test.jpg" alt="SmartBot during a corridor driving test" width="49%"/>
+  <img src="other/media/smartbot-hardware.jpg" alt="SmartBot electronics and tracked chassis" width="49%"/>
 </p>
 
 ### Custom robot PCB
 
-The robot uses a custom carrier PCB for the controller, motor-driver module, sensor connectors, power switch, and battery connection. The original KiCad circuit is available as [`docs/schemat.pdf`](docs/schemat.pdf).
+The robot uses a custom carrier PCB for the controller, motor-driver module, sensor connectors, power switch, and battery connection. A PDF export of the KiCad circuit schematic is available as [`docs/schemat.pdf`](docs/schemat.pdf).
 
 <p align="center">
-  <img src="docs/media/robot-pcb.jpg" alt="Custom SmartBot carrier PCB installed on the tracked chassis" width="49%"/>
-  <img src="docs/img/robot-pcb-schematic.png" alt="SmartBot carrier PCB circuit schematic" width="49%"/>
+  <img src="other/media/robot-pcb.jpg" alt="Custom SmartBot carrier PCB installed on the tracked chassis" width="49%"/>
+  <img src="other/media/robot-pcb-schematic.png" alt="SmartBot carrier PCB circuit schematic" width="49%"/>
 </p>
 
 ## 🎥 Demo
 
 A short local driving-test montage and a recorded live presentation of the complete system (Department of Computer Science, Akademia Tarnowska):
 
-- **[▶ Watch the driving-test montage](docs/media/smartbot-driving-demo.mp4)** *(78 s, no audio)*
+- **[▶ Watch the driving-test montage](other/media/smartbot-driving-demo-music.mp4)** *(78 s, with music)*
 - **[▶ Watch the full presentation on Facebook](https://www.facebook.com/reel/1991337048036257)**
+
+Music: **“New Direction” — Kevin MacLeod**, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for source and modification details.
 
 ## Features
 
@@ -100,32 +102,17 @@ A short local driving-test montage and a recorded live presentation of the compl
 - **Live depth vision** — the 8×8 VL53L5CX depth frame is rendered server-side into a color heatmap (PNG, base64) and a bilinearly interpolated 32×32 grid, streamed to the browser as it arrives.
 - **Telemetry dashboard** — historical line charts (temperature, average distance, 3-axis acceleration, 3-axis rotation) with a date-range picker, backed by SQL Server.
 - **Safety built into firmware** — automatic motor stop after 700 ms without a command, minimum-distance guard (400 mm), and automatic WebSocket reconnection every 5 s.
-- **Multi-network firmware** — the robot tries up to three configured Wi-Fi networks and connects over TLS to the cloud-hosted hub.
+- **Multi-network firmware** — the robot tries up to three configured Wi-Fi networks and supports TLS/WSS when connecting to the server address configured in `config.h`.
 - **Authenticated control plane** — dashboard pages and browser hub connections require ASP.NET Core Identity; the robot authenticates to the same hub with a separate API key.
 - **Cloud-ready** — a Dockerfile and .NET container metadata (`kamilr616/smartbotblazorapp`), plus a GitHub Actions pipeline that builds, tests, and publishes a deployable artifact.
 
 ### One-joystick differential drive
 
-The circular joystick controls throttle and steering at the same time instead of
-selecting only four fixed directions. Its normalized vertical (`y`) and horizontal
-(`x`) positions are mixed into independent motor commands:
-
-```text
-left motor  = clamp(y + x, -1, 1) × 255
-right motor = clamp(y - x, -1, 1) × 255
-```
-
-This differential-drive mix makes the whole joystick surface useful: vertical input
-drives both motors together, diagonal input produces proportional turns and smooth
-arcs, and horizontal input drives the motors in opposite directions so the robot can
-rotate around its own axis. A central stop dead zone prevents drift, while a wider
-horizontal dead zone makes straight-line driving easier. Releasing the pointer sends
-an immediate stop command; while it is held, movement commands are refreshed every
-250 ms so the firmware's 700 ms dead-man timer remains satisfied.
-
-The arrow keys provide a discrete, full-power alternative: `↑`/`↓` drive forward or
-backward and `←`/`→` rotate in place. The dashboard displays the resulting PWM value
-for each motor on its two speedometer gauges.
+One proportional joystick combines throttle and steering, allowing straight driving,
+smooth arcs, and rotation around the robot's own axis. Arrow keys provide an
+alternative control method, while two speedometer gauges show the motor PWM commands.
+See the [motion-control documentation](docs/architecture.md#motion-control) for the
+mixing equations, dead zones, timing, key mapping, and safety behavior.
 
 ## Tech Stack
 
@@ -157,8 +144,10 @@ SmartBotAPI/
 │   │       └── Pages/Chat.razor        # SignalR text diagnostics page
 │   └── arduino/
 │       └── sketch_robot_signalr/       # ESP32-C3 firmware (main sketch + config.h)
-├── docs/                               # Project documentation, schematics & datasheets
-├── other/                              # Legacy sketches, PlatformIO project, Azure templates
+├── docs/                               # Project documentation, schematic, and hardware references
+├── other/                              # Media and archived project material
+│   ├── media/                          # README screenshots, photos, and demo video
+│   └── ...                             # Legacy sketches, PlatformIO project, Azure templates
 ├── LICENSE                             # GNU GPL v3.0
 ├── SECURITY.md                         # Vulnerability reporting policy
 └── THIRD_PARTY_NOTICES.md              # Separately licensed third-party material
@@ -168,7 +157,7 @@ SmartBotAPI/
 
 ### Web Server
 
-**Prerequisites:** [.NET SDK 8.0](https://dotnet.microsoft.com/download/dotnet/8.0), SQL Server LocalDB (ships with Visual Studio) or any SQL Server instance.
+**Prerequisites:** [.NET SDK 8.0](https://dotnet.microsoft.com/download/dotnet/8.0), SQL Server LocalDB on Windows (installed with Visual Studio) or any reachable SQL Server instance.
 
 ```powershell
 cd src/server/SmartBotBlazorApp
@@ -182,13 +171,20 @@ The app applies EF Core migrations automatically on startup and listens on:
 - `https://localhost:7297`
 - `http://localhost:5221`
 
+On first launch, create a dashboard account at `https://localhost:7297/Account/Register`, then sign in.
+
+To run the automated tests from the repository root:
+
+```powershell
+dotnet test src/server/SmartBotBlazorApp.sln
+```
+
 To use a different database, set the `SmartBotDBConnectionString` environment variable — it takes precedence over `ConnectionStrings:DefaultConnection` in `appsettings.json`.
 
 **Docker:**
 
 ```bash
-cd src/server
-docker build -t smartbotblazorapp -f SmartBotBlazorApp/Dockerfile .
+docker build -t smartbotblazorapp -f src/server/SmartBotBlazorApp/Dockerfile .
 docker run -p 8080:8080 \
   -e SmartBotDBConnectionString="<your-connection-string>" \
   -e RobotApiKey="<same-long-random-key-as-the-firmware>" \
@@ -215,7 +211,7 @@ docker run -p 8080:8080 \
 2. Point the firmware at your server in `config.h` (`SERVER_IP`, `SERVER_PORT`).
 3. Install the libraries listed in [Tech Stack](#tech-stack) via the Library Manager, select the **ESP32-C3 DevKitM-1** board, set **Tools → Partition Scheme → Huge APP (3MB No OTA/1MB SPIFFS)**, and upload `sketch_robot_signalr.ino`.
 
-Once connected, the robot appears on the **Image Receiver** page of the authenticated dashboard and starts streaming telemetry.
+Once connected, the robot appears on the **Live View Image** page of the authenticated dashboard and starts streaming telemetry.
 
 ## Documentation
 
@@ -226,7 +222,7 @@ Once connected, the robot appears on the **Image Receiver** page of the authenti
 | [Server Application](docs/server.md) | Pages, services, hub API, data model, configuration reference |
 | [Firmware & Hardware](docs/firmware.md) | Pinout, sensor configuration, control loop, safety behavior |
 
-Hardware reference material (datasheets and schematics for the VL53L5CX, TB6612FNG, and the robot's circuit) lives in [`docs/`](docs/).
+The [firmware and hardware reference](docs/firmware.md) links to the manufacturers' current datasheets. The project circuit schematic is stored in [`docs/`](docs/).
 
 ## Deployment
 

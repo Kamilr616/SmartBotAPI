@@ -6,11 +6,13 @@ EXPOSE 8081
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ["../SmartBotBlazorApp/SmartBotBlazorApp.csproj", "SmartBotBlazorApp/"]
-COPY ["../SmartBotBlazorApp.Client/SmartBotBlazorApp.Client.csproj", "SmartBotBlazorApp.Client/"]
+COPY ["LICENSE", "/LICENSE"]
+COPY ["THIRD_PARTY_NOTICES.md", "/THIRD_PARTY_NOTICES.md"]
+COPY ["src/server/SmartBotBlazorApp/SmartBotBlazorApp.csproj", "SmartBotBlazorApp/"]
+COPY ["src/server/SmartBotBlazorApp.Client/SmartBotBlazorApp.Client.csproj", "SmartBotBlazorApp.Client/"]
 
 RUN dotnet restore "SmartBotBlazorApp/SmartBotBlazorApp.csproj"
-COPY . .
+COPY ["src/server/", "."]
 RUN dotnet build "SmartBotBlazorApp/SmartBotBlazorApp.csproj" -c Release -o /app/build
 
 FROM build AS publish

@@ -60,39 +60,41 @@ flowchart LR
 ## Zrzuty ekranu
 
 <p align="center">
-  <img src="docs/img/home.png" alt="Strona główna SmartBotAPI" width="49%"/>
-  <img src="docs/img/live-image.png" alt="Panel obrazu, telemetrii i sterowania robotem" width="49%"/>
+  <img src="other/media/live-image.png" alt="Panel obrazu, telemetrii i sterowania robotem" width="49%"/>
+  <img src="other/media/live-matrix.png" alt="Podgląd macierzy głębi ToF 32×32 i panel sterowania robotem" width="49%"/>
 </p>
 
 <p align="center">
-  <img src="docs/img/live-matrix.png" alt="Symulowana mapa głębi ToF i panel sterowania robotem" width="49%"/>
-  <img src="docs/img/measurements.png" alt="Wykresy pomiarów telemetrycznych robota" width="49%"/>
+  <img src="other/media/login.png" alt="Ekran logowania SmartBotAPI" width="49%"/>
+  <img src="other/media/measurements.png" alt="Wykresy pomiarów telemetrycznych robota" width="49%"/>
 </p>
 
-Na zrzutach panelu sterowania użyto reprezentatywnej telemetrii testowej i symulowanej klatki ToF; podczas pracy te same widoki są aktualizowane danymi przesyłanymi na żywo z robota przez SignalR.
+Wizualizacje głębi na obu zrzutach podglądu wykorzystują klatkę ToF zarejestrowaną podczas rzeczywistego testu systemu; **Live View Matrix** przedstawia ją w siatce 32×32 aplikacji. Podczas pracy oba widoki są aktualizowane danymi przesyłanymi na żywo z robota przez SignalR.
 
 Fizyczny robot gąsienicowy używany podczas prac i testów jazdy na korytarzu:
 
 <p align="center">
-  <img src="docs/media/smartbot-field-test.jpg" alt="SmartBot podczas testu jazdy na korytarzu" width="49%"/>
-  <img src="docs/media/smartbot-hardware.jpg" alt="Elektronika i podwozie gąsienicowe SmartBota" width="49%"/>
+  <img src="other/media/smartbot-field-test.jpg" alt="SmartBot podczas testu jazdy na korytarzu" width="49%"/>
+  <img src="other/media/smartbot-hardware.jpg" alt="Elektronika i podwozie gąsienicowe SmartBota" width="49%"/>
 </p>
 
 ### Dedykowana płytka PCB robota
 
-Robot korzysta z dedykowanej płytki bazowej PCB dla kontrolera, modułu sterownika silników, złączy czujników, wyłącznika zasilania i połączenia akumulatora. Oryginalny schemat z KiCada jest dostępny w pliku [`docs/schemat.pdf`](docs/schemat.pdf).
+Robot korzysta z dedykowanej płytki bazowej PCB dla kontrolera, modułu sterownika silników, złączy czujników, wyłącznika zasilania i połączenia akumulatora. Eksport schematu elektrycznego z programu KiCad jest dostępny w pliku [`docs/schemat.pdf`](docs/schemat.pdf).
 
 <p align="center">
-  <img src="docs/media/robot-pcb.jpg" alt="Dedykowana płytka bazowa SmartBota zamontowana na podwoziu gąsienicowym" width="49%"/>
-  <img src="docs/img/robot-pcb-schematic.png" alt="Schemat elektryczny płytki bazowej SmartBota" width="49%"/>
+  <img src="other/media/robot-pcb.jpg" alt="Dedykowana płytka bazowa SmartBota zamontowana na podwoziu gąsienicowym" width="49%"/>
+  <img src="other/media/robot-pcb-schematic.png" alt="Schemat elektryczny płytki bazowej SmartBota" width="49%"/>
 </p>
 
 ## 🎥 Demo
 
 Krótki montaż z lokalnych testów jazdy oraz nagranie prezentacji kompletnego systemu (Katedra Informatyki, Akademia Tarnowska):
 
-- **[▶ Obejrzyj montaż z testów jazdy](docs/media/smartbot-driving-demo.mp4)** *(78 s, bez dźwięku)*
+- **[▶ Obejrzyj montaż z testów jazdy](other/media/smartbot-driving-demo-music.mp4)** *(78 s, z muzyką)*
 - **[▶ Obejrzyj pełną prezentację na Facebooku](https://www.facebook.com/reel/1991337048036257)**
+
+Muzyka: **„New Direction” — Kevin MacLeod**, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Szczegóły źródła i modyfikacji: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Funkcje
 
@@ -100,33 +102,18 @@ Krótki montaż z lokalnych testów jazdy oraz nagranie prezentacji kompletnego 
 - **Podgląd głębi na żywo** — klatka głębi 8×8 z VL53L5CX renderowana po stronie serwera do kolorowej mapy ciepła (PNG, base64) oraz interpolowanej dwuliniowo siatki 32×32, strumieniowana do przeglądarki na bieżąco.
 - **Panel telemetrii** — historyczne wykresy liniowe (temperatura, średnia odległość, przyspieszenie 3-osiowe, obrót 3-osiowy) z wyborem zakresu dat, oparte o SQL Server.
 - **Bezpieczeństwo w firmware** — automatyczny stop silników po 700 ms bez komendy, zabezpieczenie minimalnej odległości (400 mm) i automatyczne ponowne łączenie WebSocket co 5 s.
-- **Firmware wielosieciowe** — robot próbuje połączyć się z maks. trzema skonfigurowanymi sieciami Wi-Fi i łączy się przez TLS z hubem w chmurze.
+- **Firmware wielosieciowe** — robot próbuje połączyć się z maks. trzema skonfigurowanymi sieciami Wi-Fi i obsługuje TLS/WSS podczas łączenia z adresem serwera ustawionym w `config.h`.
 - **Uwierzytelniony panel sterowania** — strony panelu i połączenia przeglądarki z hubem wymagają ASP.NET Core Identity, a robot uwierzytelnia się w tym samym hubie oddzielnym kluczem API.
 - **Gotowość do wdrożenia w chmurze** — Dockerfile i metadane kontenera .NET (`kamilr616/smartbotblazorapp`) oraz pipeline GitHub Actions budujący, testujący i publikujący artefakt gotowy do wdrożenia.
 
 ### Sterowanie różnicowe jednym joystickiem
 
-Okrągły joystick steruje jednocześnie prędkością i kierunkiem, zamiast wybierać
-wyłącznie cztery ustalone kierunki. Jego znormalizowane położenie pionowe (`y`) i
-poziome (`x`) jest przeliczane na niezależne komendy obu silników:
-
-```text
-lewy silnik  = clamp(y + x, -1, 1) × 255
-prawy silnik = clamp(y - x, -1, 1) × 255
-```
-
-Takie miksowanie napędu różnicowego wykorzystuje całą powierzchnię joysticka:
-wychylenie pionowe napędza oba silniki jednakowo, wychylenie po skosie pozwala
-płynnie skręcać i jechać po łuku, a wychylenie poziome nadaje silnikom przeciwne
-kierunki, umożliwiając obrót robota wokół własnej osi. Centralna strefa martwa
-zapobiega przypadkowemu pełzaniu, a szersza pozioma strefa martwa ułatwia jazdę
-prosto. Zwolnienie joysticka natychmiast wysyła komendę zatrzymania; podczas jego
-przytrzymywania komendy są odświeżane co 250 ms, dzięki czemu nie zadziała
-700-milisekundowy licznik bezpieczeństwa w firmware.
-
-Klawisze strzałek są alternatywnym, skokowym sterowaniem z pełną mocą: `↑`/`↓`
-uruchamiają jazdę do przodu lub do tyłu, a `←`/`→` obracają robota w miejscu. Panel
-pokazuje wynikową wartość PWM każdego silnika na dwóch prędkościomierzach.
+Jeden proporcjonalny joystick łączy sterowanie prędkością i kierunkiem, umożliwiając
+jazdę prosto, płynne pokonywanie łuków oraz obrót robota wokół własnej osi. Klawisze
+strzałek są alternatywną metodą sterowania, a dwa prędkościomierze pokazują komendy
+PWM silników. Równania miksowania, strefy martwe, częstotliwość komend, mapowanie
+klawiszy i zabezpieczenia opisano w
+[dokumentacji sterowania (EN)](docs/architecture.md#motion-control).
 
 ## Stack technologiczny
 
@@ -158,8 +145,10 @@ SmartBotAPI/
 │   │       └── Pages/Chat.razor         # Diagnostyka tekstowa SignalR
 │   └── arduino/
 │       └── sketch_robot_signalr/        # Firmware ESP32-C3 (główny szkic + config.h)
-├── docs/                                # Dokumentacja, schematy i datasheety
-├── other/                               # Starsze szkice, projekt PlatformIO, szablony Azure
+├── docs/                                # Dokumentacja, schemat projektu i odnośniki sprzętowe
+├── other/                               # Multimedia i zarchiwizowane materiały projektu
+│   ├── media/                           # Screenshoty README, zdjęcia i film demonstracyjny
+│   └── ...                              # Starsze szkice, projekt PlatformIO, szablony Azure
 ├── LICENSE                              # GNU GPL v3.0
 ├── SECURITY.md                          # Polityka zgłaszania podatności
 └── THIRD_PARTY_NOTICES.md               # Materiały na odrębnych licencjach
@@ -169,7 +158,7 @@ SmartBotAPI/
 
 ### Serwer webowy
 
-**Wymagania:** [.NET SDK 8.0](https://dotnet.microsoft.com/download/dotnet/8.0), SQL Server LocalDB (z Visual Studio) lub dowolna instancja SQL Server.
+**Wymagania:** [.NET SDK 8.0](https://dotnet.microsoft.com/download/dotnet/8.0), SQL Server LocalDB w systemie Windows (instalowany z Visual Studio) lub dowolna dostępna instancja SQL Server.
 
 ```powershell
 cd src/server/SmartBotBlazorApp
@@ -183,13 +172,20 @@ Aplikacja automatycznie stosuje migracje EF Core przy starcie i nasłuchuje na:
 - `https://localhost:7297`
 - `http://localhost:5221`
 
+Przy pierwszym uruchomieniu utwórz konto panelu pod adresem `https://localhost:7297/Account/Register`, a następnie się zaloguj.
+
+Aby uruchomić testy automatyczne z katalogu głównego repozytorium:
+
+```powershell
+dotnet test src/server/SmartBotBlazorApp.sln
+```
+
 Aby użyć innej bazy, ustaw zmienną środowiskową `SmartBotDBConnectionString` — ma pierwszeństwo przed `ConnectionStrings:DefaultConnection` w `appsettings.json`.
 
 **Docker:**
 
 ```bash
-cd src/server
-docker build -t smartbotblazorapp -f SmartBotBlazorApp/Dockerfile .
+docker build -t smartbotblazorapp -f src/server/SmartBotBlazorApp/Dockerfile .
 docker run -p 8080:8080 \
   -e SmartBotDBConnectionString="<twój-connection-string>" \
   -e RobotApiKey="<ten-sam-dlugi-losowy-klucz-co-w-firmware>" \
@@ -216,18 +212,18 @@ docker run -p 8080:8080 \
 2. Wskaż adres serwera w `config.h` (`SERVER_IP`, `SERVER_PORT`).
 3. Zainstaluj biblioteki wymienione w [Stacku technologicznym](#stack-technologiczny), wybierz płytkę **ESP32-C3 DevKitM-1**, ustaw **Narzędzia → Partition Scheme → Huge APP (3MB No OTA/1MB SPIFFS)** i wgraj `sketch_robot_signalr.ino`.
 
-Po połączeniu robot pojawia się na stronie **Image Receiver** zalogowanego panelu i zaczyna strumieniować telemetrię.
+Po połączeniu robot pojawia się na stronie **Live View Image** zalogowanego panelu i zaczyna strumieniować telemetrię.
 
 ## Dokumentacja
 
 | Dokument | Zawartość |
 |---|---|
-| [Architektura i komunikacja](docs/architecture.md) | Projekt systemu, kontrakty wiadomości SignalR, przepływ danych |
-| [Getting Started](docs/getting-started.md) | Szczegółowa konfiguracja serwera, bazy i firmware |
-| [Aplikacja serwerowa](docs/server.md) | Strony, serwisy, API huba, model danych, konfiguracja |
-| [Firmware i sprzęt](docs/firmware.md) | Pinout, konfiguracja czujników, pętla sterowania, bezpieczeństwo |
+| [Architektura i komunikacja (EN)](docs/architecture.md) | Projekt systemu, kontrakty wiadomości SignalR, przepływ danych |
+| [Getting Started (EN)](docs/getting-started.md) | Szczegółowa konfiguracja serwera, bazy i firmware |
+| [Aplikacja serwerowa (EN)](docs/server.md) | Strony, serwisy, API huba, model danych, konfiguracja |
+| [Firmware i sprzęt (EN)](docs/firmware.md) | Pinout, konfiguracja czujników, pętla sterowania, bezpieczeństwo |
 
-Materiały sprzętowe (datasheety i schematy VL53L5CX, TB6612FNG oraz układu robota) znajdują się w [`docs/`](docs/).
+[Dokumentacja firmware i sprzętu](docs/firmware.md) zawiera odnośniki do aktualnych datasheetów producentów. Schemat układu robota znajduje się w [`docs/`](docs/).
 
 ## Wdrożenie
 

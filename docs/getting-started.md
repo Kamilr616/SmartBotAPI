@@ -48,8 +48,8 @@ dotnet run --launch-profile https
 ### Docker
 
 ```bash
-cd SmartBotAPI/src/server
-docker build -t smartbotblazorapp -f SmartBotBlazorApp/Dockerfile .
+cd SmartBotAPI
+docker build -t smartbotblazorapp -f src/server/SmartBotBlazorApp/Dockerfile .
 docker run -p 8080:8080 \
   -e ASPNETCORE_ENVIRONMENT=Production \
   -e SmartBotDBConnectionString="<connection-string>" \

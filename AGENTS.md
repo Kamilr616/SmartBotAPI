@@ -13,7 +13,8 @@ Service**. Robot firmware is an Arduino sketch that connects to the SignalR hub.
 - `src/server/SmartBotBlazorApp.Client/` — Blazor WASM client.
 - `src/server/SmartBotBlazorApp.Tests/` — unit tests.
 - `src/arduino/sketch_robot_signalr/` — robot firmware (+ `arduino_secrets.example.h`).
-- `docs/` — architecture / getting-started / server / firmware notes + media.
+- `docs/` — architecture / getting-started / server / firmware notes.
+- `other/media/` — README screenshots, photos, and demo video.
 
 ## Build / run / test
 - Build/run with the **.NET 8 SDK** (`dotnet build` / `dotnet run`).
