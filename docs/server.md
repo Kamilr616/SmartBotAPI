@@ -19,6 +19,25 @@ The web application lives in `src/server/` and consists of two projects:
 | `/weather` | `Weather.razor` | Server (stream rendering) | Air-quality data pulled from an external GreenCity/InPost sensor API |
 | `/Account/*` | Identity pages | Server | Registration, login, 2FA, password reset, account management |
 
+## Robot Control Input
+
+The control panel in `ImageReceiver_server.razor` accepts pointer events from mouse
+or touch and keyboard events from the arrow keys:
+
+- `Components/RobotMovementInput/JoystickInputHandler.cs` normalizes the two joystick
+  axes, applies stop/straight-driving dead zones, and mixes them as `left = y + x`
+  and `right = y - x`. This provides proportional straight motion, curved motion,
+  and rotation around the robot's own axis from one joystick.
+- `Components/RobotMovementInput/keyboardInputHandler.cs` maps the arrow keys to
+  full-range `-255`, `0`, or `255` motor commands. Up/down drive both motors in the
+  same direction; left/right drive them in opposite directions for rotation in place.
+- `ImageReceiver_server.razor` sends commands through `SendMovementCommand`, updates
+  both speed gauges, limits normal command transmission to one message per 250 ms,
+  and sends `(0, 0)` when pointer or keyboard input is released.
+
+See [architecture.md](architecture.md#motion-control) for the equations, exact key
+mapping, and the interaction with the firmware dead-man timer.
+
 ## Services
 
 ### `Hubs/SignalHub.cs` — SignalR hub (`/signalhub`)

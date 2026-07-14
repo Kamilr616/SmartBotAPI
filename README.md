@@ -104,6 +104,14 @@ A short local driving-test montage and a recorded live presentation of the compl
 - **Authenticated control plane** — dashboard pages and browser hub connections require ASP.NET Core Identity; the robot authenticates to the same hub with a separate API key.
 - **Cloud-ready** — a Dockerfile and .NET container metadata (`kamilr616/smartbotblazorapp`), plus a GitHub Actions pipeline that builds, tests, and publishes a deployable artifact.
 
+### One-joystick differential drive
+
+One proportional joystick combines throttle and steering, allowing straight driving,
+smooth arcs, and rotation around the robot's own axis. Arrow keys provide an
+alternative control method, while two speedometer gauges show the motor PWM commands.
+See the [motion-control documentation](docs/architecture.md#motion-control) for the
+mixing equations, dead zones, timing, key mapping, and safety behavior.
+
 ## Tech Stack
 
 | Layer | Technology |

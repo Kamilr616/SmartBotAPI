@@ -104,6 +104,15 @@ Krótki montaż z lokalnych testów jazdy oraz nagranie prezentacji kompletnego 
 - **Uwierzytelniony panel sterowania** — strony panelu i połączenia przeglądarki z hubem wymagają ASP.NET Core Identity, a robot uwierzytelnia się w tym samym hubie oddzielnym kluczem API.
 - **Gotowość do wdrożenia w chmurze** — Dockerfile i metadane kontenera .NET (`kamilr616/smartbotblazorapp`) oraz pipeline GitHub Actions budujący, testujący i publikujący artefakt gotowy do wdrożenia.
 
+### Sterowanie różnicowe jednym joystickiem
+
+Jeden proporcjonalny joystick łączy sterowanie prędkością i kierunkiem, umożliwiając
+jazdę prosto, płynne pokonywanie łuków oraz obrót robota wokół własnej osi. Klawisze
+strzałek są alternatywną metodą sterowania, a dwa prędkościomierze pokazują komendy
+PWM silników. Równania miksowania, strefy martwe, częstotliwość komend, mapowanie
+klawiszy i zabezpieczenia opisano w
+[dokumentacji sterowania](docs/architecture.md#motion-control).
+
 ## Stack technologiczny
 
 | Warstwa | Technologia |
