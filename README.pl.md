@@ -104,6 +104,30 @@ Krótki montaż z lokalnych testów jazdy oraz nagranie prezentacji kompletnego 
 - **Uwierzytelniony panel sterowania** — strony panelu i połączenia przeglądarki z hubem wymagają ASP.NET Core Identity, a robot uwierzytelnia się w tym samym hubie oddzielnym kluczem API.
 - **Gotowość do wdrożenia w chmurze** — Dockerfile i metadane kontenera .NET (`kamilr616/smartbotblazorapp`) oraz pipeline GitHub Actions budujący, testujący i publikujący artefakt gotowy do wdrożenia.
 
+### Sterowanie różnicowe jednym joystickiem
+
+Okrągły joystick steruje jednocześnie prędkością i kierunkiem, zamiast wybierać
+wyłącznie cztery ustalone kierunki. Jego znormalizowane położenie pionowe (`y`) i
+poziome (`x`) jest przeliczane na niezależne komendy obu silników:
+
+```text
+lewy silnik  = clamp(y + x, -1, 1) × 255
+prawy silnik = clamp(y - x, -1, 1) × 255
+```
+
+Takie miksowanie napędu różnicowego wykorzystuje całą powierzchnię joysticka:
+wychylenie pionowe napędza oba silniki jednakowo, wychylenie po skosie pozwala
+płynnie skręcać i jechać po łuku, a wychylenie poziome nadaje silnikom przeciwne
+kierunki, umożliwiając obrót robota wokół własnej osi. Centralna strefa martwa
+zapobiega przypadkowemu pełzaniu, a szersza pozioma strefa martwa ułatwia jazdę
+prosto. Zwolnienie joysticka natychmiast wysyła komendę zatrzymania; podczas jego
+przytrzymywania komendy są odświeżane co 250 ms, dzięki czemu nie zadziała
+700-milisekundowy licznik bezpieczeństwa w firmware.
+
+Klawisze strzałek są alternatywnym, skokowym sterowaniem z pełną mocą: `↑`/`↓`
+uruchamiają jazdę do przodu lub do tyłu, a `←`/`→` obracają robota w miejscu. Panel
+pokazuje wynikową wartość PWM każdego silnika na dwóch prędkościomierzach.
+
 ## Stack technologiczny
 
 | Warstwa | Technologia |

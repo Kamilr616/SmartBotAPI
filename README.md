@@ -104,6 +104,29 @@ A short local driving-test montage and a recorded live presentation of the compl
 - **Authenticated control plane** — dashboard pages and browser hub connections require ASP.NET Core Identity; the robot authenticates to the same hub with a separate API key.
 - **Cloud-ready** — a Dockerfile and .NET container metadata (`kamilr616/smartbotblazorapp`), plus a GitHub Actions pipeline that builds, tests, and publishes a deployable artifact.
 
+### One-joystick differential drive
+
+The circular joystick controls throttle and steering at the same time instead of
+selecting only four fixed directions. Its normalized vertical (`y`) and horizontal
+(`x`) positions are mixed into independent motor commands:
+
+```text
+left motor  = clamp(y + x, -1, 1) × 255
+right motor = clamp(y - x, -1, 1) × 255
+```
+
+This differential-drive mix makes the whole joystick surface useful: vertical input
+drives both motors together, diagonal input produces proportional turns and smooth
+arcs, and horizontal input drives the motors in opposite directions so the robot can
+rotate around its own axis. A central stop dead zone prevents drift, while a wider
+horizontal dead zone makes straight-line driving easier. Releasing the pointer sends
+an immediate stop command; while it is held, movement commands are refreshed every
+250 ms so the firmware's 700 ms dead-man timer remains satisfied.
+
+The arrow keys provide a discrete, full-power alternative: `↑`/`↓` drive forward or
+backward and `←`/`→` rotate in place. The dashboard displays the resulting PWM value
+for each motor on its two speedometer gauges.
+
 ## Tech Stack
 
 | Layer | Technology |

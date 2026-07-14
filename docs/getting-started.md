@@ -97,6 +97,27 @@ docker run -p 8080:8080 \
 4. Watch the depth camera output on **Image Receiver** (`/image-receiver-server`, rendered heatmap) or **Matrix Receiver** (`/matrix-receiver-server`, interpolated 32×32 grid).
 5. Review history on **Measurement Charts** (`/measurement-charts`) — pick a date range to plot temperature, distance, acceleration, and rotation.
 
+### Control reference
+
+The joystick supports proportional differential steering across its full circular
+range. Move it vertically for straight driving, diagonally for a progressively tighter
+turn, or horizontally to run the motors in opposite directions and rotate around the
+robot's own axis. Returning it to the center or releasing the pointer stops the robot.
+
+To use the keyboard, focus the control panel and use:
+
+| Key | Result |
+|---|---|
+| `↑` | Full-speed forward |
+| `↓` | Full-speed reverse |
+| `←` | Rotate left in place |
+| `→` | Rotate right in place |
+| Release the key | Stop |
+
+The speedometer gauges show the actual `-255…+255` PWM command for each motor. The
+joystick is proportional; the keyboard mapping is intentionally discrete and uses
+full power.
+
 ## Troubleshooting
 
 | Symptom | Likely cause / fix |

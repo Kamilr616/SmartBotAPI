@@ -37,6 +37,47 @@ sequenceDiagram
 
 A capture of real handshake and invocation messages is available in `other/signalr_json.txt`.
 
+## Motion Control
+
+`JoystickInputHandler` treats the on-screen joystick as a two-dimensional,
+proportional differential-drive controller. After converting browser coordinates so
+positive `y` means forward motion, it applies two dead zones and mixes throttle with
+steering:
+
+```text
+if |x| < 0.15 and |y| < 0.15:
+    left = right = 0
+else if |x| < 0.35:
+    left = right = y
+else:
+    left  = y + x
+    right = y - x
+
+motor PWM = clamp(motor, -1, 1) × 255
+```
+
+The mix is continuous rather than limited to the dominant direction displayed by the
+UI label. Equal motor values produce straight motion, unequal values produce a curve,
+and opposite values at `y = 0` rotate the robot around its own axis. The output range
+is `-255…+255`, where the sign selects motor direction and the magnitude selects PWM
+duty.
+
+`keyboardInputHandler` provides a discrete fallback using the same motor-command
+contract:
+
+| Input | Left motor | Right motor | Motion |
+|---|---:|---:|---|
+| `ArrowUp` | 255 | 255 | Forward |
+| `ArrowDown` | -255 | -255 | Reverse |
+| `ArrowLeft` | 255 | -255 | Rotate left in place |
+| `ArrowRight` | -255 | 255 | Rotate right in place |
+| Pointer/key release | 0 | 0 | Stop |
+
+The dashboard samples the held joystick continuously but throttles outgoing SignalR
+commands to one every 250 ms. Pointer/key release sends `(0, 0)` immediately. The
+firmware independently clamps received values and stops both motors after 700 ms
+without a command, so loss of browser or network control fails safe.
+
 ## Hub Contract (`Hubs/SignalHub.cs`)
 
 ### Client → Server (invocable methods)
