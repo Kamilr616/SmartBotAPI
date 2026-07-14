@@ -53,7 +53,7 @@ namespace SmartBotBlazorApp
             {
                 // Yellow → Green
                 double t = (value - 0.25) / 0.25;
-                return new Rgba32((byte)(255 - t * 255), 255, 0); 
+                return new Rgba32((byte)(255 - t * 255), 255, 0);
             }
             else if (value < 0.75)
             {
@@ -64,7 +64,7 @@ namespace SmartBotBlazorApp
             else
             {
                 // Blue → Purple
-                double t = (value - 0.75) / 0.25; 
+                double t = (value - 0.75) / 0.25;
                 return new Rgba32((byte)(t * 255), 0, 255);
             }
         }

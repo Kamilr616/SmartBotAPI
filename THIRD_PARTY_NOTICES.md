@@ -43,30 +43,28 @@ Changes: the track was trimmed and mixed with the SmartBot driving-test montage.
 
 NuGet packages retain their upstream license files and metadata. The direct
 dependencies declared by the server, client, and test projects, together with
-the transitive dependency carrying nonstandard Microsoft terms, are:
+the transitive dependencies carrying nonstandard Microsoft terms are:
 
 | Package or package group | Version | License |
 |---|---:|---|
-| Azure.Identity | 1.13.1 | [MIT](https://licenses.nuget.org/MIT) |
-| Microsoft.AspNetCore.Components.WebAssembly, .Authentication, .Server; Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore; Microsoft.AspNetCore.Identity.EntityFrameworkCore; Microsoft.AspNetCore.SignalR.Client | 8.0.10 | [MIT](https://licenses.nuget.org/MIT) |
-| Microsoft.EntityFrameworkCore.SqlServer, Microsoft.EntityFrameworkCore.Tools | 9.0.0 | [MIT](https://licenses.nuget.org/MIT) |
-| MudBlazor | 7.15.0 | [MIT](https://licenses.nuget.org/MIT) |
-| Newtonsoft.Json | 13.0.3 | [MIT](https://licenses.nuget.org/MIT) |
-| System.Formats.Asn1 | 9.0.0 | [MIT](https://licenses.nuget.org/MIT) |
+| Microsoft.AspNetCore.Components.WebAssembly, .Authentication, .Server; Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore; Microsoft.AspNetCore.Identity.EntityFrameworkCore; Microsoft.AspNetCore.SignalR.Client | 8.0.29 | [MIT](https://licenses.nuget.org/MIT) |
+| Microsoft.EntityFrameworkCore.SqlServer, Microsoft.EntityFrameworkCore.Tools | 9.0.18 | [MIT](https://licenses.nuget.org/MIT) |
+| Microsoft.Data.SqlClient | 6.1.6 | [MIT](https://licenses.nuget.org/MIT) |
+| MudBlazor | 7.16.0 | [MIT](https://licenses.nuget.org/MIT) |
+| Newtonsoft.Json | 13.0.4 | [MIT](https://licenses.nuget.org/MIT) |
 | SixLabors.ImageSharp | 3.1.12 | Apache-2.0 grant for qualifying open-source use under the [Six Labors Split License 1.0](https://sixlabors.com/posts/license-changes/) |
-| Microsoft.Data.SqlClient.SNI.runtime (transitive runtime component) | 5.1.1 | [Microsoft Software License Terms](https://www.nuget.org/packages/Microsoft.Data.SqlClient.SNI.runtime/5.1.1) |
-| Microsoft.VisualStudio.Azure.Containers.Tools.Targets (build tooling) | 1.21.0 | [Microsoft Software License Terms](https://www.nuget.org/packages/Microsoft.VisualStudio.Azure.Containers.Tools.Targets/1.21.0) |
-| coverlet.collector, Microsoft.NET.Test.Sdk | 10.0.1, 18.7.0 | [MIT](https://licenses.nuget.org/MIT) |
-| xunit, xunit.runner.visualstudio | 2.9.3, 3.1.5 | [Apache-2.0](https://licenses.nuget.org/Apache-2.0) |
+| Microsoft.Data.SqlClient.SNI.runtime (transitive runtime component) | 6.0.2 | [Microsoft Software License Terms](https://www.nuget.org/packages/Microsoft.Data.SqlClient.SNI.runtime/6.0.2) |
+| Microsoft.Identity.Client.NativeInterop (transitive runtime component) | 0.20.6 | [Microsoft Software License Terms](https://www.nuget.org/packages/Microsoft.Identity.Client.NativeInterop/0.20.6) |
+| coverlet.collector, Microsoft.NET.Test.Sdk | 10.0.1, 18.8.1 | [MIT](https://licenses.nuget.org/MIT) |
+| xunit.v3, xunit.runner.visualstudio | 3.2.2, 3.1.5 | [Apache-2.0](https://licenses.nuget.org/Apache-2.0) |
 
-The restore verified on July 15, 2026 resolves 144 unique package/version pairs
+The restore verified on July 15, 2026 resolves 140 unique package/version pairs
 across the server, client, and test projects. Their NuGet metadata consists of
-125 MIT license expressions, 7 Apache-2.0 expressions, 9 legacy upstream
-license URLs, and 3 embedded license files. The three embedded licenses are the
-SNI runtime, ImageSharp, and the Visual Studio container build tooling listed
-above; the legacy URLs belong to Microsoft/.NET Core packages and
-`xunit.abstractions`. This accounts for the complete restored graph at that
-date. Exact transitive versions can change after a future restore, so each
+127 MIT license expressions, 10 Apache-2.0 expressions, no legacy upstream
+license URLs, and 3 embedded license files. The embedded licenses are the SNI
+runtime, Microsoft Identity native interop, and ImageSharp listed above.
+Together, these entries account for the complete restored graph at that date.
+Exact transitive versions can change after a future restore, so each
 package's `.nuspec` metadata and included license file remain authoritative.
 
 ## Firmware libraries installed separately
@@ -83,10 +81,6 @@ Manager; their source code is not vendored in this repository.
 | Adafruit Unified Sensor | [Apache-2.0](https://github.com/adafruit/Adafruit_Sensor/blob/master/LICENSE.txt) |
 
 ## Externally loaded assets and trademarks
-
-The web application loads Font Awesome Free 6.0.0-beta3 from cdnjs. Font
-Awesome Free uses CC BY 4.0 for icons, SIL OFL 1.1 for fonts, and MIT for code;
-see the [Font Awesome Free License](https://fontawesome.com/license/free).
 
 `src/server/SmartBotBlazorApp/wwwroot/GitHub_Logo.png` is used only to link
 to the SmartBotAPI repository. GitHub and the GitHub logo are trademarks of

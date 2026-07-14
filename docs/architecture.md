@@ -31,7 +31,7 @@ sequenceDiagram
 ## Transport
 
 - **Protocol:** SignalR JSON hub protocol over WebSocket. The browser uses the official SignalR client; the ESP32 speaks the protocol directly — it performs the JSON handshake (`{"protocol":"json","version":1}`), then exchanges invocation messages (type `1`), each terminated by the SignalR record separator `0x1E`.
-- **Security:** dashboards authenticate with the ASP.NET Core Identity cookie. The robot supplies `SECRET_API_KEY` as the SignalR `access_token` query value; the server compares it in constant time with `RobotApiKey` (minimum 32 characters). Production transport uses TLS (`wss://`).
+- **Security:** dashboards authenticate with the ASP.NET Core Identity cookie. Interactive Server pages exchange their authenticated session for a five-minute, data-protected operator token; the WebAssembly diagnostics page uses the cookie directly. The robot supplies `SECRET_API_KEY` as the SignalR `access_token` query value, which is compared in constant time with `RobotApiKey` (minimum 32 characters). Hub methods enforce operator-versus-robot roles, and production transport uses TLS (`wss://`).
 - **Hub endpoint:** `/signalhub` (mapped in `Program.cs`).
 - **Reconnection:** the firmware retries the WebSocket every 5 s (`WS_RECONNECT_INTERVAL`); response compression is enabled server-side for `application/octet-stream`.
 
@@ -132,4 +132,4 @@ The web application uses Blazor's hybrid rendering:
 - **Interactive Server** pages (`SmartBotBlazorApp/Components/Pages/`) — live visualization and robot-control pages that hold a SignalR connection server-side.
 - **Interactive WebAssembly** pages (`SmartBotBlazorApp.Client/Pages/`) — the `/chat` text-diagnostics page connects to the hub directly from WASM.
 
-ASP.NET Core Identity provides the account system (registration, login, 2FA, management pages under `/Account/*`). Receiver and diagnostics pages require authorization.
+ASP.NET Core Identity provides the account system (registration, login, 2FA, management pages under `/Account/*`). Receiver and diagnostics pages require authorization. Registration and the no-email confirmation link are available in Development but disabled by default in other environments.

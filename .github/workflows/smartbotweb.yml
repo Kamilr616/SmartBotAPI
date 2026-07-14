@@ -15,7 +15,7 @@ permissions:
 env:
   PUBLISH_PATH: published
   CONFIGURATION: Release
-  DOTNET_CORE_VERSION: 8.0.x
+  DOTNET_CORE_VERSION: 10.0.300
   PROJECT_PATH: src/server/SmartBotBlazorApp/SmartBotBlazorApp.csproj
   SOLUTION_PATH: src/server/SmartBotBlazorApp.sln
 jobs:
@@ -28,11 +28,18 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
     - name: Restore
-      run: dotnet restore "${{ env.SOLUTION_PATH }}"
+      run: dotnet restore "${{ env.SOLUTION_PATH }}" --locked-mode
+    - name: Verify formatting
+      run: dotnet format "${{ env.SOLUTION_PATH }}" --verify-no-changes --no-restore
+    - name: Audit NuGet packages
+      shell: bash
+      run: |
+        dotnet list "${{ env.SOLUTION_PATH }}" package --vulnerable --include-transitive --format json > vulnerable-packages.json
+        test "$(jq '[.projects[]?.frameworks[]? | ((.topLevelPackages // []) + (.transitivePackages // []))[]] | length' vulnerable-packages.json)" -eq 0
     - name: Build
       run: dotnet build "${{ env.SOLUTION_PATH }}" --configuration ${{ env.CONFIGURATION }} --no-restore
     - name: Test
-      run: dotnet test "${{ env.SOLUTION_PATH }}" --configuration ${{ env.CONFIGURATION }} --no-build
+      run: dotnet test "${{ env.SOLUTION_PATH }}" --configuration ${{ env.CONFIGURATION }} --no-build --collect:"XPlat Code Coverage" --results-directory TestResults
     - name: Publish
       run: dotnet publish "${{ env.PROJECT_PATH }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.PUBLISH_PATH }}"
     - name: Publish Artifacts
@@ -40,3 +47,15 @@ jobs:
       with:
         name: webapp
         path: ${{ env.PUBLISH_PATH }}
+        if-no-files-found: error
+    - name: Publish quality reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: quality-reports
+        path: |
+          TestResults
+          vulnerable-packages.json
+        if-no-files-found: warn
+    - name: Build container image
+      run: docker build --file src/server/SmartBotBlazorApp/Dockerfile --tag smartbotapi:ci .

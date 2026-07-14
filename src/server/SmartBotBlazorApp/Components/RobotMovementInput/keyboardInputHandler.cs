@@ -35,7 +35,7 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
         {
             counter++;
             pressedKey = e.Key;
- 
+
             switch (e.Key)
             {
                 case "ArrowUp":
@@ -79,7 +79,7 @@ namespace SmartBotBlazorApp.Components.RobotMovementInput
             counter = 0;
         }
 
-       private void translateKeysToEngineValues()
+        private void translateKeysToEngineValues()
         {
             switch (robotDir)
             {
