@@ -18,18 +18,21 @@ namespace SmartBotBlazorApp.Hubs
         [HubMethodName("SendMessage")]
         public async Task SendMessage(string user, string message)
         {
+            EnsureOperatorCaller();
             await Clients.All.SendAsync("ReceiveMessage", user, $"Message:{message}");
         }
 
         [HubMethodName("ReceiveMessage")]
         public async Task ReceiveMessage(string user, string message)
         {
+            EnsureOperatorCaller();
             await Clients.Caller.SendAsync("ReceiveMessage", "API", "Message received!");
         }
 
         [HubMethodName("SendMovementCommand")]
-        public async Task SendMovementCommand(string user, int motorA,int motorB)
+        public async Task SendMovementCommand(string user, int motorA, int motorB)
         {
+            EnsureOperatorCaller();
             RobotMessageValidator.ValidateMovementCommand(motorA, motorB);
             await Clients.Others.SendAsync("ReceiveRobotCommand", motorB, motorA);
         }
@@ -37,6 +40,7 @@ namespace SmartBotBlazorApp.Hubs
         [HubMethodName("ReceiveRobotData")]
         public async Task ReceiveRobotData(string user, double[] measurements, ushort[] rawMatrix, ushort avgDistance)
         {
+            EnsureRobotCaller();
             RobotMessageValidator.ValidateTelemetry(user, measurements, rawMatrix);
             var roundedMeasurements = _measurementService.RoundMeasurements(measurements, 2);
 
@@ -46,6 +50,21 @@ namespace SmartBotBlazorApp.Hubs
                 Clients.Others.SendAsync("ReceiveMatrix", user, roundedMeasurements, _imageProcessor.InterpolateData(rawMatrix, 32), avgDistance)
             );
         }
-       
+
+        private void EnsureOperatorCaller()
+        {
+            if (!SignalHubAccess.IsOperator(Context.User))
+            {
+                throw new HubException("This hub method requires an authenticated dashboard operator.");
+            }
+        }
+
+        private void EnsureRobotCaller()
+        {
+            if (!SignalHubAccess.IsRobot(Context.User))
+            {
+                throw new HubException("This hub method requires an authenticated robot connection.");
+            }
+        }
     }
 }

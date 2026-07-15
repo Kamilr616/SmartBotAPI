@@ -5,12 +5,13 @@ namespace SmartBotBlazorApp.Data
     public class MeasurementService
     {
         private readonly ApplicationDbContext _context;
-        private static DateTime _lastSaveTime = DateTime.MinValue;
+        private readonly RobotMeasurementThrottle _throttle;
         private static readonly TimeSpan SaveThrottleDuration = TimeSpan.FromSeconds(1);
 
-        public MeasurementService(ApplicationDbContext context)
+        public MeasurementService(ApplicationDbContext context, RobotMeasurementThrottle throttle)
         {
             _context = context;
+            _throttle = throttle;
         }
 
         public async Task AddMeasurementAsync(Measurement measurement)
@@ -21,33 +22,35 @@ namespace SmartBotBlazorApp.Data
 
         public async Task SaveMeasurementsToDatabase(string robotId, double[] measurements, ushort distance)
         {
-            var currentTime = DateTime.Now;
+            ArgumentNullException.ThrowIfNull(measurements);
 
-            if ((currentTime - _lastSaveTime) >= SaveThrottleDuration)
+            if (measurements.Length != 7)
             {
-                var newMeasurement = new Measurement
-                {
-                    RobotId = robotId,
-                    AccelerationX = measurements[0],
-                    AccelerationY = measurements[1],
-                    AccelerationZ = measurements[2],
-                    RotationX = measurements[3],
-                    RotationY = measurements[4],
-                    RotationZ = measurements[5],
-                    TemperatureC = measurements[6],
-                    AvgDistance = distance,
-                    Timestamp = currentTime
-                };
+                throw new ArgumentException("Seven measurement values are required.", nameof(measurements));
+            }
 
-                _lastSaveTime = currentTime;
-                await AddMeasurementAsync(newMeasurement);
-            }
-            else
+            if (!_throttle.TryAcquire(robotId, SaveThrottleDuration, out var timestamp))
             {
-                await Task.CompletedTask;
+                return;
             }
+
+            var newMeasurement = new Measurement
+            {
+                RobotId = robotId,
+                AccelerationX = measurements[0],
+                AccelerationY = measurements[1],
+                AccelerationZ = measurements[2],
+                RotationX = measurements[3],
+                RotationY = measurements[4],
+                RotationZ = measurements[5],
+                TemperatureC = measurements[6],
+                AvgDistance = distance,
+                Timestamp = timestamp.LocalDateTime
+            };
+
+            await AddMeasurementAsync(newMeasurement);
         }
-        
+
         public double[] RoundMeasurements(double[] measurementsArray, int precision = 2)
         {
             var newMeasurementsArray = new double[7];
@@ -61,12 +64,12 @@ namespace SmartBotBlazorApp.Data
         }
         public async Task<List<Measurement>> GetAllMeasurementsFromDatabaseAsync()
         {
-            return await _context.Measurements.OrderBy(m => m.Timestamp).ToListAsync();
+            return await _context.Measurements.AsNoTracking().OrderBy(m => m.Timestamp).ToListAsync();
         }
 
         public async Task<List<Measurement>> GetMeasurementsFromDatabaseAsync(DateTime startTimestamp, DateTime endTimestamp)
         {
-            return await _context.Measurements
+            return await _context.Measurements.AsNoTracking()
                 .Where(m => m.Timestamp >= startTimestamp && m.Timestamp <= endTimestamp)
                 .OrderBy(m => m.Timestamp)
                 .ToListAsync();

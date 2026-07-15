@@ -1,5 +1,5 @@
 ﻿@page "/chat"
-@rendermode InteractiveAuto
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 @implements IAsyncDisposable
 @inject NavigationManager Navigation
 @attribute [Authorize]

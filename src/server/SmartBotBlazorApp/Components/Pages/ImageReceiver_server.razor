@@ -1,6 +1,8 @@
 ﻿@page "/image-receiver-server"
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject SignalHubTokenService SignalHubTokens
 @implements IAsyncDisposable
 @attribute [Authorize]
 @using RobotMovementInput
@@ -9,12 +11,13 @@
 <PageTitle>Live View Image</PageTitle>
 
 <div class="container">
-    <div clss="left-section">
+    <div class="left-section">
         @if (_imageSrc == null)
         {
-            <img src="@_testImage" alt="Test Image" width="512" height="512"/>
             <div class="spinner-wrapper">
-                <div class="spinner-border" role="status"/>
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Waiting for depth image data...</span>
+                </div>
             </div>
         }
         else if (IsConnected)
@@ -195,8 +198,6 @@
     private static readonly int joystickCenterX = 275;
     private static readonly int joystickCenterY = 275;
     private static readonly int joystickRadius = 150;
-    private readonly string _testImage = debugFunctions.GetExampleImage();
-
     private JoystickInputHandler _joystickHandler = new JoystickInputHandler(joystickCenterX, joystickCenterY, joystickRadius);
     private CancellationTokenSource? _joystickCancellationTokenSource;
 
@@ -340,15 +341,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        //------------------------------------- DEBUG ---------------------------------------------------------------
-        // _measurements = debugFunctions.GenerateTestMeasurements(2);
-        // _avgDistance = debugFunctions.TestDistance;
-        // _hubUser = debugFunctions.TestUser;
-        // _imageSrc = debugFunctions.GetExampleImage(); 
-        //--------------------------------------------------------------------------------------------------------
-
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl(Navigation.ToAbsoluteUri("/signalhub"))
+            .WithUrl(
+                Navigation.ToAbsoluteUri("/signalhub"),
+                options => options.AccessTokenProvider = () => Task.FromResult<string?>(
+                    SignalHubTokens.CreateOperatorToken(authenticationState.User)))
             .Build();
 
         _hubConnection.On<string, double[], string, ushort>("ReceiveBase64Frame", (user, measurements, base64Image, avgDistance) =>

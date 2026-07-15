@@ -157,7 +157,7 @@ SmartBotAPI/
 
 ### Web Server
 
-**Prerequisites:** [.NET SDK 8.0](https://dotnet.microsoft.com/download/dotnet/8.0), SQL Server LocalDB on Windows (installed with Visual Studio) or any reachable SQL Server instance.
+**Prerequisites:** [.NET SDK 10.0](https://dotnet.microsoft.com/download/dotnet/10.0) (the application targets .NET 8), SQL Server LocalDB on Windows (installed with Visual Studio) or any reachable SQL Server instance.
 
 ```powershell
 cd src/server/SmartBotBlazorApp
@@ -171,7 +171,7 @@ The app applies EF Core migrations automatically on startup and listens on:
 - `https://localhost:7297`
 - `http://localhost:5221`
 
-On first launch, create a dashboard account at `https://localhost:7297/Account/Register`, then sign in.
+The `https` launch profile uses the Development environment, where account registration and the local self-confirmation link are enabled. Create a dashboard account at `https://localhost:7297/Account/Register`, then sign in. Both options are disabled by default outside Development; configure `AccountAccess` explicitly and use a real email sender for a public deployment.
 
 To run the automated tests from the repository root:
 
@@ -190,6 +190,8 @@ docker run -p 8080:8080 \
   -e RobotApiKey="<same-long-random-key-as-the-firmware>" \
   smartbotblazorapp
 ```
+
+The container serves plain HTTP on port 8080 unless you explicitly mount and configure an HTTPS certificate. Registration remains disabled in the default production configuration.
 
 ### Robot Firmware
 
@@ -226,7 +228,7 @@ The [firmware and hardware reference](docs/firmware.md) links to the manufacture
 
 ## Deployment
 
-Pushing to `main` or opening a pull request against it triggers the GitHub Actions workflow (`.github/workflows/smartbotweb.yml`), which builds and tests the solution and publishes a deployable web-app artifact. It does not deploy to an external environment automatically.
+Pushing to `main` or opening a pull request against it triggers the GitHub Actions workflow (`.github/workflows/smartbotweb.yml`), which performs a locked restore, verifies formatting, audits NuGet packages, builds and tests with coverage, builds the container image, and publishes a deployable web-app artifact. It does not deploy to an external environment automatically.
 
 For the project presentation, the application was deployed to the **smartbotweb** Azure App Service and the firmware targeted `smartbotweb.azurewebsites.net:443`. That service is no longer hosted; the current firmware configuration uses an explicit placeholder that must be replaced with the address of the current server before use.
 

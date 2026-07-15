@@ -19,7 +19,7 @@
         public double KnobPosX => _knobPosX;
         public double KnobPosY => _knobPosY;
 
-        public int LeftEngine { get; private set; } = 0 ;
+        public int LeftEngine { get; private set; } = 0;
         public int RightEngine { get; private set; } = 0;
 
         public JoystickInputHandler(double centerX, double centerY, double radius)
@@ -102,7 +102,7 @@
                     validInput = true;
                     robotDir = RobotDirectionEnum.LEFT;
                     joystickDirection = "Left";
-                    
+
                 }
             }
             else // Vertical
@@ -144,8 +144,8 @@
             float deadzone = 0.35f;
             float stopDeadZone = 0.15f;
             const int maxEngineValue = 255;
-           
-            
+
+
             float tmpX = ((float)_knobPosX - (float)_centerX) / (float)_centerX;
             float tmpY = ((float)_knobPosY - (float)_centerY) / (float)_centerY;
             //odwracamy Y, bo jest ośka liczona od góry
@@ -156,7 +156,7 @@
             //DeadZone, żeby łatwiej się stopowało
             float leftSpeed = 0;
             float rightSpeed = 0;
-            if(Math.Abs(tmpX) < stopDeadZone && Math.Abs(tmpY) < stopDeadZone )
+            if (Math.Abs(tmpX) < stopDeadZone && Math.Abs(tmpY) < stopDeadZone)
             {
                 leftSpeed = 0;
                 rightSpeed = 0;

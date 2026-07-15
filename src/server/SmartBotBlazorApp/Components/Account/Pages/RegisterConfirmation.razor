@@ -9,6 +9,7 @@
 @inject IEmailSender<ApplicationUser> EmailSender
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject Microsoft.Extensions.Options.IOptions<AccountAccessOptions> AccountAccess
 
 <PageTitle>Register confirmation</PageTitle>
 
@@ -25,7 +26,7 @@
 }
 else
 {
-    <p>Please check your email to confirm your account.</p>
+    <p>If the account exists, follow the confirmation instructions sent by the application administrator.</p>
 }
 
 @code {
@@ -51,12 +52,10 @@ else
         var user = await UserManager.FindByEmailAsync(Email);
         if (user is null)
         {
-            HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            statusMessage = "Error finding user for unspecified email";
+            statusMessage = "Unable to prepare account confirmation.";
         }
-        else if (EmailSender is IdentityNoOpEmailSender)
+        else if (EmailSender is IdentityNoOpEmailSender && AccountAccess.Value.ShowSelfConfirmationLink)
         {
-            // Once you add a real email sender, you should remove this code that lets you confirm the account
             var userId = await UserManager.GetUserIdAsync(user);
             var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));

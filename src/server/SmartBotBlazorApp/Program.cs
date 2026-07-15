@@ -43,27 +43,21 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddAuthorization();
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("CorsPolicy", builder =>
-    {
-        builder.AllowAnyOrigin()
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-        //.AllowCredentials();
-    });
-});
+builder.Services.Configure<AccountAccessOptions>(
+    builder.Configuration.GetSection(AccountAccessOptions.SectionName));
 
 builder.Services.AddMudServices();
 
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<SignalHubTokenService>();
 
 builder.Services.AddScoped<ImageProcessor>();
 
 builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<MeasurementService>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<RobotMeasurementThrottle>();
 
 builder.Services.AddResponseCompression(opts =>
 {
@@ -100,8 +94,6 @@ else
 }
 app.UseResponseCompression();
 
-app.UseCors("CorsPolicy");
-
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
@@ -110,15 +102,39 @@ app.UseAuthorization();
 
 app.Use(async (context, next) =>
 {
-    if (context.Request.Path.StartsWithSegments("/signalhub") &&
-        !SignalHubAccess.IsAllowed(
-            context.User,
-            app.Configuration["RobotApiKey"],
-            context.Request.Query["access_token"].ToString()))
+    if (context.Request.Path.StartsWithSegments("/signalhub"))
     {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        await context.Response.WriteAsync("SignalR authentication required.");
-        return;
+        var suppliedRobotKey = context.Request.Query["access_token"].ToString();
+
+        if (context.User.Identity?.IsAuthenticated != true)
+        {
+            if (SignalHubAccess.HasValidRobotKey(app.Configuration["RobotApiKey"], suppliedRobotKey))
+            {
+                context.User = SignalHubAccess.CreateRobotPrincipal();
+            }
+            else
+            {
+                var authorization = context.Request.Headers.Authorization.ToString();
+                var bearerToken = authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                    ? authorization["Bearer ".Length..].Trim()
+                    : null;
+                var operatorToken = string.IsNullOrEmpty(bearerToken)
+                    ? suppliedRobotKey
+                    : bearerToken;
+                var operatorPrincipal = context.RequestServices
+                    .GetRequiredService<SignalHubTokenService>()
+                    .TryValidateOperatorToken(operatorToken);
+
+                if (operatorPrincipal is null)
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    await context.Response.WriteAsync("SignalR authentication required.");
+                    return;
+                }
+
+                context.User = operatorPrincipal;
+            }
+        }
     }
 
     await next();

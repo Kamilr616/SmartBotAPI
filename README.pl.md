@@ -158,7 +158,7 @@ SmartBotAPI/
 
 ### Serwer webowy
 
-**Wymagania:** [.NET SDK 8.0](https://dotnet.microsoft.com/download/dotnet/8.0), SQL Server LocalDB w systemie Windows (instalowany z Visual Studio) lub dowolna dostępna instancja SQL Server.
+**Wymagania:** [.NET SDK 10.0](https://dotnet.microsoft.com/download/dotnet/10.0) (aplikacja jest kierowana na .NET 8), SQL Server LocalDB w systemie Windows (instalowany z Visual Studio) lub dowolna dostępna instancja SQL Server.
 
 ```powershell
 cd src/server/SmartBotBlazorApp
@@ -172,7 +172,7 @@ Aplikacja automatycznie stosuje migracje EF Core przy starcie i nasłuchuje na:
 - `https://localhost:7297`
 - `http://localhost:5221`
 
-Przy pierwszym uruchomieniu utwórz konto panelu pod adresem `https://localhost:7297/Account/Register`, a następnie się zaloguj.
+Profil uruchomieniowy `https` korzysta ze środowiska Development, w którym rejestracja i lokalny link samodzielnego potwierdzenia konta są włączone. Utwórz konto panelu pod adresem `https://localhost:7297/Account/Register`, a następnie się zaloguj. Poza Development obie opcje są domyślnie wyłączone; przy publicznym wdrożeniu skonfiguruj jawnie sekcję `AccountAccess` i prawdziwą wysyłkę e-mail.
 
 Aby uruchomić testy automatyczne z katalogu głównego repozytorium:
 
@@ -191,6 +191,8 @@ docker run -p 8080:8080 \
   -e RobotApiKey="<ten-sam-dlugi-losowy-klucz-co-w-firmware>" \
   smartbotblazorapp
 ```
+
+Kontener udostępnia zwykły HTTP na porcie 8080, o ile certyfikat HTTPS nie zostanie jawnie zamontowany i skonfigurowany. W domyślnej konfiguracji produkcyjnej rejestracja pozostaje wyłączona.
 
 ### Firmware robota
 
@@ -227,7 +229,7 @@ Po połączeniu robot pojawia się na stronie **Live View Image** zalogowanego p
 
 ## Wdrożenie
 
-Push do `main` lub otwarcie pull requesta do tej gałęzi uruchamia workflow GitHub Actions (`.github/workflows/smartbotweb.yml`), który buduje i testuje rozwiązanie oraz publikuje artefakt aplikacji webowej gotowy do wdrożenia. Workflow nie wdraża automatycznie do środowiska zewnętrznego.
+Push do `main` lub otwarcie pull requesta do tej gałęzi uruchamia workflow GitHub Actions (`.github/workflows/smartbotweb.yml`), który wykonuje odtwarzalny restore, sprawdza formatowanie i podatności pakietów, buduje i testuje rozwiązanie z pomiarem pokrycia, buduje obraz kontenera oraz publikuje artefakt aplikacji webowej. Workflow nie wdraża automatycznie do środowiska zewnętrznego.
 
 Na potrzeby prezentacji projektu aplikacja była wdrożona na Azure App Service **smartbotweb**, a firmware łączył się z `smartbotweb.azurewebsites.net:443`. Usługa nie jest już hostowana; aktualna konfiguracja firmware zawiera jawny placeholder, który przed użyciem trzeba zastąpić adresem bieżącego serwera.
 

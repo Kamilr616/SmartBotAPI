@@ -6,7 +6,7 @@ This guide walks through setting up the full SmartBotAPI stack: the web server, 
 
 **Server:**
 
-- [.NET SDK 8.0](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.NET SDK 10.0](https://dotnet.microsoft.com/download/dotnet/10.0) (the projects target .NET 8)
 - SQL Server — LocalDB (installed with Visual Studio) is enough for development; any SQL Server instance works in production
 - Optional: Docker Desktop, Visual Studio 2022
 
@@ -32,9 +32,11 @@ On first start the app creates the database and applies all EF Core migrations a
 |---|---|
 | `https` | `https://localhost:7297` (+ `http://localhost:5221`) |
 | `http` | `http://localhost:5221` |
-| Docker | `http://localhost:8080`, `https://localhost:8081` |
+| Docker | `http://localhost:8080` |
 
 Open the site in a browser — the **Home** page and the navigation menu list all dashboard pages.
+
+The local launch profile uses `Development`, so registration and the no-email self-confirmation link are enabled. In other environments both are disabled by default. `AccountAccess__AllowRegistration` and `AccountAccess__ShowSelfConfirmationLink` can override them; do not expose the self-confirmation link on a public deployment.
 
 ### Custom database
 
@@ -57,7 +59,7 @@ docker run -p 8080:8080 \
   smartbotblazorapp
 ```
 
-> The container cannot reach LocalDB — always provide a real SQL Server connection string when running in Docker.
+> The container cannot reach LocalDB — always provide a real SQL Server connection string when running in Docker. It serves HTTP on port 8080 unless you mount and configure an HTTPS certificate. Registration is disabled by default in Production.
 
 ## 2. Flash the Robot Firmware
 

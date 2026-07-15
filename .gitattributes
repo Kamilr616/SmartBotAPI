@@ -1,0 +1,15 @@
+* text=auto
+
+*.cs text eol=lf
+*.csproj text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.razor text eol=lf
+*.yml text eol=lf
+Dockerfile text eol=lf
+
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.mp4 binary
+*.pdf binary

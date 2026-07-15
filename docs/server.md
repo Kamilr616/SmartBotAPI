@@ -55,7 +55,7 @@ The single real-time endpoint shared by robots and dashboards. See [architecture
 
 ### `Data/MeasurementService.cs`
 
-- `SaveMeasurementsToDatabase(user, measurements, avgDistance)` — inserts a `Measurement` row behind an approximately one-write-per-second, process-wide static timestamp check. It is shared across robot IDs and is not a strict synchronized rate limiter.
+- `SaveMeasurementsToDatabase(user, measurements, avgDistance)` — validates the seven-value IMU payload and inserts at most one row per second for each robot ID. The in-process throttle is synchronized across concurrent hub calls and uses UTC for elapsed-time comparisons while retaining local timestamps for the existing chart filters.
 - `RoundMeasurements(measurements, digits)` — display rounding (2 decimal places).
 - Date-range query used by the charts page.
 
@@ -86,6 +86,8 @@ EF Core context combining ASP.NET Core Identity tables with the `Measurement` te
 | `ConnectionStrings:DefaultConnection` | SQL Server connection (LocalDB by default) |
 | `Logging:LogLevel:*` | Standard ASP.NET Core logging levels |
 | `Api:Url` | External API base URL placeholder |
+| `AccountAccess:AllowRegistration` | Enables the registration endpoint; `false` by default, `true` in Development |
+| `AccountAccess:ShowSelfConfirmationLink` | Shows the no-email confirmation link; for local development only |
 | `AllowedHosts` | Host filtering (`*` by default) |
 
 ### Environment variables
@@ -95,7 +97,8 @@ EF Core context combining ASP.NET Core Identity tables with the `Measurement` te
 | `SmartBotDBConnectionString` | Overrides the connection string (used in Docker/Azure) |
 | `RobotApiKey` | URL-safe key (minimum 32 characters) accepted from robot connections to `/signalhub` |
 | `ASPNETCORE_ENVIRONMENT` | `Development` / `Production` |
-| `ASPNETCORE_HTTP_PORTS` / `ASPNETCORE_HTTPS_PORTS` | Container port bindings (8080/8081 in Docker) |
+| `AccountAccess__AllowRegistration` / `AccountAccess__ShowSelfConfirmationLink` | Environment-variable overrides for account provisioning |
+| `ASPNETCORE_HTTP_PORTS` / `ASPNETCORE_HTTPS_PORTS` | Optional container port bindings; the image serves HTTP on 8080 by default |
 
 ### Ports (`Properties/launchSettings.json`)
 
@@ -103,18 +106,18 @@ EF Core context combining ASP.NET Core Identity tables with the `Measurement` te
 |---|---|---|
 | Kestrel (`http`/`https`) | 5221 | 7297 |
 | IIS Express | 24385 | 44312 |
-| Docker | 8080 | 8081 |
+| Docker (default runtime) | 8080 | — |
 
 ## Middleware Pipeline (from `Program.cs`)
 
-Response compression (including `application/octet-stream` for SignalR payloads) → CORS → HTTPS redirection → static files → Identity authentication/authorization → SignalR access guard → antiforgery → Razor components (Server + WASM render modes) → SignalR hub at `/signalhub` → Identity endpoints.
+Response compression (including `application/octet-stream` for SignalR payloads) → HTTPS redirection → static files → Identity authentication/authorization → role-aware SignalR access guard → antiforgery → Razor components (Server + WASM render modes) → SignalR hub at `/signalhub` → Identity endpoints.
 
 Notes for hardening before production use:
 
-- CORS currently allows any origin — restrict it to the deployed dashboard origins in production.
-- `IEmailSender` is a no-op stub (`IdentityNoOpEmailSender`) — plug in a real sender for account confirmation emails.
+- Registration is disabled outside Development. Temporarily provision accounts in a trusted environment or connect a controlled administrative flow.
+- `IEmailSender` is a no-op stub (`IdentityNoOpEmailSender`) — plug in a real sender before enabling registration publicly. Never enable the self-confirmation link publicly.
 
 ## Deployment
 
-- **Docker:** `src/server/SmartBotBlazorApp/Dockerfile` (multi-stage: SDK build → publish → `mcr.microsoft.com/dotnet/aspnet:8.0` runtime, exposing 8080/8081). The project also defines .NET SDK container metadata (`kamilr616/smartbotblazorapp:latest`).
-- **CI:** `.github/workflows/smartbotweb.yml` builds and tests the solution and publishes a deployable artifact for pushes and pull requests targeting `main`. External deployment is intentionally manual; the Azure App Service used for the project presentation is no longer hosted.
+- **Docker:** `src/server/SmartBotBlazorApp/Dockerfile` (multi-stage .NET 10 SDK build → publish → non-root `mcr.microsoft.com/dotnet/aspnet:8.0` runtime, serving HTTP on 8080). The project also defines .NET SDK container metadata (`kamilr616/smartbotblazorapp:latest`).
+- **CI:** `.github/workflows/smartbotweb.yml` performs locked restore, formatting and vulnerability checks, build, tests with coverage, publish, and a container build for pushes and pull requests targeting `main`. External deployment is intentionally manual; the Azure App Service used for the project presentation is no longer hosted.
