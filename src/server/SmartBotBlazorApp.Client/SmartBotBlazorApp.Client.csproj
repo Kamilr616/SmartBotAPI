@@ -12,10 +12,15 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.29" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="8.0.29" />
-    <PackageReference Include="Microsoft.NET.ILLink.Tasks" Version="8.0.28" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.29" />
-    <PackageReference Include="Microsoft.NET.Sdk.WebAssembly.Pack" Version="10.0.9" PrivateAssets="all" />
   </ItemGroup>
+
+  <Target Name="PinSdkPackVersions" BeforeTargets="ProcessFrameworkReferences">
+    <ItemGroup>
+      <KnownILLinkPack Update="Microsoft.NET.ILLink.Tasks" ILLinkPackVersion="8.0.28" />
+      <KnownWebAssemblySdkPack Update="Microsoft.NET.Sdk.WebAssembly.Pack" WebAssemblySdkPackVersion="10.0.9" />
+    </ItemGroup>
+  </Target>
 
 
 
