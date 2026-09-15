@@ -243,4 +243,4 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE) �
 ## 👥 Authors
 
 - **Kamil Rataj** — author & maintainer — [GitHub](https://github.com/Kamilr616) · [LinkedIn](https://www.linkedin.com/in/kamil-r-153ab7121/)
-- **Mateusz Ciszek** ([@Matix351](https://github.com/Matix351)) — contributor
+- **Mateusz Ciszek** ([@Matix351](https://github.com/Matix351)) — | Co-author |
