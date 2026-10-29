@@ -10,7 +10,10 @@
 
 **🗓️ Okres realizacji:** 2024–2025
 
-> 🎥 **Demo na żywo:** na potrzeby prezentacji system był **wdrożony na Azure App Service** i w pełni działający — panel z uwierzytelnianiem oraz **podglądem mapy głębi na żywo** z robota *(obecnie nie jest hostowany)*. Zobacz działanie z fizycznym robotem na filmie demonstracyjnym na [YouTube](https://youtu.be/cAaiVYFb87Y) lub [Facebooku](https://www.facebook.com/reel/1991337048036257).
+> 🎥 **Demo na żywo:** na potrzeby prezentacji system był **wdrożony na Azure App Service** i w pełni działający — panel z uwierzytelnianiem oraz **podglądem mapy głębi na żywo** z robota *(obecnie nie jest hostowany)*. Zobacz działanie z fizycznym robotem na filmach demonstracyjnych:
+>
+> [▶ Obejrzyj demo na YouTube](https://youtu.be/cAaiVYFb87Y)<br>
+> [▶ Obejrzyj demo na Facebooku](https://www.facebook.com/reel/1991337048036257)
 
 **SmartBotAPI** to pełnostackowa platforma robotyczna, która łączy mobilnego robota opartego na **ESP32-C3** z panelem webowym działającym w czasie rzeczywistym. Robot przesyła na żywo telemetrię — mapę głębi 8×8 z czujnika ToF, dane 6-osiowego IMU oraz temperaturę — bezpiecznym kanałem WebSocket/SignalR, a operator steruje nim zdalnie ekranowym joystickiem lub klawiaturą. Pomiary są zapisywane w SQL Server i wizualizowane jako mapy ciepła, interpolowane macierze głębi oraz wykresy historyczne.
 
