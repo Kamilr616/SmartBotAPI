@@ -10,10 +10,7 @@
 
 **🗓️ Project period:** 2024–2025
 
-> 🎥 **Live demo:** for the project presentation the system was **deployed to Azure App Service** and fully working — an authenticated dashboard with **live depth-map streaming** from the robot *(it is no longer hosted)*. See it running with the physical robot in the 
-> [demo video on yt](https://youtu.be/cAaiVYFb87Y).
-> [demo video on fb](https://www.facebook.com/reel/1991337048036257).
-
+> 🎥 **Live demo:** for the project presentation the system was **deployed to Azure App Service** and fully working — an authenticated dashboard with **live depth-map streaming** from the robot *(it is no longer hosted)*. See it running with the physical robot in the demo video on [YouTube](https://youtu.be/cAaiVYFb87Y) or [Facebook](https://www.facebook.com/reel/1991337048036257).
 
 **SmartBotAPI** is a full-stack robotics platform that connects an ESP32-C3–based mobile robot to a real-time web dashboard. The robot streams live telemetry — an 8×8 time-of-flight depth map, 6-axis IMU data, and temperature — over a secure WebSocket/SignalR channel, while operators drive it remotely with an on-screen joystick or keyboard. Measurements are persisted to SQL Server and visualized as live heatmaps, interpolated depth matrices, and historical charts.
 
@@ -96,6 +93,7 @@ A short local driving-test montage and a recorded live presentation of the compl
 
 - **[▶ Watch the full presentation on YouTube](https://youtu.be/cAaiVYFb87Y)**
 - **[▶ Watch the full presentation on Facebook](https://www.facebook.com/reel/1991337048036257)**
+- **[▶ Download the web-control and live depth demo](other/media/SmartBot%20LiveDemo_WebControlls_Lidar.mp4)**
 
 - **[▶ Watch the driving-test montage on YouTube](https://youtu.be/L9FZEDhjk6o)**
 - **[▶ Download the driving-test montage](other/media/smartbot-driving-demo-music.mp4)** *(78 s, with music)*
@@ -248,5 +246,5 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE) �
 
 ## 👥 Authors
 
-- **Kamil Rataj** — author & maintainer — [GitHub](https://github.com/Kamilr616) · [LinkedIn](https://www.linkedin.com/in/kamil-r-153ab7121/)
-- **Mateusz Ciszek** ([@Matix351](https://github.com/Matix351)) — | Co-author |
+- **Kamil Rataj** — Author & maintainer — [GitHub](https://github.com/Kamilr616) · [LinkedIn](https://www.linkedin.com/in/kamil-r-153ab7121/)
+- **Mateusz Ciszek** — Co-author — [GitHub](https://github.com/Matix351) · [LinkedIn](https://www.linkedin.com/in/mateusz-ciszek-15080b355/)
