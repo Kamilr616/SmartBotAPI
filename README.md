@@ -10,7 +10,10 @@
 
 **🗓️ Project period:** 2024–2025
 
-> 🎥 **Live demo:** for the project presentation the system was **deployed to Azure App Service** and fully working — an authenticated dashboard with **live depth-map streaming** from the robot *(it is no longer hosted)*. See it running with the physical robot in the demo video on [YouTube](https://youtu.be/cAaiVYFb87Y) or [Facebook](https://www.facebook.com/reel/1991337048036257).
+> 🎥 **Live demo:** for the project presentation the system was **deployed to Azure App Service** and fully working — an authenticated dashboard with **live depth-map streaming** from the robot *(it is no longer hosted)*. See it running with the physical robot in the demo videos:
+>
+> [▶ Watch the demo on YouTube](https://youtu.be/cAaiVYFb87Y)<br>
+> [▶ Watch the demo on Facebook](https://www.facebook.com/reel/1991337048036257)
 
 **SmartBotAPI** is a full-stack robotics platform that connects an ESP32-C3–based mobile robot to a real-time web dashboard. The robot streams live telemetry — an 8×8 time-of-flight depth map, 6-axis IMU data, and temperature — over a secure WebSocket/SignalR channel, while operators drive it remotely with an on-screen joystick or keyboard. Measurements are persisted to SQL Server and visualized as live heatmaps, interpolated depth matrices, and historical charts.
 
