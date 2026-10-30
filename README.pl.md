@@ -10,7 +10,10 @@
 
 **🗓️ Okres realizacji:** 2024–2025
 
-> 🎥 **Demo na żywo:** na potrzeby prezentacji system był **wdrożony na Azure App Service** i w pełni działający — panel z uwierzytelnianiem oraz **podglądem mapy głębi na żywo** z robota *(obecnie nie jest hostowany)*. Zobacz działanie z fizycznym robotem na [filmie demonstracyjnym](https://www.facebook.com/reel/1991337048036257).
+> 🎥 **Demo na żywo:** na potrzeby prezentacji system był **wdrożony na Azure App Service** i w pełni działający — panel z uwierzytelnianiem oraz **podglądem mapy głębi na żywo** z robota *(obecnie nie jest hostowany)*. Zobacz działanie z fizycznym robotem na filmach demonstracyjnych:
+>
+> [▶ Obejrzyj demo na YouTube](https://youtu.be/cAaiVYFb87Y)<br>
+> [▶ Obejrzyj demo na Facebooku](https://www.facebook.com/reel/1991337048036257)
 
 **SmartBotAPI** to pełnostackowa platforma robotyczna, która łączy mobilnego robota opartego na **ESP32-C3** z panelem webowym działającym w czasie rzeczywistym. Robot przesyła na żywo telemetrię — mapę głębi 8×8 z czujnika ToF, dane 6-osiowego IMU oraz temperaturę — bezpiecznym kanałem WebSocket/SignalR, a operator steruje nim zdalnie ekranowym joystickiem lub klawiaturą. Pomiary są zapisywane w SQL Server i wizualizowane jako mapy ciepła, interpolowane macierze głębi oraz wykresy historyczne.
 
@@ -91,8 +94,12 @@ Robot korzysta z dedykowanej płytki bazowej PCB dla kontrolera, modułu sterown
 
 Krótki montaż z lokalnych testów jazdy oraz nagranie prezentacji kompletnego systemu (Katedra Informatyki, Akademia Tarnowska):
 
-- **[▶ Obejrzyj montaż z testów jazdy](other/media/smartbot-driving-demo-music.mp4)** *(78 s, z muzyką)*
+- **[▶ Obejrzyj pełną prezentację na YouTube](https://youtu.be/cAaiVYFb87Y)**
 - **[▶ Obejrzyj pełną prezentację na Facebooku](https://www.facebook.com/reel/1991337048036257)**
+- **[▶ Pobierz demo sterowania przez przeglądarkę i podglądu głębi na żywo](other/media/SmartBot%20LiveDemo_WebControlls_Lidar.mp4)**
+
+- **[▶ Obejrzyj montaż z testów jazdy na YouTube](https://youtu.be/L9FZEDhjk6o)**
+- **[▶ Pobierz montaż z testów jazdy](other/media/smartbot-driving-demo-music.mp4)** *(78 s, z muzyką)*
 
 Muzyka: **„New Direction” — Kevin MacLeod**, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Szczegóły źródła i modyfikacji: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
@@ -243,5 +250,5 @@ Projekt jest udostępniany na licencji [GNU General Public License v3.0](LICENSE
 
 ## 👥 Autorzy
 
-- **Kamil Rataj** — autor i opiekun — [GitHub](https://github.com/Kamilr616) · [LinkedIn](https://www.linkedin.com/in/kamil-r-153ab7121/)
-- **Mateusz Ciszek** ([@Matix351](https://github.com/Matix351)) — współtwórca
+- **Kamil Rataj** — Autor i opiekun — [GitHub](https://github.com/Kamilr616) · [LinkedIn](https://www.linkedin.com/in/kamil-r-153ab7121/)
+- **Mateusz Ciszek** — Współautor — [GitHub](https://github.com/Matix351) · [LinkedIn](https://www.linkedin.com/in/mateusz-ciszek-15080b355/)
