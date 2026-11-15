@@ -18,7 +18,7 @@ sequenceDiagram
     participant D as Dashboard (browser)
 
     R->>H: ReceiveRobotData(user, measurements[7], rawMatrix[64], avgDistance)
-    H->>S: round, save to DB (throttled ≤ 1/s)
+    H->>S: round, save to DB (throttled per robot ≤ 1/s)
     H->>S: render heatmap PNG + interpolate 8×8 → 32×32
     H-->>D: ReceiveBase64Frame(user, measurements, heatmapBase64, avgDistance)
     H-->>D: ReceiveMatrix(user, measurements, interpolated[1024], avgDistance)
@@ -117,7 +117,7 @@ Both transformations live in `ImageProcessor.cs` and run per incoming frame:
 1. **Heatmap generation** — the 8×8 depth frame is normalized to the 10–3500 mm range and mapped onto a red → yellow → green → blue → purple gradient, rendered with ImageSharp and returned as a base64-encoded PNG (displayed at 512×512 in the browser).
 2. **Bilinear interpolation** — the same frame is upsampled to 32×32 (`ushort[1024]`) for the interactive matrix view, where each cell is colored client-side.
 
-`MeasurementService.cs` rounds measurements to 2 decimal places for display and uses one static timestamp to throttle database writes to approximately one insert per second for the whole server process. The throttle is shared by all robots and service instances; it is not maintained per stream. The timestamp check is not protected by a concurrency lock, so it is a load-reduction mechanism rather than a strict rate-limit guarantee.
+`MeasurementService.cs` rounds measurements to 2 decimal places for display. Database writes use the singleton `RobotMeasurementThrottle`, which synchronizes timestamp checks and updates with a lock and permits one save attempt per second for each tracked robot ID. Elapsed time is compared in UTC; stored measurements retain local timestamps for the existing chart filters. Tracking is bounded to 256 robot IDs, evicting the oldest entry when a new ID exceeds that capacity. This throttle is local to one server process, so separate server instances do not share its state.
 
 ## Persistence
 

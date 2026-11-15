@@ -17,7 +17,9 @@ Service**. Robot firmware is an Arduino sketch that connects to the SignalR hub.
 - `other/media/` — README screenshots, photos, and demo video.
 
 ## Build / run / test
-- Build/run with the **.NET 8 SDK** (`dotnet build` / `dotnet run`).
+- Build/run with the SDK selected by **`global.json`** (10.0.300, `latestPatch`)
+  (`dotnet build` / `dotnet run`). The projects target **`net8.0`** and use EF Core 9;
+  install the .NET 8 and ASP.NET Core 8 runtimes for local execution/tests.
 - Tests: `dotnet test` (see `docs/getting-started.md`).
 
 ## Conventions & good practices
