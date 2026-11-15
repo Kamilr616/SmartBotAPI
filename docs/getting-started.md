@@ -6,15 +6,28 @@ This guide walks through setting up the full SmartBotAPI stack: the web server, 
 
 **Server:**
 
-- [.NET SDK 10.0](https://dotnet.microsoft.com/download/dotnet/10.0) (the projects target .NET 8)
+- [.NET SDK 10.0.300](https://dotnet.microsoft.com/download/dotnet/10.0), selected by `global.json` with `latestPatch` (the projects target `net8.0`)
+- .NET 8 and ASP.NET Core 8 runtimes (8.0.34) for running the application and tests; SDK 10 alone does not install these. Verify with `dotnet --list-runtimes`.
 - SQL Server — LocalDB (installed with Visual Studio) is enough for development; any SQL Server instance works in production
 - Optional: Docker Desktop, Visual Studio 2022
+
+The application retains .NET 8 and EF Core 9, which reached end of support on November 10, 2026. See the [platform support note](../README.md#tech-stack); migration to .NET 10 LTS is a separate follow-up.
 
 **Firmware:**
 
 - ESP32-C3 DevKitM-1 board and the robot hardware (see [firmware.md](firmware.md))
 - Arduino IDE 2.x with the ESP32 board package
 - Libraries: `ArduinoJson` (≥ 7.2), `SparkFun VL53L5CX Arduino Library` (≥ 1.0.3), `WebSockets` by Markus Sattler (≥ 2.6), `Adafruit MPU6050` (≥ 2.0.3), `Adafruit Unified Sensor`
+
+## ImageSharp Release-build license
+
+[ImageSharp 3.2.0 requires a valid issued Six Labors license at build time](https://docs-v3.sixlabors.com/articles/imagesharp/index.html), including Release builds for qualifying open-source projects.
+
+1. Apply for a free community license at [Six Labors Licensing](https://licensing.sixlabors.com/), selecting open-source/source-available and linking this repository.
+2. Enter the exact, case-sensitive assembly name `SmartBotBlazorApp`, without a file extension. Only the server project directly references ImageSharp.
+3. Save the supplied file unchanged as `src/server/SmartBotBlazorApp/sixlabors.lic`. The build discovers it automatically for local, CI, and Docker builds.
+
+Six Labors permits committing an assembly-scoped community license for the named public project. Confirm that scope before committing it. Unrestricted community and commercial licenses must remain private. A placeholder is not an issued license; Release validation requires the real file.
 
 ## 1. Run the Web Server
 

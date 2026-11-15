@@ -20,18 +20,18 @@
   <ItemGroup>
     <InternalsVisibleTo Include="SmartBotBlazorApp.Tests" />
     <ProjectReference Include="..\SmartBotBlazorApp.Client\SmartBotBlazorApp.Client.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.29" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.29" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.29" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.29" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.34" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.34" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.34" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.34" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.18" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.6" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.18">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.2.0" />
     <PackageReference Include="MudBlazor" Version="7.16.0" />
   </ItemGroup>
 

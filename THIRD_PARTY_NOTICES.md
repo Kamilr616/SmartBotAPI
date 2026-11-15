@@ -47,25 +47,33 @@ the transitive dependencies carrying nonstandard Microsoft terms are:
 
 | Package or package group | Version | License |
 |---|---:|---|
-| Microsoft.AspNetCore.Components.WebAssembly, .Authentication, .Server; Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore; Microsoft.AspNetCore.Identity.EntityFrameworkCore; Microsoft.AspNetCore.SignalR.Client | 8.0.29 | [MIT](https://licenses.nuget.org/MIT) |
+| Microsoft.AspNetCore.Components.WebAssembly, .Authentication, .Server; Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore; Microsoft.AspNetCore.Identity.EntityFrameworkCore; Microsoft.AspNetCore.SignalR.Client | 8.0.34 | [MIT](https://licenses.nuget.org/MIT) |
 | Microsoft.EntityFrameworkCore.SqlServer, Microsoft.EntityFrameworkCore.Tools | 9.0.18 | [MIT](https://licenses.nuget.org/MIT) |
-| Microsoft.Data.SqlClient | 6.1.6 | [MIT](https://licenses.nuget.org/MIT) |
+| Microsoft.Data.SqlClient | 6.1.8 | [MIT](https://licenses.nuget.org/MIT) |
 | MudBlazor | 7.16.0 | [MIT](https://licenses.nuget.org/MIT) |
 | Newtonsoft.Json | 13.0.4 | [MIT](https://licenses.nuget.org/MIT) |
-| SixLabors.ImageSharp | 3.1.12 | Apache-2.0 grant for qualifying open-source use under the [Six Labors Split License 1.0](https://sixlabors.com/posts/license-changes/) |
-| Microsoft.Data.SqlClient.SNI.runtime (transitive runtime component) | 6.0.2 | [Microsoft Software License Terms](https://www.nuget.org/packages/Microsoft.Data.SqlClient.SNI.runtime/6.0.2) |
+| SixLabors.ImageSharp | 3.2.0 | Apache-2.0 grant for qualifying open-source use under the [Six Labors Split License 1.0](https://sixlabors.com/posts/license-changes/) |
+| Microsoft.Data.SqlClient.SNI.runtime (transitive runtime component) | 6.0.3 | [Microsoft Software License Terms](https://www.nuget.org/packages/Microsoft.Data.SqlClient.SNI.runtime/6.0.3) |
 | Microsoft.Identity.Client.NativeInterop (transitive runtime component) | 0.20.6 | [Microsoft Software License Terms](https://www.nuget.org/packages/Microsoft.Identity.Client.NativeInterop/0.20.6) |
 | coverlet.collector, Microsoft.NET.Test.Sdk | 10.0.1, 18.8.1 | [MIT](https://licenses.nuget.org/MIT) |
 | xunit.v3, xunit.runner.visualstudio | 3.2.2, 3.1.5 | [Apache-2.0](https://licenses.nuget.org/Apache-2.0) |
 
-The restore verified on July 15, 2026 resolves 140 unique package/version pairs
-across the server, client, and test projects. Their NuGet metadata consists of
-127 MIT license expressions, 10 Apache-2.0 expressions, no legacy upstream
-license URLs, and 3 embedded license files. The embedded licenses are the SNI
-runtime, Microsoft Identity native interop, and ImageSharp listed above.
-Together, these entries account for the complete restored graph at that date.
-Exact transitive versions can change after a future restore, so each
-package's `.nuspec` metadata and included license file remain authoritative.
+The three checked-in `packages.lock.json` files, regenerated and inspected on
+November 16, 2026, resolve 140 unique NuGet package/version pairs across the
+server, client, and test projects. Their package `.nuspec` license declarations
+comprise 127 MIT expressions, 10 Apache-2.0 expressions, and 3 embedded license
+files. The embedded licenses are the SNI runtime, Microsoft Identity native
+interop, and ImageSharp listed above; their included files were also inspected.
+These counts exclude project references and cover the complete locked package
+graph, including build and test dependencies. The lock files record exact
+transitive versions; each package's `.nuspec` metadata and included license
+file remain authoritative when the graph is updated.
+
+ImageSharp 3.2.0 also requires a vendor-issued license key when building a project
+that directly references it. Eligible public projects can request an
+assembly-scoped community key and include that key in their repository;
+unrestricted and commercial keys must remain private. See the upstream
+[license configuration documentation](https://docs-v3.sixlabors.com/articles/imagesharp/index.html#how-to-use-the-license-file).
 
 ## Firmware libraries installed separately
 

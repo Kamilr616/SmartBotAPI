@@ -7,6 +7,10 @@ The web application lives in `src/server/` and consists of two projects:
 | `SmartBotBlazorApp` | ASP.NET Core 8.0 (Blazor Web App host) | SignalR hub, EF Core persistence, Identity, image processing, server-rendered pages |
 | `SmartBotBlazorApp.Client` | Blazor WebAssembly 8.0 | Browser-side diagnostic/auth pages; `/chat` connects to SignalR from WASM |
 
+Builds use SDK 10.0.300 with `latestPatch` from `global.json`, while the projects retain `net8.0` and EF Core 9. Explicit ASP.NET Core packages use 8.0.34, ImageSharp uses 3.2.0, and Microsoft.Data.SqlClient uses 6.1.8. Existing implicit SDK pack pins remain in place for reproducible restores.
+
+[.NET 8](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core) and [EF Core 9](https://learn.microsoft.com/en-us/ef/core/what-is-new/) reached end of support on November 10, 2026. These package updates do not restore platform support; migration to .NET 10 LTS, including EF Core and database regression testing, remains a separate follow-up.
+
 ## Pages
 
 | Route | Component | Render mode | Description |
@@ -120,4 +124,4 @@ Notes for hardening before production use:
 ## Deployment
 
 - **Docker:** `src/server/SmartBotBlazorApp/Dockerfile` (multi-stage .NET 10 SDK build → publish → non-root `mcr.microsoft.com/dotnet/aspnet:8.0` runtime, serving HTTP on 8080). The project also defines .NET SDK container metadata (`kamilr616/smartbotblazorapp:latest`).
-- **CI:** `.github/workflows/smartbotweb.yml` performs locked restore, formatting and vulnerability checks, build, tests with coverage, publish, and a container build for pushes and pull requests targeting `main`. External deployment is intentionally manual; the Azure App Service used for the project presentation is no longer hosted.
+- **CI:** `.github/workflows/smartbotweb.yml` runs for pushes to `main` and `develop`, pull requests targeting either branch, and manual dispatch. On Linux it checks/installs the .NET 8 and ASP.NET Core 8 runtimes at 8.0.34 alongside SDK 10.0.300, then performs locked restore, formatting checks, a NuGet vulnerability audit including transitive dependencies, build, tests with coverage, publish, and a container build. External deployment is intentionally manual; the Azure App Service used for the project presentation is no longer hosted.
