@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - develop
   pull_request:
     branches:
       - main
+      - develop
   workflow_dispatch:
 
 permissions:
@@ -16,6 +18,7 @@ env:
   PUBLISH_PATH: published
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 10.0.300
+  DOTNET_TEST_RUNTIME_VERSION: 8.0.34
   PROJECT_PATH: src/server/SmartBotBlazorApp/SmartBotBlazorApp.csproj
   SOLUTION_PATH: src/server/SmartBotBlazorApp.sln
 jobs:
@@ -27,6 +30,25 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+    - name: Ensure .NET 8 test runtimes
+      shell: bash
+      run: |
+        set -euo pipefail
+        dotnet --list-runtimes
+        dotnet_dir="$(dirname "$(readlink -f "$(command -v dotnet)")")"
+        installer="$RUNNER_TEMP/dotnet-install.sh"
+        for runtime in dotnet aspnetcore; do
+          framework=Microsoft.NETCore.App
+          if [ "$runtime" = aspnetcore ]; then framework=Microsoft.AspNetCore.App; fi
+          if ! dotnet --list-runtimes | grep -F "$framework $DOTNET_TEST_RUNTIME_VERSION ["; then
+            if [ ! -f "$installer" ]; then
+              curl --fail --silent --show-error --location https://dot.net/v1/dotnet-install.sh --output "$installer"
+            fi
+            bash "$installer" --runtime "$runtime" --version "$DOTNET_TEST_RUNTIME_VERSION" \
+              --install-dir "$dotnet_dir" --skip-non-versioned-files --no-path
+          fi
+          dotnet --list-runtimes | grep -F "$framework $DOTNET_TEST_RUNTIME_VERSION ["
+        done
     - name: Restore
       run: dotnet restore "${{ env.SOLUTION_PATH }}" --locked-mode
     - name: Verify formatting
@@ -34,8 +56,30 @@ jobs:
     - name: Audit NuGet packages
       shell: bash
       run: |
-        dotnet list "${{ env.SOLUTION_PATH }}" package --vulnerable --include-transitive --format json > vulnerable-packages.json
-        test "$(jq '[.projects[]?.frameworks[]? | ((.topLevelPackages // []) + (.transitivePackages // []))[]] | length' vulnerable-packages.json)" -eq 0
+        set -euo pipefail
+        dotnet list "${{ env.SOLUTION_PATH }}" package --vulnerable --include-transitive --no-restore --format json --output-version 1 > vulnerable-packages.json
+        # NuGet reports source failures in problems, even when package lists are empty.
+        # A clean project may omit frameworks; require every solution project instead.
+        jq -e '
+          def optional_array(key): if has(key) then .[key] else [] end;
+          .version == 1 and
+          (.sources | type == "array" and length > 0 and all(.[]; type == "string" and length > 0)) and
+          (optional_array("problems") | type == "array" and length == 0) and
+          (.projects | type == "array" and length == 3) and
+          ([.projects[].path | split("/") | last] | sort == [
+            "SmartBotBlazorApp.Client.csproj",
+            "SmartBotBlazorApp.Tests.csproj",
+            "SmartBotBlazorApp.csproj"
+          ]) and
+          all(.projects[];
+            (optional_array("frameworks") | type == "array") and
+            all((.frameworks // [])[];
+              (.framework | type == "string" and length > 0) and
+              (optional_array("topLevelPackages") | type == "array" and length == 0) and
+              (optional_array("transitivePackages") | type == "array" and length == 0)
+            )
+          )
+        ' vulnerable-packages.json
     - name: Build
       run: dotnet build "${{ env.SOLUTION_PATH }}" --configuration ${{ env.CONFIGURATION }} --no-restore
     - name: Test
@@ -58,4 +102,4 @@ jobs:
           vulnerable-packages.json
         if-no-files-found: warn
     - name: Build container image
-      run: docker build --file src/server/SmartBotBlazorApp/Dockerfile --tag smartbotapi:ci .
+      run: docker build --pull --file src/server/SmartBotBlazorApp/Dockerfile --tag smartbotapi:ci .

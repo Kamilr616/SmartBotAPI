@@ -1,7 +1,42 @@
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+
 namespace SmartBotBlazorApp.Tests;
 
 public class ImageProcessorTests
 {
+    [Theory]
+    [InlineData(0, 255, 0, 0)]
+    [InlineData(10, 255, 0, 0)]
+    [InlineData(3500, 255, 0, 255)]
+    [InlineData(ushort.MaxValue, 255, 0, 255)]
+    public void GenerateHeatmapProducesValidPng(int depth, int red, int green, int blue)
+    {
+        var input = Enumerable.Repeat((ushort)depth, 64).ToArray();
+
+        var result = new ImageProcessor().GenerateHeatmapBase64Image(input);
+
+        var png = Convert.FromBase64String(result);
+        byte[] signature = [137, 80, 78, 71, 13, 10, 26, 10];
+        Assert.True(png.Length >= signature.Length);
+        Assert.Equal(signature, png[..signature.Length]);
+
+        using var image = Image.Load<Rgba32>(png);
+        Assert.Equal(64, image.Width);
+        Assert.Equal(64, image.Height);
+        for (int y = 0; y < image.Height; y++)
+        {
+            for (int x = 0; x < image.Width; x++)
+            {
+                var pixel = image[x, y];
+                Assert.Equal((byte)red, pixel.R);
+                Assert.Equal((byte)green, pixel.G);
+                Assert.Equal((byte)blue, pixel.B);
+                Assert.Equal(byte.MaxValue, pixel.A);
+            }
+        }
+    }
+
     [Fact]
     public void InterpolationPreservesAllInputCorners()
     {

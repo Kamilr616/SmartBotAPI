@@ -126,16 +126,18 @@ klawiszy i zabezpieczenia opisano w
 
 | Warstwa | Technologia |
 |---|---|
-| Framework web | ASP.NET Core 8.0, Blazor (Interactive Server + WebAssembly) |
+| Framework web | ASP.NET Core 8.0, Blazor (Interactive Server + WebAssembly); jawne pakiety ASP.NET Core 8.0.34 |
 | Komponenty UI | MudBlazor 7, Bootstrap 5 |
 | Transport real-time | SignalR (protokół JSON) po WebSocket/TLS |
-| Dane | Entity Framework Core 9, SQL Server (LocalDB w dev) |
-| Przetwarzanie obrazu | SixLabors.ImageSharp (mapa ciepła, interpolacja dwuliniowa) |
+| Dane | Entity Framework Core 9, Microsoft.Data.SqlClient 6.1.8, SQL Server (LocalDB w dev) |
+| Przetwarzanie obrazu | SixLabors.ImageSharp 3.2.0 (mapa ciepła, interpolacja dwuliniowa) |
 | Tożsamość | ASP.NET Core Identity |
 | Firmware | Arduino na ESP32-C3 (Arduino IDE 2.x) |
 | Biblioteki firmware | ArduinoJson, SparkFun VL53L5CX, Adafruit MPU6050, WebSockets (Markus Sattler) |
 | Sprzęt | ESP32-C3 DevKitM-1, czujnik ToF VL53L5CX, IMU MPU6050, sterownik silników TB6612FNG, dioda statusu NeoPixel |
 | DevOps | Docker, GitHub Actions, Azure App Service (wdrożenie prezentacyjne) |
+
+**Wsparcie platformy:** [.NET 8](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core) i [EF Core 9](https://learn.microsoft.com/en-us/ef/core/what-is-new/) zakończyły okres wsparcia 10 listopada 2026 r. Ta naprawa zachowuje `net8.0` i EF Core 9; aktualizacja pakietów nie przywraca wsparcia platformy. Migracja do .NET 10 LTS, obejmująca EF Core i testy regresji bazy danych, pozostaje osobnym kolejnym zadaniem.
 
 ## Struktura repozytorium
 
@@ -165,7 +167,9 @@ SmartBotAPI/
 
 ### Serwer webowy
 
-**Wymagania:** [.NET SDK 10.0](https://dotnet.microsoft.com/download/dotnet/10.0) (aplikacja jest kierowana na .NET 8), SQL Server LocalDB w systemie Windows (instalowany z Visual Studio) lub dowolna dostępna instancja SQL Server.
+**Wymagania:** [.NET SDK 10.0.300](https://dotnet.microsoft.com/download/dotnet/10.0) wybierany przez `global.json` (`latestPatch`), środowiska uruchomieniowe .NET 8 i ASP.NET Core 8 (8.0.34) do uruchamiania aplikacji/testów oraz SQL Server LocalDB w systemie Windows (instalowany z Visual Studio) lub dowolna dostępna instancja SQL Server. Aplikacja ma target `net8.0`; sam SDK 10 nie dostarcza wymaganego środowiska uruchomieniowego.
+
+**Licencja do kompilacji Release:** ImageSharp 3.2.0 wymaga wydanej licencji Six Labors, także dla kwalifikujących się projektów open source. Uzyskaj licencję community ograniczoną do assembly `SmartBotBlazorApp`; zobacz [instrukcję konfiguracji](docs/getting-started.md#imagesharp-release-build-license). Tylko tę publiczną licencję ograniczoną do assembly można commitować; klucze bez tego ograniczenia i komercyjne muszą pozostać prywatne.
 
 ```powershell
 cd src/server/SmartBotBlazorApp
@@ -236,7 +240,7 @@ Po połączeniu robot pojawia się na stronie **Live View Image** zalogowanego p
 
 ## Wdrożenie
 
-Push do `main` lub otwarcie pull requesta do tej gałęzi uruchamia workflow GitHub Actions (`.github/workflows/smartbotweb.yml`), który wykonuje odtwarzalny restore, sprawdza formatowanie i podatności pakietów, buduje i testuje rozwiązanie z pomiarem pokrycia, buduje obraz kontenera oraz publikuje artefakt aplikacji webowej. Workflow nie wdraża automatycznie do środowiska zewnętrznego.
+Push do `main` lub `develop` albo otwarcie pull requesta do jednej z tych gałęzi uruchamia workflow GitHub Actions (`.github/workflows/smartbotweb.yml`). Workflow używa SDK 10.0.300 i sprawdza/instaluje środowiska uruchomieniowe .NET 8 oraz ASP.NET Core 8 w wersji 8.0.34 na Linuksie, następnie wykonuje restore w trybie locked, sprawdza formatowanie i podatności wszystkich zależności NuGet, w tym pośrednich, buduje i testuje rozwiązanie z pomiarem pokrycia, publikuje artefakt aplikacji webowej oraz buduje obraz kontenera. Workflow nie wdraża automatycznie do środowiska zewnętrznego.
 
 Na potrzeby prezentacji projektu aplikacja była wdrożona na Azure App Service **smartbotweb**, a firmware łączył się z `smartbotweb.azurewebsites.net:443`. Usługa nie jest już hostowana; aktualna konfiguracja firmware zawiera jawny placeholder, który przed użyciem trzeba zastąpić adresem bieżącego serwera.
 

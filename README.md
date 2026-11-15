@@ -125,16 +125,18 @@ mixing equations, dead zones, timing, key mapping, and safety behavior.
 
 | Layer | Technology |
 |---|---|
-| Web framework | ASP.NET Core 8.0, Blazor (Interactive Server + WebAssembly hybrid) |
+| Web framework | ASP.NET Core 8.0, Blazor (Interactive Server + WebAssembly hybrid); explicit ASP.NET Core packages 8.0.34 |
 | UI components | MudBlazor 7, Bootstrap 5 |
 | Real-time transport | SignalR (JSON protocol) over WebSocket/TLS |
-| Data | Entity Framework Core 9, SQL Server (LocalDB in development) |
-| Image processing | SixLabors.ImageSharp (heatmap rendering, bilinear interpolation) |
+| Data | Entity Framework Core 9, Microsoft.Data.SqlClient 6.1.8, SQL Server (LocalDB in development) |
+| Image processing | SixLabors.ImageSharp 3.2.0 (heatmap rendering, bilinear interpolation) |
 | Identity | ASP.NET Core Identity |
 | Firmware | Arduino framework on ESP32-C3 (Arduino IDE 2.x) |
 | Firmware libraries | ArduinoJson, SparkFun VL53L5CX, Adafruit MPU6050, WebSockets (Markus Sattler) |
 | Hardware | ESP32-C3 DevKitM-1, VL53L5CX ToF sensor, MPU6050 IMU, TB6612FNG motor driver, NeoPixel status LED |
 | DevOps | Docker, GitHub Actions, Azure App Service (presentation deployment) |
+
+**Platform support:** [.NET 8](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core) and [EF Core 9](https://learn.microsoft.com/en-us/ef/core/what-is-new/) reached end of support on November 10, 2026. This repair retains `net8.0` and EF Core 9; updating packages does not restore platform support. Migration to .NET 10 LTS, including EF Core and database regression testing, is a separate follow-up.
 
 ## Repository Structure
 
@@ -164,7 +166,9 @@ SmartBotAPI/
 
 ### Web Server
 
-**Prerequisites:** [.NET SDK 10.0](https://dotnet.microsoft.com/download/dotnet/10.0) (the application targets .NET 8), SQL Server LocalDB on Windows (installed with Visual Studio) or any reachable SQL Server instance.
+**Prerequisites:** [.NET SDK 10.0.300](https://dotnet.microsoft.com/download/dotnet/10.0) as selected by `global.json` (`latestPatch`), .NET 8 and ASP.NET Core 8 runtimes (8.0.34) for execution/tests, and SQL Server LocalDB on Windows (installed with Visual Studio) or any reachable SQL Server instance. The application targets `net8.0`; SDK 10 alone does not provide its runtime.
+
+**Release-build license:** ImageSharp 3.2.0 requires an issued Six Labors license, including for qualifying open-source projects. Request an assembly-scoped community license for `SmartBotBlazorApp`; see [setup instructions](docs/getting-started.md#imagesharp-release-build-license). Only that public assembly-scoped license may be committed; unrestricted or commercial keys must remain private.
 
 ```powershell
 cd src/server/SmartBotBlazorApp
@@ -235,7 +239,7 @@ The [firmware and hardware reference](docs/firmware.md) links to the manufacture
 
 ## Deployment
 
-Pushing to `main` or opening a pull request against it triggers the GitHub Actions workflow (`.github/workflows/smartbotweb.yml`), which performs a locked restore, verifies formatting, audits NuGet packages, builds and tests with coverage, builds the container image, and publishes a deployable web-app artifact. It does not deploy to an external environment automatically.
+Pushing to `main` or `develop`, or opening a pull request against either branch, triggers the GitHub Actions workflow (`.github/workflows/smartbotweb.yml`). It uses SDK 10.0.300 and checks/installs the .NET 8 and ASP.NET Core 8 runtimes at 8.0.34 on Linux, then performs a locked restore, verifies formatting, audits all NuGet dependencies including transitive packages, builds and tests with coverage, publishes a deployable web-app artifact, and builds the container image. It does not deploy to an external environment automatically.
 
 For the project presentation, the application was deployed to the **smartbotweb** Azure App Service and the firmware targeted `smartbotweb.azurewebsites.net:443`. That service is no longer hosted; the current firmware configuration uses an explicit placeholder that must be replaced with the address of the current server before use.
 
