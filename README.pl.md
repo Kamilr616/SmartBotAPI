@@ -130,7 +130,7 @@ klawiszy i zabezpieczenia opisano w
 | Komponenty UI | MudBlazor 7, Bootstrap 5 |
 | Transport real-time | SignalR (protokół JSON) po WebSocket/TLS |
 | Dane | Entity Framework Core 9, Microsoft.Data.SqlClient 6.1.8, SQL Server (LocalDB w dev) |
-| Przetwarzanie obrazu | SixLabors.ImageSharp 3.2.0 (mapa ciepła, interpolacja dwuliniowa) |
+| Przetwarzanie obrazu | SkiaSharp 4.156.1 (mapa ciepła), SkiaSharp.NativeAssets.Linux.NoDependencies 4.156.1 (natywna biblioteka dla Linuksa); własna interpolacja dwuliniowa macierzy |
 | Tożsamość | ASP.NET Core Identity |
 | Firmware | Arduino na ESP32-C3 (Arduino IDE 2.x) |
 | Biblioteki firmware | ArduinoJson, SparkFun VL53L5CX, Adafruit MPU6050, WebSockets (Markus Sattler) |
@@ -169,7 +169,7 @@ SmartBotAPI/
 
 **Wymagania:** [.NET SDK 10.0.300](https://dotnet.microsoft.com/download/dotnet/10.0) wybierany przez `global.json` (`latestPatch`), środowiska uruchomieniowe .NET 8 i ASP.NET Core 8 (8.0.34) do uruchamiania aplikacji/testów oraz SQL Server LocalDB w systemie Windows (instalowany z Visual Studio) lub dowolna dostępna instancja SQL Server. Aplikacja ma target `net8.0`; sam SDK 10 nie dostarcza wymaganego środowiska uruchomieniowego.
 
-**Licencja do kompilacji Release:** ImageSharp 3.2.0 wymaga wydanej licencji Six Labors, także dla kwalifikujących się projektów open source. Uzyskaj licencję community ograniczoną do assembly `SmartBotBlazorApp`; zobacz [instrukcję konfiguracji](docs/getting-started.md#imagesharp-release-build-license). Tylko tę publiczną licencję ograniczoną do assembly można commitować; klucze bez tego ograniczenia i komercyjne muszą pozostać prywatne.
+Renderowanie mapy ciepła korzysta ze SkiaSharp i nie wymaga klucza licencyjnego. Pakiet `SkiaSharp.NativeAssets.Linux.NoDependencies` dostarcza natywną bibliotekę dla Linuksa, także do CI i Dockera.
 
 ```powershell
 cd src/server/SmartBotBlazorApp

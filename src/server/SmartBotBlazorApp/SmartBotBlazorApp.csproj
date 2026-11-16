@@ -31,7 +31,8 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.2.0" />
+    <PackageReference Include="SkiaSharp" Version="4.156.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.156.1" GeneratePathProperty="true" />
     <PackageReference Include="MudBlazor" Version="7.16.0" />
   </ItemGroup>
 
@@ -41,6 +42,14 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Include="..\..\..\THIRD_PARTY_NOTICES.md" Link="THIRD_PARTY_NOTICES.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="$(PkgSkiaSharp_NativeAssets_Linux_NoDependencies)/LICENSE.txt" Link="licenses/skia/LICENSE.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="$(PkgSkiaSharp_NativeAssets_Linux_NoDependencies)/THIRD-PARTY-NOTICES.txt" Link="licenses/skia/THIRD-PARTY-NOTICES.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>

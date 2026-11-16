@@ -1,6 +1,4 @@
-﻿using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+﻿using SkiaSharp;
 
 
 namespace SmartBotBlazorApp
@@ -12,60 +10,62 @@ namespace SmartBotBlazorApp
             int width = 8, scaledWidth = 64;
 
             // Tworzenie obrazu
-            using var image = new Image<Rgba32>(width, width);
+            using var image = new SKBitmap(width, width, SKColorType.Rgba8888, SKAlphaType.Opaque);
 
             // Normalizacja głębokości
             ushort minDepth = 10, maxDepth = 3500;
-            double scale = 1.0 / (maxDepth - minDepth);
 
             for (int x1 = 0; x1 < width; x1++)
             {
                 for (int y1 = 0; y1 < width; y1++)
                 {
                     int index = x1 * width + y1;
-                    double normalizedValue = (depthData[index] - minDepth) * scale;
+                    double normalizedValue = (double)(depthData[index] - minDepth) / (maxDepth - minDepth);
                     normalizedValue = Math.Clamp(normalizedValue, 0, 1);
 
                     // Ustawienie koloru pikseli
                     var heatmapColor = GetHeatmapColor(normalizedValue);
-                    image[x1, y1] = heatmapColor;
+                    image.SetPixel(x1, y1, heatmapColor);
                 }
             }
 
             // Skalowanie
-            image.Mutate(ctx => ctx.Resize(scaledWidth, scaledWidth));
+            using var scaledImage = image.Resize(
+                new SKImageInfo(scaledWidth, scaledWidth, SKColorType.Rgba8888, SKAlphaType.Opaque),
+                new SKSamplingOptions(SKCubicResampler.CatmullRom))
+                ?? throw new InvalidOperationException("Unable to resize the heatmap image.");
 
             // Zapisanie jako PNG i konwersja do Base64
-            using var ms = new MemoryStream();
-            image.SaveAsPng(ms);
-            return Convert.ToBase64String(ms.ToArray());
+            using var png = scaledImage.Encode(SKEncodedImageFormat.Png, 100)
+                ?? throw new InvalidOperationException("Unable to encode the heatmap image as PNG.");
+            return Convert.ToBase64String(png.ToArray());
         }
 
-        private static Rgba32 GetHeatmapColor(double value)
+        private static SKColor GetHeatmapColor(double value)
         {
             if (value < 0.25)
             {
                 // Red → Yellow
                 double t = value / 0.25;
-                return new Rgba32(255, (byte)(t * 255), 0);
+                return new SKColor(255, (byte)(t * 255), 0);
             }
             else if (value < 0.5)
             {
                 // Yellow → Green
                 double t = (value - 0.25) / 0.25;
-                return new Rgba32((byte)(255 - t * 255), 255, 0);
+                return new SKColor((byte)(255 - t * 255), 255, 0);
             }
             else if (value < 0.75)
             {
                 // Green → Blue
                 double t = (value - 0.5) / 0.25;
-                return new Rgba32(0, (byte)(255 - t * 255), (byte)(t * 255));
+                return new SKColor(0, (byte)(255 - t * 255), (byte)(t * 255));
             }
             else
             {
                 // Blue → Purple
                 double t = (value - 0.75) / 0.25;
-                return new Rgba32((byte)(t * 255), 0, 255);
+                return new SKColor((byte)(t * 255), 0, 255);
             }
         }
 

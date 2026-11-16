@@ -671,10 +671,29 @@
         "resolved": "13.0.4",
         "contentHash": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A=="
       },
-      "SixLabors.ImageSharp": {
+      "SkiaSharp": {
         "type": "Transitive",
-        "resolved": "3.2.0",
-        "contentHash": "TuT4QJUKO1xn6HPiH7dzadQg9eI9uin+sS+pJHAjHr0nN+k9mhgJc8XKe4WU9QJ7/mNvbK6+32d2ofUf30+bqQ=="
+        "resolved": "4.156.1",
+        "contentHash": "DFlbYk/Rxnqm+UM/EaynxLlucc07+fuWzT84KsyT8aCDAT1PZOPlp5eATD7eYczTgV771bnxQKSrLbNmUCaSLQ==",
+        "dependencies": {
+          "SkiaSharp.NativeAssets.Win32": "4.156.1",
+          "SkiaSharp.NativeAssets.macOS": "4.156.1"
+        }
+      },
+      "SkiaSharp.NativeAssets.Linux.NoDependencies": {
+        "type": "Transitive",
+        "resolved": "4.156.1",
+        "contentHash": "p7LcHVbwsLOmvugPySgjA/ncq/BFap1MMbRs1u119PD8ZYFZYWaFS7MIT1e6ObwJGkJ9HVV9lEvugt30IjmFOA=="
+      },
+      "SkiaSharp.NativeAssets.macOS": {
+        "type": "Transitive",
+        "resolved": "4.156.1",
+        "contentHash": "c05wS/CpRum9JKzk77bXrUsBdxIhv4QBk+sbE3nlEfoEV53Uq9VY4yxuae20lO42kE8PoLShuh6dbbvRrE4/iw=="
+      },
+      "SkiaSharp.NativeAssets.Win32": {
+        "type": "Transitive",
+        "resolved": "4.156.1",
+        "contentHash": "BFSUQxmxG9KI2UV7MW1Xb4XhCLSB7Rwsg9E94KelNi8L6ptGXnHIOm3yqU/y3djwg4ZNiBWhOB8XAGUVaF9LuA=="
       },
       "System.ClientModel": {
         "type": "Transitive",
@@ -862,7 +881,8 @@
           "Microsoft.EntityFrameworkCore.SqlServer": "[9.0.18, )",
           "MudBlazor": "[7.16.0, )",
           "Newtonsoft.Json": "[13.0.4, )",
-          "SixLabors.ImageSharp": "[3.2.0, )",
+          "SkiaSharp": "[4.156.1, )",
+          "SkiaSharp.NativeAssets.Linux.NoDependencies": "[4.156.1, )",
           "SmartBotBlazorApp.Client": "[1.0.0, )"
         }
       },
