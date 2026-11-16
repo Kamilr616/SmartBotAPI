@@ -114,7 +114,7 @@ The `measurements` array always has 7 elements, in this order:
 
 Both transformations live in `ImageProcessor.cs` and run per incoming frame:
 
-1. **Heatmap generation** — the 8×8 depth frame is normalized to the 10–3500 mm range and mapped onto a red → yellow → green → blue → purple gradient, rendered with ImageSharp and returned as a base64-encoded PNG (displayed at 512×512 in the browser).
+1. **Heatmap generation** — the 8×8 depth frame is normalized to the 10–3500 mm range and mapped onto a red → yellow → green → blue → purple gradient. SkiaSharp maps sample `x * 8 + y` to pixel `(x, y)`, scales the image to 64×64 with Catmull–Rom cubic smoothing, and returns a base64-encoded PNG (displayed at 512×512 in the browser). The output contract covers image dimensions, orientation, and colors; encoded PNG bytes are not guaranteed to stay identical across renderer versions.
 2. **Bilinear interpolation** — the same frame is upsampled to 32×32 (`ushort[1024]`) for the interactive matrix view, where each cell is colored client-side.
 
 `MeasurementService.cs` rounds measurements to 2 decimal places for display. Database writes use the singleton `RobotMeasurementThrottle`, which synchronizes timestamp checks and updates with a lock and permits one save attempt per second for each tracked robot ID. Elapsed time is compared in UTC; stored measurements retain local timestamps for the existing chart filters. Tracking is bounded to 256 robot IDs, evicting the oldest entry when a new ID exceeds that capacity. This throttle is local to one server process, so separate server instances do not share its state.

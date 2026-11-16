@@ -19,15 +19,9 @@ The application retains .NET 8 and EF Core 9, which reached end of support on No
 - Arduino IDE 2.x with the ESP32 board package
 - Libraries: `ArduinoJson` (≥ 7.2), `SparkFun VL53L5CX Arduino Library` (≥ 1.0.3), `WebSockets` by Markus Sattler (≥ 2.6), `Adafruit MPU6050` (≥ 2.0.3), `Adafruit Unified Sensor`
 
-## ImageSharp Release-build license
+## Image rendering on Linux
 
-[ImageSharp 3.2.0 requires a valid issued Six Labors license at build time](https://docs-v3.sixlabors.com/articles/imagesharp/index.html), including Release builds for qualifying open-source projects.
-
-1. Apply for a free community license at [Six Labors Licensing](https://licensing.sixlabors.com/), selecting open-source/source-available and linking this repository.
-2. Enter the exact, case-sensitive assembly name `SmartBotBlazorApp`, without a file extension. Only the server project directly references ImageSharp.
-3. Save the supplied file unchanged as `src/server/SmartBotBlazorApp/sixlabors.lic`. The build discovers it automatically for local, CI, and Docker builds.
-
-Six Labors permits committing an assembly-scoped community license for the named public project. Confirm that scope before committing it. Unrestricted community and commercial licenses must remain private. A placeholder is not an issued license; Release validation requires the real file.
+Heatmaps use SkiaSharp 4.156.1 without a license key. The server references `SkiaSharp.NativeAssets.Linux.NoDependencies` 4.156.1 to supply the Linux native library for local runs, CI, and Docker. Restore the solution normally to obtain both packages.
 
 ## 1. Run the Web Server
 
