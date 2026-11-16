@@ -129,7 +129,7 @@ mixing equations, dead zones, timing, key mapping, and safety behavior.
 | UI components | MudBlazor 7, Bootstrap 5 |
 | Real-time transport | SignalR (JSON protocol) over WebSocket/TLS |
 | Data | Entity Framework Core 9, Microsoft.Data.SqlClient 6.1.8, SQL Server (LocalDB in development) |
-| Image processing | SixLabors.ImageSharp 3.2.0 (heatmap rendering, bilinear interpolation) |
+| Image processing | SkiaSharp 4.156.1 (heatmap rendering), SkiaSharp.NativeAssets.Linux.NoDependencies 4.156.1 (Linux native library); custom bilinear matrix interpolation |
 | Identity | ASP.NET Core Identity |
 | Firmware | Arduino framework on ESP32-C3 (Arduino IDE 2.x) |
 | Firmware libraries | ArduinoJson, SparkFun VL53L5CX, Adafruit MPU6050, WebSockets (Markus Sattler) |
@@ -168,7 +168,7 @@ SmartBotAPI/
 
 **Prerequisites:** [.NET SDK 10.0.300](https://dotnet.microsoft.com/download/dotnet/10.0) as selected by `global.json` (`latestPatch`), .NET 8 and ASP.NET Core 8 runtimes (8.0.34) for execution/tests, and SQL Server LocalDB on Windows (installed with Visual Studio) or any reachable SQL Server instance. The application targets `net8.0`; SDK 10 alone does not provide its runtime.
 
-**Release-build license:** ImageSharp 3.2.0 requires an issued Six Labors license, including for qualifying open-source projects. Request an assembly-scoped community license for `SmartBotBlazorApp`; see [setup instructions](docs/getting-started.md#imagesharp-release-build-license). Only that public assembly-scoped license may be committed; unrestricted or commercial keys must remain private.
+Heatmap rendering uses SkiaSharp and requires no license key. Its Linux native library is supplied by `SkiaSharp.NativeAssets.Linux.NoDependencies`, including for CI and Docker.
 
 ```powershell
 cd src/server/SmartBotBlazorApp

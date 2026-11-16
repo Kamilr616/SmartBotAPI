@@ -7,7 +7,9 @@ The web application lives in `src/server/` and consists of two projects:
 | `SmartBotBlazorApp` | ASP.NET Core 8.0 (Blazor Web App host) | SignalR hub, EF Core persistence, Identity, image processing, server-rendered pages |
 | `SmartBotBlazorApp.Client` | Blazor WebAssembly 8.0 | Browser-side diagnostic/auth pages; `/chat` connects to SignalR from WASM |
 
-Builds use SDK 10.0.300 with `latestPatch` from `global.json`, while the projects retain `net8.0` and EF Core 9. Explicit ASP.NET Core packages use 8.0.34, ImageSharp uses 3.2.0, and Microsoft.Data.SqlClient uses 6.1.8. Existing implicit SDK pack pins remain in place for reproducible restores.
+Builds use SDK 10.0.300 with `latestPatch` from `global.json`, while the projects retain `net8.0` and EF Core 9. Explicit ASP.NET Core packages use 8.0.34, SkiaSharp uses 4.156.1, and Microsoft.Data.SqlClient uses 6.1.8. Existing implicit SDK pack pins remain in place for reproducible restores.
+
+SkiaSharp requires no license key. `SkiaSharp.NativeAssets.Linux.NoDependencies` 4.156.1 supplies its native library for Linux, including CI and Docker builds. The full NuGet audit remains enabled.
 
 [.NET 8](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core) and [EF Core 9](https://learn.microsoft.com/en-us/ef/core/what-is-new/) reached end of support on November 10, 2026. These package updates do not restore platform support; migration to .NET 10 LTS, including EF Core and database regression testing, remains a separate follow-up.
 
@@ -54,7 +56,7 @@ The single real-time endpoint shared by robots and dashboards. See [architecture
 
 ### `ImageProcessor.cs`
 
-- `GenerateHeatmapBase64Image(ushort[64])` — renders the 8×8 depth frame to a PNG heatmap (ImageSharp) using a red→yellow→green→blue→purple gradient normalized over 10–3500 mm, returned base64-encoded.
+- `GenerateHeatmapBase64Image(ushort[64])` — renders the 8×8 depth frame with SkiaSharp using a red→yellow→green→blue→purple gradient normalized over 10–3500 mm, scales it with Catmull–Rom cubic smoothing to a 64×64 PNG, and returns it base64-encoded.
 - `InterpolateData(ushort[64], 32)` — bilinear upsampling of the frame to 32×32 for the matrix view.
 
 ### `Data/MeasurementService.cs`
